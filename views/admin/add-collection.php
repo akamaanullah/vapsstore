@@ -14,6 +14,7 @@ include __DIR__ . '/partials/header.php';
 </div>
 
 <form action="<?= BASE_URL ?>/admin/collections/store" method="POST" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
 <div class="form-layout">
     <div class="form-main">
         <div class="card">

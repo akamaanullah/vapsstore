@@ -1,6 +1,8 @@
 <?php
 namespace App\Controllers\Admin;
 
+use App\Core\Session;
+
 class CollectionController extends AdminController {
     
     public function index() {
@@ -17,6 +19,11 @@ class CollectionController extends AdminController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // CSRF Validation
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/collections/create?error=Invalid CSRF token');
+            }
+
             $collectionModel = $this->model('Collection');
             
             $headerImage = null;
@@ -66,6 +73,11 @@ class CollectionController extends AdminController {
 
     public function update($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // CSRF Validation
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/collections/edit/' . $id . '?error=Invalid CSRF token');
+            }
+
             $collectionModel = $this->model('Collection');
             
             $headerImage = $_POST['existing_image'] ?? null;
@@ -75,6 +87,11 @@ class CollectionController extends AdminController {
                 
                 $fileName = time() . '_' . $_FILES['image']['name'];
                 if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $fileName)) {
+                    // Delete old image if it exists
+                    if (!empty($_POST['existing_image'])) {
+                        $oldPath = ROOT_DIR . '/public/' . ltrim($_POST['existing_image'], '/');
+                        if (file_exists($oldPath)) unlink($oldPath);
+                    }
                     $headerImage = 'uploads/collections/' . $fileName;
                 }
             }
@@ -99,11 +116,27 @@ class CollectionController extends AdminController {
     }
 
     public function delete($id) {
-        $collectionModel = $this->model('Collection');
-        if ($collectionModel->delete($id)) {
-            $this->redirect('/admin/collections?success=Collection deleted');
-        } else {
-            $this->redirect('/admin/collections?error=Delete failed');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // CSRF Validation
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/collections?error=Invalid CSRF token');
+            }
+
+            $collectionModel = $this->model('Collection');
+            $collection = $collectionModel->find($id);
+
+            if ($collection) {
+                // Delete physical image
+                if (!empty($collection['header_image_url'])) {
+                    $filePath = ROOT_DIR . '/public/' . ltrim($collection['header_image_url'], '/');
+                    if (file_exists($filePath)) unlink($filePath);
+                }
+
+                if ($collectionModel->delete($id)) {
+                    $this->redirect('/admin/collections?success=Collection deleted');
+                }
+            }
         }
+        $this->redirect('/admin/collections?error=Delete failed');
     }
 }

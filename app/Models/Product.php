@@ -102,36 +102,58 @@ class Product extends Model {
     }
 
     /**
-     * Update an existing product
+     * Update an existing product (Transactional)
      */
     public function updateProduct($id, $data) {
-        $sql = "UPDATE {$this->table} SET 
-                brand_id = :brand_id, 
-                name = :name, 
-                custom_url = :custom_url,
-                short_desc = :short_desc, 
-                long_desc = :long_desc, 
-                base_price = :base_price, 
-                status = :status,
-                tags = :tags,
-                seo_title = :seo_title,
-                seo_description = :seo_description 
-                WHERE id = :id";
-        
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            'id' => $id,
-            'brand_id' => $data['brand_id'] ?? null,
-            'name' => $data['name'],
-            'custom_url' => !empty($data['custom_url']) ? $data['custom_url'] : $this->generateSlug($data['name']),
-            'short_desc' => $data['short_desc'] ?? null,
-            'long_desc' => $data['long_desc'] ?? null,
-            'base_price' => $data['base_price'],
-            'status' => $data['status'] ?? 'draft',
-            'tags' => $data['tags'] ?? null,
-            'seo_title' => $data['seo_title'] ?? null,
-            'seo_description' => $data['seo_description'] ?? null
-        ]);
+        $this->db->beginTransaction();
+        try {
+            $sql = "UPDATE {$this->table} SET 
+                    brand_id = :brand_id, 
+                    name = :name, 
+                    custom_url = :custom_url,
+                    short_desc = :short_desc, 
+                    long_desc = :long_desc, 
+                    base_price = :base_price, 
+                    status = :status,
+                    tags = :tags,
+                    seo_title = :seo_title,
+                    seo_description = :seo_description 
+                    WHERE id = :id";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                'id' => $id,
+                'brand_id' => $data['brand_id'] ?? null,
+                'name' => $data['name'],
+                'custom_url' => !empty($data['custom_url']) ? $data['custom_url'] : $this->generateSlug($data['name']),
+                'short_desc' => $data['short_desc'] ?? null,
+                'long_desc' => $data['long_desc'] ?? null,
+                'base_price' => $data['base_price'],
+                'status' => $data['status'] ?? 'draft',
+                'tags' => $data['tags'] ?? null,
+                'seo_title' => $data['seo_title'] ?? null,
+                'seo_description' => $data['seo_description'] ?? null
+            ]);
+
+            // Sync collections
+            if (isset($data['collection_ids'])) {
+                $this->syncCollections($id, $data['collection_ids']);
+            }
+
+            // Sync Variants
+            if (isset($data['variants'])) {
+                $this->updateVariants($id, $data['variants']);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log("Product update failed: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -145,6 +167,47 @@ class Product extends Model {
         $stmt = $this->db->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY id ASC");
         $stmt->execute([$id]);
         $product['variants'] = $stmt->fetchAll();
+
+        // Extract Options (Color, Size etc) from variant names
+        $options = [];
+        if (!empty($product['variants'])) {
+            $firstVariant = $product['variants'][0]['variant_name'];
+            if ($firstVariant) {
+                // If name is like "White / Small", we assume 2 options
+                $parts = explode(' / ', $firstVariant);
+                foreach ($parts as $i => $part) {
+                    $options[$i] = [
+                        'name' => 'Option ' . ($i + 1), // Default names if we don't know
+                        'values' => []
+                    ];
+                }
+
+                // Now collect all unique values for each option position
+                foreach ($product['variants'] as $v) {
+                    if ($v['variant_name']) {
+                        $vParts = explode(' / ', $v['variant_name']);
+                        foreach ($vParts as $i => $val) {
+                            if (isset($options[$i]) && !in_array($val, $options[$i]['values'])) {
+                                $options[$i]['values'][] = $val;
+                            }
+                        }
+                    }
+                }
+                
+                // Try to be smarter about Option Names if they follow "Name: Value" format
+                foreach ($options as $i => &$opt) {
+                    if (!empty($opt['values'][0]) && strpos($opt['values'][0], ': ') !== false) {
+                        $tempParts = explode(': ', $opt['values'][0]);
+                        $opt['name'] = $tempParts[0];
+                        // Strip the "Name: " part from all values
+                        foreach ($opt['values'] as &$v) {
+                            $v = explode(': ', $v)[1] ?? $v;
+                        }
+                    }
+                }
+            }
+        }
+        $product['options'] = array_values($options);
 
         // Get images
         $stmt = $this->db->prepare("SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC");
@@ -181,7 +244,8 @@ class Product extends Model {
      */
     public function getAdminList() {
         $sql = "SELECT p.*, b.name as brand_name, 
-                       GROUP_CONCAT(c.name SEPARATOR ', ') as collection_names
+                       GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') as collection_names,
+                       (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) as variants_count
                 FROM products p 
                 LEFT JOIN brands b ON p.brand_id = b.id 
                 LEFT JOIN product_collections pc ON p.id = pc.product_id
@@ -192,10 +256,44 @@ class Product extends Model {
     }
 
     /**
+     * Sync images: remove ones not in the provided list
+     */
+    public function syncImages($productId, $imagesToKeep = []) {
+        // Get all current images
+        $stmt = $this->db->prepare("SELECT id, image_url FROM product_images WHERE product_id = ?");
+        $stmt->execute([$productId]);
+        $dbImages = $stmt->fetchAll();
+
+        foreach ($dbImages as $dbImg) {
+            if (!in_array($dbImg['image_url'], $imagesToKeep)) {
+                // Delete from DB
+                $this->db->prepare("DELETE FROM product_images WHERE id = ?")->execute([$dbImg['id']]);
+                // Delete file
+                $filePath = ROOT_DIR . '/public/' . $dbImg['image_url'];
+                if (file_exists($filePath)) @unlink($filePath);
+            }
+        }
+    }
+
+    /**
      * Add an image to a product
      */
     public function addImage($productId, $imageUrl, $sortOrder = 0) {
         $sql = "INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)";
         return $this->db->prepare($sql)->execute([$productId, $imageUrl, $sortOrder]);
+    }
+
+    /**
+     * Update sort order for multiple images
+     */
+    public function updateImageOrder($productId, $imagesOrder = []) {
+        if (empty($imagesOrder)) return;
+        
+        $sql = "UPDATE product_images SET sort_order = ? WHERE image_url = ? AND product_id = ?";
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($imagesOrder as $index => $url) {
+            $stmt->execute([$index, $url, $productId]);
+        }
     }
 }

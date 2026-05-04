@@ -52,4 +52,29 @@ class Session {
     public static function isAdminLoggedIn() {
         return (self::get('is_logged_in') === true && self::get('user_role') === 'admin');
     }
+
+    /**
+     * Generate and store a CSRF token
+     */
+    public static function generateCsrfToken() {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * Get the current CSRF token
+     */
+    public static function getCsrfToken() {
+        return $_SESSION['csrf_token'] ?? self::generateCsrfToken();
+    }
+
+    /**
+     * Validate a submitted CSRF token
+     */
+    public static function validateCsrfToken($token) {
+        $storedToken = self::getCsrfToken();
+        return !empty($token) && hash_equals($storedToken, $token);
+    }
 }

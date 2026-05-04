@@ -81,16 +81,27 @@ include __DIR__ . '/partials/header.php';
                     </td>
                     <td class="td-default text-price">$<?php echo number_format($product['base_price'], 2); ?></td>
                     <td class="td-default text-muted"><?php echo !empty($product['collection_names']) ? $product['collection_names'] : '---'; ?></td>
-                    <td class="td-default text-muted">No variants</td>
+                    <td class="td-default text-muted">
+                        <?php 
+                        if (isset($product['variants_count']) && $product['variants_count'] > 0) {
+                            echo $product['variants_count'] . ' variants';
+                        } else {
+                            echo 'No variants';
+                        }
+                        ?>
+                    </td>
                     <td class="td-default text-muted"><?php echo date('M d, Y', strtotime($product['created_at'])); ?></td>
                     <td class="td-action">
                         <div class="action-flex">
                             <a href="<?= BASE_URL ?>/admin/products/edit/<?= $product['id'] ?>" class="btn-action-icon edit-btn" title="Edit Product">
                                 <i data-lucide="pencil"></i>
                             </a>
-                            <button class="btn-action-icon delete-btn">
-                                <i data-lucide="trash-2"></i>
-                            </button>
+                            <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this product?')">
+                                <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
+                                <button type="submit" class="btn-action-icon delete-btn" title="Delete">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>

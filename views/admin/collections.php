@@ -60,6 +60,7 @@ include __DIR__ . '/partials/header.php';
                                 <i data-lucide="pencil" class="icon-xs"></i>
                             </a>
                             <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $col['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this collection?')">
+                                <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
                                 <button type="submit" class="btn-action-icon delete-btn" title="Delete">
                                     <i data-lucide="trash-2" class="icon-xs"></i>
                                 </button>

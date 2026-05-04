@@ -13,7 +13,8 @@ include __DIR__ . '/partials/header.php';
     </div>
 </div>
 
-<form action="<?= BASE_URL ?>/admin/products/store" method="POST" enctype="multipart/form-data">
+<form id="productForm" action="<?= BASE_URL ?>/admin/products/store" method="POST" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
 <div class="form-layout">
     <div class="form-main">
         <!-- Title & Description -->
@@ -51,7 +52,7 @@ include __DIR__ . '/partials/header.php';
                     <i data-lucide="upload-cloud" class="icon-lg text-muted"></i>
                     <p class="mt-10 mb-5 fw-600">Click to upload or drag and drop</p>
                     <p class="text-muted-sm m-0">PNG, JPG, GIF up to 10MB</p>
-                    <button type="button" class="btn btn-outline btn-sm mt-15" onclick="document.getElementById('productMediaInput').click()">Add Media</button>
+                    <button type="button" class="btn btn-outline btn-sm mt-15">Add Media</button>
                 </div>
                 <div class="media-preview-grid" id="mediaPreviewGrid" style="display: none;">
                     <!-- Previews will go here -->

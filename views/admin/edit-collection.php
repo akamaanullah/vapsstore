@@ -13,12 +13,14 @@ include __DIR__ . '/partials/header.php';
     </div>
     <div class="header-actions">
         <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $collection['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this collection?')">
+            <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
             <button type="submit" class="btn btn-outline text-error">Delete collection</button>
         </form>
     </div>
 </div>
 
 <form action="<?= BASE_URL ?>/admin/collections/update/<?= $collection['id'] ?>" method="POST" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
 <div class="form-layout">
     <div class="form-main">
         <div class="card">

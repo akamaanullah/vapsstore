@@ -13,12 +13,14 @@ include __DIR__ . '/partials/header.php';
     </div>
     <div class="header-actions">
         <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this product? This cannot be undone.')">
+            <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
             <button type="submit" class="btn btn-outline text-error">Delete product</button>
         </form>
     </div>
 </div>
 
-<form action="<?= BASE_URL ?>/admin/products/update/<?= $product['id'] ?>" method="POST" enctype="multipart/form-data">
+<form id="productForm" action="<?= BASE_URL ?>/admin/products/update/<?= $product['id'] ?>" method="POST" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
 <div class="form-layout">
     <div class="form-main">
         <!-- Title & Description -->
@@ -70,7 +72,7 @@ include __DIR__ . '/partials/header.php';
                     <i data-lucide="upload-cloud" class="icon-lg text-muted"></i>
                     <p class="mt-10 mb-5 fw-600">Click to upload or drag and drop</p>
                     <p class="text-muted-sm m-0">PNG, JPG, GIF up to 10MB</p>
-                    <button type="button" class="btn btn-outline btn-sm mt-15" onclick="document.getElementById('productMediaInput').click()">Add Media</button>
+                    <button type="button" class="btn btn-outline btn-sm mt-15">Add Media</button>
                 </div>
                 <?php endif; ?>
             </div>
@@ -87,34 +89,42 @@ include __DIR__ . '/partials/header.php';
             </div>
         </div>
 
-        <!-- Variants Info (read-only display) -->
-        <?php if (!empty($product['variants'])): ?>
+        <!-- Variants Management -->
         <div class="card">
-            <h3 class="card-title-sm mb-15">Variants (<?= count($product['variants']) ?>)</h3>
-            <div class="table-responsive">
-                <table class="product-table" style="margin: 0;">
-                    <thead>
-                        <tr>
-                            <th>Variant</th>
-                            <th>SKU</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($product['variants'] as $variant): ?>
-                        <tr>
-                            <td class="fw-600"><?= htmlspecialchars($variant['variant_name'] ?? 'Default') ?></td>
-                            <td class="text-muted"><?= htmlspecialchars($variant['sku']) ?></td>
-                            <td>$<?= number_format($variant['price'], 2) ?></td>
-                            <td><?= $variant['stock_quantity'] ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <div class="card-header-flex">
+                <h3 class="card-title-sm">Variants</h3>
+                <button type="button" class="link-primary-sm btn-link" id="addVariantBtn">+ Add options like size or color</button>
+            </div>
+            
+            <div id="variantsContainer" class="mt-15" style="display: <?= !empty($product['variants']) ? 'block' : 'none' ?>;">
+                <!-- Variant options will be populated by JS -->
+            </div>
+            <button type="button" class="btn-link text-primary fs-14 fw-500 mt-10 d-none align-items-center gap-5" id="addAnotherOptionBtn">
+                <i data-lucide="plus-circle" style="width:16px;"></i> Add another option
+            </button>
+        </div>
+
+        <div class="card" id="variantsTableCard" style="display: <?= !empty($product['variants']) ? 'block' : 'none' ?>;">
+            <div class="card-header-flex mb-15">
+                <div>
+                    <h3 class="card-title-sm">Variants</h3>
+                    <div id="variantCountPlaceholder" class="text-muted-sm"></div>
+                </div>
+                <div id="bulkEditPlaceholder"></div>
+            </div>
+            <div id="variantsTableContainer">
+                <!-- Table of combinations will be generated here -->
             </div>
         </div>
-        <?php endif; ?>
+
+        <!-- Hidden Data for JS Hydration -->
+        <script id="existingVariantsData" type="application/json">
+            <?= json_encode($product['variants'] ?? []) ?>
+        </script>
+        <script id="existingOptionsData" type="application/json">
+            <?= json_encode($product['options'] ?? []) ?>
+        </script>
+        
 
         <!-- SEO -->
         <div class="card">
