@@ -3,14 +3,14 @@ namespace App\Controllers\Admin;
 
 class BrandController extends AdminController {
     public function index() {
-        include __DIR__ . '/../../../views/admin/brands.php';
+        $this->view('admin/brands');
     }
 
     public function create() {
-        include __DIR__ . '/../../../views/admin/create-brand.php';
+        $this->view('admin/create-brand');
     }
 
-    public function edit() {
-        include __DIR__ . '/../../../views/admin/edit-brand.php';
+    public function edit($id = null) {
+        $this->view('admin/edit-brand');
     }
 }

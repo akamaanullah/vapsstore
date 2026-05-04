@@ -29,6 +29,27 @@ class Model {
     }
 
     /**
+     * Delete a record by its primary key
+     */
+    public function delete($id) {
+        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    /**
+     * Count all records (or with a WHERE clause)
+     */
+    public function count($where = '', $params = []) {
+        $sql = "SELECT COUNT(*) as total FROM {$this->table}";
+        if (!empty($where)) {
+            $sql .= " WHERE {$where}";
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch()['total'];
+    }
+
+    /**
      * Execute a custom raw query
      */
     public function query($sql, $params = []) {

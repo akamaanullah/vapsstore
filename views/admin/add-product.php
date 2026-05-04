@@ -180,7 +180,7 @@ include __DIR__ . '/partials/header.php';
                 <select name="brand_id" class="modal-field-input">
                     <option value="">No Brand</option>
                     <?php foreach ($brands as $brand): ?>
-                        <option value="<?= $brand['id'] ?>"><?= $brand['name'] ?></option>
+                        <option value="<?= $brand['id'] ?>"><?= htmlspecialchars($brand['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -190,7 +190,7 @@ include __DIR__ . '/partials/header.php';
                     <?php foreach ($collections as $collection): ?>
                         <label class="d-flex align-items-center gap-10 mb-5 pointer">
                             <input type="checkbox" name="collection_ids[]" value="<?= $collection['id'] ?>">
-                            <span class="fs-14"><?= $collection['name'] ?></span>
+                            <span class="fs-14"><?= htmlspecialchars($collection['name']) ?></span>
                         </label>
                     <?php endforeach; ?>
                 </div>

@@ -41,6 +41,7 @@ class AuthController extends Controller {
                 Session::set('user_id', $user['id']);
                 Session::set('user_role', $user['role']);
                 Session::set('user_name', $user['first_name'] . ' ' . $user['last_name']);
+                Session::set('user_email', $user['email']);
 
                 $this->redirect('/admin');
             } else {

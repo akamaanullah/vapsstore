@@ -44,7 +44,7 @@ include __DIR__ . '/partials/header.php';
                             <div class="avatar-sm" style="background: var(--bg-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
                                 <i data-lucide="layers" class="icon-xs text-muted"></i>
                             </div>
-                            <span class="product-name-txt fw-600"><?= $col['name'] ?></span>
+                            <span class="product-name-txt fw-600"><?= htmlspecialchars($col['name']) ?></span>
                         </div>
                     </td>
                     <td class="text-muted fs-13"><?= $col['parent_name'] ?? '<span style="opacity: 0.5;">—</span>' ?></td>
@@ -59,9 +59,11 @@ include __DIR__ . '/partials/header.php';
                             <a href="<?= BASE_URL ?>/admin/collections/edit/<?= $col['id'] ?>" class="btn-action-icon edit-btn" title="Edit">
                                 <i data-lucide="pencil" class="icon-xs"></i>
                             </a>
-                            <a href="<?= BASE_URL ?>/admin/collections/delete/<?= $col['id'] ?>" class="btn-action-icon delete-btn" onclick="return confirm('Delete this collection?')" title="Delete">
-                                <i data-lucide="trash-2" class="icon-xs"></i>
-                            </a>
+                            <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $col['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this collection?')">
+                                <button type="submit" class="btn-action-icon delete-btn" title="Delete">
+                                    <i data-lucide="trash-2" class="icon-xs"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>

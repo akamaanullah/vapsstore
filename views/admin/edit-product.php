@@ -9,17 +9,23 @@ include __DIR__ . '/partials/header.php';
         <a href="<?= BASE_URL ?>/admin/products" class="btn-action-icon icon-action-btn">
             <i data-lucide="arrow-left" class="icon-md"></i>
         </a>
-        <h1 class="m-0">Edit Product</h1>
+        <h1 class="m-0">Edit: <?= htmlspecialchars($product['name']) ?></h1>
+    </div>
+    <div class="header-actions">
+        <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this product? This cannot be undone.')">
+            <button type="submit" class="btn btn-outline text-error">Delete product</button>
+        </form>
     </div>
 </div>
 
+<form action="<?= BASE_URL ?>/admin/products/update/<?= $product['id'] ?>" method="POST" enctype="multipart/form-data">
 <div class="form-layout">
     <div class="form-main">
         <!-- Title & Description -->
         <div class="card">
             <div class="form-group">
                 <label>Title</label>
-                <input type="text" class="modal-field-input" placeholder="Short Sleeve T-Shirt">
+                <input type="text" name="name" id="productTitleInput" class="modal-field-input" value="<?= htmlspecialchars($product['name']) ?>" placeholder="Short Sleeve T-Shirt" required>
             </div>
             <div class="form-group mb-0">
                 <label>Description</label>
@@ -35,7 +41,8 @@ include __DIR__ . '/partials/header.php';
                         <button type="button" title="Link"><i data-lucide="link"></i></button>
                         <button type="button" title="List"><i data-lucide="list"></i></button>
                     </div>
-                    <div class="rte-editor-content" contenteditable="true" data-placeholder="Add a detailed description for your product..."></div>
+                    <div class="rte-editor-content" contenteditable="true" data-placeholder="Add a detailed description for your product..."><?= $product['long_desc'] ?></div>
+                    <textarea name="description" id="descriptionInput" style="display: none;"><?= htmlspecialchars($product['long_desc'] ?? '') ?></textarea>
                 </div>
             </div>
         </div>
@@ -44,16 +51,28 @@ include __DIR__ . '/partials/header.php';
         <div class="card">
             <h3 class="card-title-sm mb-15">Media</h3>
             <div class="media-upload-area" id="mediaUploadArea">
-                <input type="file" id="productMediaInput" multiple accept="image/*" style="display: none;">
+                <input type="file" name="images[]" id="productMediaInput" multiple accept="image/*" style="display: none;">
+                
+                <?php if (!empty($product['images'])): ?>
+                <div class="media-preview-grid" id="mediaPreviewGrid" style="display: grid;">
+                    <?php foreach ($product['images'] as $image): 
+                        $imgUrl = (strpos($image['image_url'], '/') === 0) 
+                                  ? BASE_URL . $image['image_url'] 
+                                  : BASE_URL . '/' . $image['image_url'];
+                    ?>
+                    <div class="media-item">
+                        <img src="<?= $imgUrl ?>" alt="Product image">
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php else: ?>
                 <div class="media-placeholder">
                     <i data-lucide="upload-cloud" class="icon-lg text-muted"></i>
                     <p class="mt-10 mb-5 fw-600">Click to upload or drag and drop</p>
                     <p class="text-muted-sm m-0">PNG, JPG, GIF up to 10MB</p>
-                    <button class="btn btn-outline btn-sm mt-15" onclick="document.getElementById('productMediaInput').click()">Add Media</button>
+                    <button type="button" class="btn btn-outline btn-sm mt-15" onclick="document.getElementById('productMediaInput').click()">Add Media</button>
                 </div>
-                <div class="media-preview-grid" id="mediaPreviewGrid" style="display: none;">
-                    <!-- Previews will go here -->
-                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -63,59 +82,39 @@ include __DIR__ . '/partials/header.php';
             <div class="form-group mb-0">
                 <div class="input-prefix-container">
                     <span class="prefix">$</span>
-                    <input type="number" class="modal-field-input" placeholder="0.00" step="0.01">
+                    <input type="number" name="price" class="modal-field-input" value="<?= htmlspecialchars($product['base_price']) ?>" placeholder="0.00" step="0.01" required>
                 </div>
             </div>
         </div>
 
-        <!-- Inventory -->
-        <div class="card" id="inventoryCard">
-            <h3 class="card-title-sm mb-15">Inventory</h3>
-            <div class="info-grid-2">
-                <div class="form-group mb-0">
-                    <label>SKU (Stock Keeping Unit)</label>
-                    <input type="text" class="modal-field-input" placeholder="GB-PULSE-01">
-                </div>
-                <div class="form-group mb-0">
-                    <label>Quantity</label>
-                    <input type="number" class="modal-field-input" value="0">
-                </div>
-            </div>
-            <div class="form-group mt-15 mb-0">
-                <label class="d-flex align-items-center gap-10">
-                    <input type="checkbox" checked>
-                    <span>Track quantity</span>
-                </label>
-            </div>
-        </div>
-
-        <!-- Variants -->
+        <!-- Variants Info (read-only display) -->
+        <?php if (!empty($product['variants'])): ?>
         <div class="card">
-            <div class="card-header-flex">
-                <h3 class="card-title-sm">Variants</h3>
-                <button class="link-primary-sm btn-link" id="addVariantBtn">+ Add options like size or color</button>
+            <h3 class="card-title-sm mb-15">Variants (<?= count($product['variants']) ?>)</h3>
+            <div class="table-responsive">
+                <table class="product-table" style="margin: 0;">
+                    <thead>
+                        <tr>
+                            <th>Variant</th>
+                            <th>SKU</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($product['variants'] as $variant): ?>
+                        <tr>
+                            <td class="fw-600"><?= htmlspecialchars($variant['variant_name'] ?? 'Default') ?></td>
+                            <td class="text-muted"><?= htmlspecialchars($variant['sku']) ?></td>
+                            <td>$<?= number_format($variant['price'], 2) ?></td>
+                            <td><?= $variant['stock_quantity'] ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            
-            <div id="variantsContainer" class="mt-15" style="display: none;">
-                <!-- Variant options will be added here -->
-            </div>
-            <button type="button" class="btn-link text-primary fs-14 fw-500 mt-10 d-none align-items-center gap-5" id="addAnotherOptionBtn">
-                <i data-lucide="plus-circle" style="width:16px;"></i> Add another option
-            </button>
         </div>
-
-        <div class="card" id="variantsTableCard" style="display: none;">
-            <div class="card-header-flex mb-15">
-                <div>
-                    <h3 class="card-title-sm">Variants</h3>
-                    <div id="variantCountPlaceholder" class="text-muted-sm"></div>
-                </div>
-                <div id="bulkEditPlaceholder"></div>
-            </div>
-            <div id="variantsTableContainer">
-                <!-- Table of combinations will be generated here -->
-            </div>
-        </div>
+        <?php endif; ?>
 
         <!-- SEO -->
         <div class="card">
@@ -128,14 +127,22 @@ include __DIR__ . '/partials/header.php';
             <div id="seoFields" class="seo-fields-container">
                 <div class="form-group">
                     <label>Page title</label>
-                    <input type="text" class="modal-field-input seo-title-input" placeholder="Enter page title" maxlength="70">
-                    <div class="char-counter"><span class="seo-title-count">0</span> of 70 characters used</div>
+                    <input type="text" name="seo_title" class="modal-field-input seo-title-input" value="<?= htmlspecialchars($product['seo_title'] ?? '') ?>" placeholder="Enter page title" maxlength="70">
+                    <div class="char-counter"><span class="seo-title-count"><?= strlen($product['seo_title'] ?? '') ?></span> of 70 characters used</div>
                 </div>
                 
                 <div class="form-group">
                     <label>Meta description</label>
-                    <textarea class="modal-field-input seo-desc-input" rows="4" placeholder="Enter meta description" maxlength="320"></textarea>
-                    <div class="char-counter"><span class="seo-desc-count">0</span> of 320 characters used</div>
+                    <textarea name="seo_description" class="modal-field-input seo-desc-input" rows="4" placeholder="Enter meta description" maxlength="320"><?= htmlspecialchars($product['seo_description'] ?? '') ?></textarea>
+                    <div class="char-counter"><span class="seo-desc-count"><?= strlen($product['seo_description'] ?? '') ?></span> of 320 characters used</div>
+                </div>
+
+                <div class="form-group">
+                    <label>URL handle</label>
+                    <div class="input-prefix-container">
+                        <span class="prefix">.../products/</span>
+                        <input type="text" name="custom_url" id="slugInput" class="modal-field-input" value="<?= htmlspecialchars($product['custom_url']) ?>" placeholder="short-sleeve-t-shirt">
+                    </div>
                 </div>
 
                 <div class="seo-preview-box">
@@ -143,9 +150,9 @@ include __DIR__ . '/partials/header.php';
                         <i data-lucide="globe" class="seo-preview-icon"></i>
                         <span class="seo-preview-site">The Perfect Vape</span>
                     </div>
-                    <div class="seo-preview-url">www.theperfectvape.com/products/...</div>
-                    <div class="seo-preview-title">Product Title</div>
-                    <div class="seo-preview-desc">Product description will appear here...</div>
+                    <div class="seo-preview-url">www.theperfectvape.com/products/<?= htmlspecialchars($product['custom_url']) ?></div>
+                    <div class="seo-preview-title"><?= htmlspecialchars($product['seo_title'] ?: $product['name']) ?></div>
+                    <div class="seo-preview-desc"><?= htmlspecialchars($product['seo_description'] ?: 'Product description will appear here...') ?></div>
                 </div>
             </div>
         </div>
@@ -155,9 +162,10 @@ include __DIR__ . '/partials/header.php';
         <!-- Status -->
         <div class="card">
             <h3 class="card-title-sm mb-10">Status</h3>
-            <select class="modal-field-input">
-                <option value="active">Active</option>
-                <option value="draft" selected>Draft</option>
+            <select name="status" class="modal-field-input">
+                <option value="published" <?= $product['status'] === 'published' ? 'selected' : '' ?>>Active</option>
+                <option value="draft" <?= $product['status'] === 'draft' ? 'selected' : '' ?>>Draft</option>
+                <option value="archived" <?= $product['status'] === 'archived' ? 'selected' : '' ?>>Archived</option>
             </select>
             <p class="text-muted-sm mt-10">This product will be hidden from all sales channels while in draft status.</p>
         </div>
@@ -166,19 +174,32 @@ include __DIR__ . '/partials/header.php';
         <div class="card">
             <h3 class="card-title-sm mb-15">Product organization</h3>
             <div class="form-group mb-15">
+                <label>Brand</label>
+                <select name="brand_id" class="modal-field-input">
+                    <option value="">No Brand</option>
+                    <?php foreach ($brands as $brand): ?>
+                        <option value="<?= $brand['id'] ?>" <?= $brand['id'] == $product['brand_id'] ? 'selected' : '' ?>><?= htmlspecialchars($brand['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group mb-15">
                 <label>Collections</label>
-                <div class="tag-input-wrapper mb-10">
-                    <input type="text" id="collectionSearch" class="tag-field-input" placeholder="Search collections">
-                    <div id="collectionDropdown" class="dropdown-menu-custom" style="width: 100%;"></div>
+                <div class="collections-check-list" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+                    <?php foreach ($collections as $collection): ?>
+                        <label class="d-flex align-items-center gap-10 mb-5 pointer">
+                            <input type="checkbox" name="collection_ids[]" value="<?= $collection['id'] ?>" <?= in_array($collection['id'], $product['collection_ids']) ? 'checked' : '' ?>>
+                            <span class="fs-14"><?= htmlspecialchars($collection['name']) ?></span>
+                        </label>
+                    <?php endforeach; ?>
                 </div>
-                <div id="selectedCollections" class="selected-tags"></div>
-                <p class="text-muted-sm mt-5">Add this product to a collection so it's easier to find in your store.</p>
+                <p class="text-muted-sm mt-5">Select one or more collections for this product.</p>
             </div>
             <div class="form-group mb-0">
                 <label>Tags</label>
                 <div class="tag-input-wrapper mb-10">
-                    <input type="text" id="tagInput" class="tag-field-input" placeholder="Add tags">
+                    <input type="text" id="tagInput" class="tag-field-input" placeholder="Add tags" value="<?= htmlspecialchars($product['tags'] ?? '') ?>">
                 </div>
+                <input type="hidden" name="tags" id="tagsHidden" value="<?= htmlspecialchars($product['tags'] ?? '') ?>">
                 <div id="selectedTags" class="selected-tags"></div>
             </div>
         </div>
@@ -190,33 +211,9 @@ include __DIR__ . '/partials/header.php';
         <a href="<?= BASE_URL ?>/admin/products" class="btn-outline" style="text-decoration: none;">Discard</a>
     </div>
     <div class="actions-right">
-        <button class="btn btn-primary">Save product</button>
+        <button type="submit" class="btn btn-primary">Save product</button>
     </div>
 </div>
+</form>
 
 <?php include __DIR__ . '/partials/footer.php'; ?>
-
-<!-- Bulk Edit Modal -->
-<div id="bulkEditModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content-sm">
-        <div class="modal-header">
-            <h3 id="bulkEditTitle">Edit prices</h3>
-            <button class="close-modal-btn">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p id="bulkEditDescription" class="mb-15">Apply a price to all selected variants</p>
-            <div class="form-group">
-                <div class="input-prefix-container" id="bulkInputContainer">
-                    <span class="prefix" id="bulkInputPrefix">$</span>
-                    <input type="number" id="bulkValueInput" class="modal-field-input" placeholder="0.00" step="0.01">
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer mt-20">
-            <button class="btn-outline close-modal-btn">Cancel</button>
-            <button class="btn btn-dark" id="applyBulkEdit">Done</button>
-        </div>
-    </div>
-</div>
-
-

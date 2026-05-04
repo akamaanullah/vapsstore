@@ -65,7 +65,7 @@ include __DIR__ . '/partials/header.php';
                     <td class="td-product">
                         <div class="product-info-flex">
                             <img src="<?= BASE_URL ?>/admin_assets/image/placeholder.png" alt="" class="product-image">
-                            <span class="product-name-txt"><?php echo $product['name']; ?></span>
+                            <span class="product-name-txt"><?= htmlspecialchars($product['name']) ?></span>
                         </div>
                     </td>
                     <td class="td-default">

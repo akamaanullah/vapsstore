@@ -2,8 +2,11 @@
 namespace App\Models;
 
 use App\Core\Model;
+use App\Traits\Sluggable;
 
 class Collection extends Model {
+    use Sluggable;
+
     protected $table = 'collections';
 
     public function getAllWithParent() {
@@ -57,13 +60,5 @@ class Collection extends Model {
         ]);
     }
 
-    private function generateSlug($text) {
-        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-        $text = preg_replace('~[^-\w]+~', '', $text);
-        $text = trim($text, '-');
-        $text = preg_replace('~-+~', '-', $text);
-        $text = strtolower($text);
-        return empty($text) ? 'n-a' : $text;
-    }
+    // generateSlug() is provided by the Sluggable trait
 }

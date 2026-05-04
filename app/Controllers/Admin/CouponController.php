@@ -3,14 +3,14 @@ namespace App\Controllers\Admin;
 
 class CouponController extends AdminController {
     public function index() {
-        include __DIR__ . '/../../../views/admin/coupons.php';
+        $this->view('admin/coupons');
     }
 
     public function create() {
-        include __DIR__ . '/../../../views/admin/create-coupon.php';
+        $this->view('admin/create-coupon');
     }
 
-    public function edit() {
-        include __DIR__ . '/../../../views/admin/edit-coupon.php';
+    public function edit($id = null) {
+        $this->view('admin/edit-coupon');
     }
 }

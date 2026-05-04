@@ -36,17 +36,22 @@
                 </div>
                 
                 <div class="topbar-right">
+                    <?php 
+                    $userName = \App\Core\Session::get('user_name') ?? 'Admin';
+                    $userEmail = \App\Core\Session::get('user_email') ?? '';
+                    $avatarName = urlencode($userName);
+                    ?>
                     <div class="user-profile-container">
                         <div class="user-profile" id="userProfileToggle">
-                            <img src="https://ui-avatars.com/api/?name=Admin+User&background=6f6af8&color=fff" alt="Profile">
+                            <img src="https://ui-avatars.com/api/?name=<?= $avatarName ?>&background=6f6af8&color=fff" alt="Profile">
                         </div>
                         
                         <div class="user-dropdown" id="userDropdown">
                             <div class="dropdown-header">
-                                <img src="https://ui-avatars.com/api/?name=Admin+User&background=6f6af8&color=fff" alt="Profile">
+                                <img src="https://ui-avatars.com/api/?name=<?= $avatarName ?>&background=6f6af8&color=fff" alt="Profile">
                                 <div class="user-meta">
-                                    <p class="user-name">admin</p>
-                                    <p class="user-role">Admin@gmail.com</p>
+                                    <p class="user-name"><?= htmlspecialchars($userName) ?></p>
+                                    <p class="user-role"><?= htmlspecialchars($userEmail) ?></p>
                                 </div>
                             </div>
                             <div class="dropdown-divider"></div>

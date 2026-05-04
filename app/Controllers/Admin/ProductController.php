@@ -47,7 +47,7 @@ class ProductController extends AdminController {
             if ($productId) {
                 // Handle Image Uploads
                 if (!empty($_FILES['images']['name'][0])) {
-                    $uploadDir = dirname(__DIR__, 3) . '/public/uploads/products/';
+                    $uploadDir = ROOT_DIR . '/public/uploads/products/';
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0777, true);
                     }
@@ -57,7 +57,7 @@ class ProductController extends AdminController {
                         $targetPath = $uploadDir . $fileName;
 
                         if (move_uploaded_file($tmpName, $targetPath)) {
-                            $imageUrl = '/uploads/products/' . $fileName;
+                            $imageUrl = 'uploads/products/' . $fileName;
                             $productModel->addImage($productId, $imageUrl, $key);
                         }
                     }
@@ -71,6 +71,73 @@ class ProductController extends AdminController {
     }
 
     public function edit($id = null) {
-        $this->view('admin/edit-product');
+        if (!$id) $this->redirect('/admin/products');
+
+        $productModel = $this->model('Product');
+        $product = $productModel->getProductForEdit($id);
+
+        if (!$product) $this->redirect('/admin/products');
+
+        $brandModel = $this->model('Brand');
+        $collectionModel = $this->model('Collection');
+
+        $this->view('admin/edit-product', [
+            'product' => $product,
+            'brands' => $brandModel->all(),
+            'collections' => $collectionModel->all()
+        ]);
+    }
+
+    public function update($id) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $productModel = $this->model('Product');
+
+            $data = [
+                'name' => $_POST['name'],
+                'base_price' => $_POST['price'],
+                'status' => $_POST['status'],
+                'custom_url' => $_POST['custom_url'] ?? null,
+                'short_desc' => $_POST['short_desc'] ?? null,
+                'long_desc' => $_POST['description'] ?? '',
+                'brand_id' => !empty($_POST['brand_id']) ? $_POST['brand_id'] : null,
+                'tags' => $_POST['tags'] ?? '',
+                'seo_title' => $_POST['seo_title'] ?? null,
+                'seo_description' => $_POST['seo_description'] ?? null
+            ];
+
+            if ($productModel->updateProduct($id, $data)) {
+                // Sync collections
+                $productModel->syncCollections($id, $_POST['collection_ids'] ?? []);
+
+                // Handle new image uploads
+                if (!empty($_FILES['images']['name'][0])) {
+                    $uploadDir = ROOT_DIR . '/public/uploads/products/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+                    foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
+                        $fileName = time() . '_' . $_FILES['images']['name'][$key];
+                        $targetPath = $uploadDir . $fileName;
+                        if (move_uploaded_file($tmpName, $targetPath)) {
+                            $imageUrl = 'uploads/products/' . $fileName;
+                            $productModel->addImage($id, $imageUrl, $key);
+                        }
+                    }
+                }
+
+                $this->redirect('/admin/products?success=Product updated successfully');
+            } else {
+                $this->redirect('/admin/products/edit/' . $id . '?error=Failed to update product');
+            }
+        }
+    }
+
+    public function delete($id) {
+        $productModel = $this->model('Product');
+        if ($productModel->delete($id)) {
+            $this->redirect('/admin/products?success=Product deleted');
+        } else {
+            $this->redirect('/admin/products?error=Delete failed');
+        }
     }
 }

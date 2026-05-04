@@ -3,14 +3,14 @@ namespace App\Controllers\Admin;
 
 class MenuController extends AdminController {
     public function index() {
-        include __DIR__ . '/../../../views/admin/menus.php';
+        $this->view('admin/menus');
     }
 
-    public function edit() {
-        include __DIR__ . '/../../../views/admin/edit-menu.php';
+    public function edit($id = null) {
+        $this->view('admin/edit-menu');
     }
 
     public function settings() {
-        include __DIR__ . '/../../../views/admin/menu-settings.php';
+        $this->view('admin/menu-settings');
     }
 }

@@ -2,9 +2,12 @@
 namespace App\Models;
 
 use App\Core\Model;
+use App\Traits\Sluggable;
 use PDO;
 
 class Product extends Model {
+    use Sluggable;
+
     protected $table = 'products';
 
     /**
@@ -105,10 +108,14 @@ class Product extends Model {
         $sql = "UPDATE {$this->table} SET 
                 brand_id = :brand_id, 
                 name = :name, 
+                custom_url = :custom_url,
                 short_desc = :short_desc, 
                 long_desc = :long_desc, 
                 base_price = :base_price, 
-                status = :status 
+                status = :status,
+                tags = :tags,
+                seo_title = :seo_title,
+                seo_description = :seo_description 
                 WHERE id = :id";
         
         $stmt = $this->db->prepare($sql);
@@ -116,25 +123,58 @@ class Product extends Model {
             'id' => $id,
             'brand_id' => $data['brand_id'] ?? null,
             'name' => $data['name'],
+            'custom_url' => !empty($data['custom_url']) ? $data['custom_url'] : $this->generateSlug($data['name']),
             'short_desc' => $data['short_desc'] ?? null,
             'long_desc' => $data['long_desc'] ?? null,
             'base_price' => $data['base_price'],
-            'status' => $data['status'] ?? 'draft'
+            'status' => $data['status'] ?? 'draft',
+            'tags' => $data['tags'] ?? null,
+            'seo_title' => $data['seo_title'] ?? null,
+            'seo_description' => $data['seo_description'] ?? null
         ]);
     }
 
     /**
-     * Simple slug generator
+     * Get a single product with all related data for the edit page
      */
-    private function generateSlug($text) {
-        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-        $text = preg_replace('~[^-\w]+~', '', $text);
-        $text = trim($text, '-');
-        $text = preg_replace('~-+~', '-', $text);
-        $text = strtolower($text);
-        return $text ?: 'n-a';
+    public function getProductForEdit($id) {
+        $product = $this->find($id);
+        if (!$product) return null;
+
+        // Get variants
+        $stmt = $this->db->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY id ASC");
+        $stmt->execute([$id]);
+        $product['variants'] = $stmt->fetchAll();
+
+        // Get images
+        $stmt = $this->db->prepare("SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC");
+        $stmt->execute([$id]);
+        $product['images'] = $stmt->fetchAll();
+
+        // Get collection IDs
+        $stmt = $this->db->prepare("SELECT collection_id FROM product_collections WHERE product_id = ?");
+        $stmt->execute([$id]);
+        $product['collection_ids'] = array_column($stmt->fetchAll(), 'collection_id');
+
+        return $product;
     }
+
+    /**
+     * Update product collections (many-to-many sync)
+     */
+    public function syncCollections($productId, $collectionIds = []) {
+        // Remove old
+        $this->db->prepare("DELETE FROM product_collections WHERE product_id = ?")->execute([$productId]);
+        // Insert new
+        if (!empty($collectionIds)) {
+            $stmt = $this->db->prepare("INSERT INTO product_collections (product_id, collection_id) VALUES (?, ?)");
+            foreach ($collectionIds as $colId) {
+                $stmt->execute([$productId, $colId]);
+            }
+        }
+    }
+
+    // generateSlug() is provided by the Sluggable trait
 
     /**
      * Get products with brand names for the admin list

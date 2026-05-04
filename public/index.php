@@ -59,8 +59,9 @@ $router->get('/admin', 'Admin\DashboardController@index');
 $router->get('/admin/products', 'Admin\ProductController@index');
 $router->get('/admin/products/create', 'Admin\ProductController@create');
 $router->post('/admin/products/store', 'Admin\ProductController@store');
-$router->get('/admin/products/edit', 'Admin\ProductController@edit');
 $router->get('/admin/products/edit/{id}', 'Admin\ProductController@edit');
+$router->post('/admin/products/update/{id}', 'Admin\ProductController@update');
+$router->post('/admin/products/delete/{id}', 'Admin\ProductController@delete');
 
 $router->get('/admin/collections', 'Admin\CollectionController@index');
 $router->get('/admin/collections/create', 'Admin\CollectionController@create');
@@ -68,7 +69,7 @@ $router->post('/admin/collections/store', 'Admin\CollectionController@store');
 $router->get('/admin/collections/edit', 'Admin\CollectionController@edit');
 $router->get('/admin/collections/edit/{id}', 'Admin\CollectionController@edit');
 $router->post('/admin/collections/update/{id}', 'Admin\CollectionController@update');
-$router->get('/admin/collections/delete/{id}', 'Admin\CollectionController@delete');
+$router->post('/admin/collections/delete/{id}', 'Admin\CollectionController@delete');
 
 $router->get('/admin/customers', 'Admin\CustomerController@index');
 $router->get('/admin/customers/detail', 'Admin\CustomerController@detail');

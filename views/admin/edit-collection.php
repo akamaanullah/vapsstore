@@ -12,7 +12,9 @@ include __DIR__ . '/partials/header.php';
         <h1 class="m-0">Edit: <?= htmlspecialchars($collection['name']) ?></h1>
     </div>
     <div class="header-actions">
-        <a href="<?= BASE_URL ?>/admin/collections/delete/<?= $collection['id'] ?>" class="btn btn-outline text-error" onclick="return confirm('Are you sure you want to delete this collection?')">Delete collection</a>
+        <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $collection['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this collection?')">
+            <button type="submit" class="btn btn-outline text-error">Delete collection</button>
+        </form>
     </div>
 </div>
 
