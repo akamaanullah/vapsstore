@@ -48,7 +48,12 @@ class CollectionController extends AdminController {
                 'is_active' => isset($_POST['status']) && $_POST['status'] === 'active' ? 1 : 0
             ];
 
-            if ($collectionModel->createCollection($data)) {
+            if ($id = $collectionModel->createCollection($data)) {
+                // Sync UI Sections
+                if (isset($_POST['sections'])) {
+                    $uiModel = $this->model('UISection');
+                    $uiModel->syncSections('collection', $id, $_POST['sections']);
+                }
                 $this->redirect('/admin/collections?success=Collection created successfully');
             } else {
                 $this->redirect('/admin/collections/create?error=Failed to create collection');
@@ -60,14 +65,18 @@ class CollectionController extends AdminController {
         if (!$id) $this->redirect('/admin/collections');
         
         $collectionModel = $this->model('Collection');
+        $uiModel = $this->model('UISection');
+        
         $collection = $collectionModel->find($id);
         $allCollections = $collectionModel->all();
+        $sections = $uiModel->getSections('collection', $id);
 
         if (!$collection) $this->redirect('/admin/collections');
 
         $this->view('admin/edit-collection', [
             'collection' => $collection,
-            'allCollections' => $allCollections
+            'allCollections' => $allCollections,
+            'sections' => $sections
         ]);
     }
 
@@ -79,6 +88,7 @@ class CollectionController extends AdminController {
             }
 
             $collectionModel = $this->model('Collection');
+            $uiModel = $this->model('UISection');
             
             $headerImage = $_POST['existing_image'] ?? null;
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -108,6 +118,10 @@ class CollectionController extends AdminController {
             ];
 
             if ($collectionModel->updateCollection($id, $data)) {
+                // Sync UI Sections
+                if (isset($_POST['sections'])) {
+                    $uiModel->syncSections('collection', $id, $_POST['sections']);
+                }
                 $this->redirect('/admin/collections?success=Collection updated successfully');
             } else {
                 $this->redirect('/admin/collections/edit/' . $id . '?error=Failed to update collection');

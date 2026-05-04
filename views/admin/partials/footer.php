@@ -13,7 +13,13 @@
     
     <?php if (isset($pageScript)): ?>
     <!-- Page Specific JS -->
-    <script src="<?= BASE_URL ?>/admin_assets/js/<?php echo $pageScript; ?>"></script>
+    <?php if (is_array($pageScript)): ?>
+        <?php foreach ($pageScript as $script): ?>
+            <script src="<?= BASE_URL ?>/admin_assets/js/<?php echo $script; ?>"></script>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <script src="<?= BASE_URL ?>/admin_assets/js/<?php echo $pageScript; ?>"></script>
+    <?php endif; ?>
     <script>
         // Collection requirement check (Only for Product pages)
         document.querySelector('form')?.addEventListener('submit', function(e) {

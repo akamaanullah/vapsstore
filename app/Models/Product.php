@@ -25,7 +25,7 @@ class Product extends Model {
                 'name' => $data['name'],
                 'custom_url' => !empty($data['custom_url']) ? $data['custom_url'] : $this->generateSlug($data['name']),
                 'short_desc' => $data['short_desc'] ?? null,
-                'long_desc' => $data['description'] ?? null,
+                'long_desc' => $data['long_desc'] ?? null,
                 'base_price' => $data['base_price'],
                 'status' => $data['status'] ?? 'draft',
                 'tags' => $data['tags'] ?? null,
@@ -244,6 +244,7 @@ class Product extends Model {
      */
     public function getAdminList() {
         $sql = "SELECT p.*, b.name as brand_name, 
+                       (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image,
                        GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') as collection_names,
                        (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) as variants_count
                 FROM products p 
@@ -251,7 +252,7 @@ class Product extends Model {
                 LEFT JOIN product_collections pc ON p.id = pc.product_id
                 LEFT JOIN collections c ON pc.collection_id = c.id
                 GROUP BY p.id
-                ORDER BY p.created_at DESC";
+                ORDER BY p.id DESC";
         return $this->query($sql);
     }
 
@@ -295,5 +296,34 @@ class Product extends Model {
         foreach ($imagesOrder as $index => $url) {
             $stmt->execute([$index, $url, $productId]);
         }
+    }
+
+    public function getExportData() {
+        $sql = "SELECT p.*, b.name as brand_name, 
+                (SELECT SUM(stock_quantity) FROM product_variants WHERE product_id = p.id) as total_stock,
+                (SELECT GROUP_CONCAT(c.name SEPARATOR ', ') FROM collections c 
+                 JOIN product_collections pc ON pc.collection_id = c.id 
+                 WHERE pc.product_id = p.id) as collections,
+                (SELECT GROUP_CONCAT(CONCAT(v.variant_name, ' ($', v.price, ')') SEPARATOR '; ') 
+                 FROM product_variants v WHERE v.product_id = p.id) as variants
+                FROM products p 
+                LEFT JOIN brands b ON p.brand_id = b.id 
+                ORDER BY p.id DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getByCollectionId($collectionId) {
+        $sql = "SELECT p.*, 
+                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
+                FROM products p 
+                JOIN product_collections pc ON p.id = pc.product_id 
+                WHERE pc.collection_id = ? AND p.status = 'published' 
+                ORDER BY p.id DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$collectionId]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

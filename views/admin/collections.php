@@ -1,13 +1,15 @@
 <?php 
 $pageTitle = "Collections | Vape Store Admin";
+$pageScript = "collections.js";
 include __DIR__ . '/partials/header.php'; 
 ?>
 
-<div class="page-header-container page-header-between">
-    <div class="header-title-group">
-        <h1 class="m-0">Collections</h1>
-    </div>
+<div class="page-header-container">
+    <h1>Collections</h1>
     <div class="header-actions">
+        <div class="search-container">
+            <input type="text" placeholder="Search collections..." class="search-input" id="collectionSearch">
+        </div>
         <a href="<?= BASE_URL ?>/admin/collections/create" class="btn btn-primary d-flex align-items-center gap-5">
             <i data-lucide="plus" class="icon-sm"></i>
             <span>Create Collection</span>
@@ -17,13 +19,13 @@ include __DIR__ . '/partials/header.php';
 
 <div class="card card-no-padding">
     <div class="table-responsive">
-        <table class="product-table">
+        <table class="product-table" id="collectionsTable">
             <thead>
                 <tr>
                     <th style="padding-left: 20px;">Collection</th>
                     <th>Parent</th>
                     <th>Status</th>
-                    <th>Slug</th>
+                    <th>URL Path</th>
                     <th class="text-right" style="padding-right: 20px;">Action</th>
                 </tr>
             </thead>
@@ -38,12 +40,16 @@ include __DIR__ . '/partials/header.php';
                         </td>
                     </tr>
                 <?php else: foreach ($collections as $col): ?>
-                <tr>
+                <tr class="collection-row">
                     <td style="padding-left: 20px;">
                         <div class="product-info-flex">
-                            <div class="avatar-sm" style="background: var(--bg-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
-                                <i data-lucide="layers" class="icon-xs text-muted"></i>
-                            </div>
+                            <?php if (!empty($col['header_image_url'])): ?>
+                                <img src="<?= BASE_URL . '/' . $col['header_image_url'] ?>" class="product-image" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                            <?php else: ?>
+                                <div class="avatar-sm" style="background: var(--bg-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
+                                    <i data-lucide="layers" class="icon-xs text-muted"></i>
+                                </div>
+                            <?php endif; ?>
                             <span class="product-name-txt fw-600"><?= htmlspecialchars($col['name']) ?></span>
                         </div>
                     </td>
@@ -59,9 +65,9 @@ include __DIR__ . '/partials/header.php';
                             <a href="<?= BASE_URL ?>/admin/collections/edit/<?= $col['id'] ?>" class="btn-action-icon edit-btn" title="Edit">
                                 <i data-lucide="pencil" class="icon-xs"></i>
                             </a>
-                            <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $col['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this collection?')">
+                            <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $col['id'] ?>" method="POST" class="delete-collection-form" style="display:inline;">
                                 <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
-                                <button type="submit" class="btn-action-icon delete-btn" title="Delete">
+                                <button type="button" class="btn-action-icon delete-btn" title="Delete">
                                     <i data-lucide="trash-2" class="icon-xs"></i>
                                 </button>
                             </form>

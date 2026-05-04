@@ -5,6 +5,42 @@ use App\Core\Session;
 
 class ProductController extends AdminController {
     
+    public function export() {
+        $productModel = $this->model('Product');
+        $products = $productModel->getExportData();
+
+        $filename = "products_export_" . date('Y-m-d') . ".csv";
+
+        // Clean any output buffer to prevent warnings in CSV
+        if (ob_get_length()) ob_end_clean();
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        $output = fopen('php://output', 'w');
+
+        // CSV Headers
+        fputcsv($output, ['ID', 'Product Name', 'Status', 'Base Price', 'Total Stock', 'Brand', 'Collections', 'Variants (Price)', 'Tags', 'Created At']);
+
+        foreach ($products as $product) {
+            fputcsv($output, [
+                $product['id'],
+                $product['name'],
+                ucfirst($product['status']),
+                $product['base_price'],
+                $product['total_stock'] ?? 0,
+                $product['brand_name'] ?? 'N/A',
+                $product['collections'] ?? 'None',
+                $product['variants'] ?? 'None',
+                $product['tags'] ?? '',
+                $product['created_at']
+            ]);
+        }
+
+        fclose($output);
+        exit;
+    }
+
     public function index() {
         $productModel = $this->model('Product');
         $products = $productModel->getAdminList();
@@ -15,8 +51,8 @@ class ProductController extends AdminController {
         $brandModel = $this->model('Brand');
         $collectionModel = $this->model('Collection');
         
-        $brands = $brandModel->all();
-        $collections = $collectionModel->all();
+        $brands = $brandModel->getAllBrands();
+        $collections = $collectionModel->getAllWithParent();
 
         $this->view('admin/add-product', [
             'brands' => $brands,
@@ -38,7 +74,8 @@ class ProductController extends AdminController {
                 'base_price' => $_POST['price'],
                 'status' => $_POST['status'],
                 'custom_url' => $_POST['custom_url'] ?? null,
-                'description' => $_POST['description'] ?? '',
+                'short_desc' => $_POST['short_desc'] ?? null,
+                'long_desc' => $_POST['description'] ?? '',
                 'stock' => $_POST['stock'] ?? 0,
                 'sku' => $_POST['sku'] ?? null,
                 'brand_id' => !empty($_POST['brand_id']) ? $_POST['brand_id'] : null,

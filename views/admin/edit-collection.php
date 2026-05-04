@@ -1,6 +1,6 @@
 <?php 
 $pageTitle = "Edit Collection | Vape Store Admin";
-$pageScript = "add-collection.js"; // Reuse the same logic for RTE, SEO, and Slug
+$pageScript = ["add-collection.js", "section-builder.js"]; 
 include __DIR__ . '/partials/header.php'; 
 ?>
 
@@ -12,9 +12,9 @@ include __DIR__ . '/partials/header.php';
         <h1 class="m-0">Edit: <?= htmlspecialchars($collection['name']) ?></h1>
     </div>
     <div class="header-actions">
-        <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $collection['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this collection?')">
+        <form action="<?= BASE_URL ?>/admin/collections/delete/<?= $collection['id'] ?>" method="POST" id="deleteCollectionForm" style="display:inline;">
             <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
-            <button type="submit" class="btn btn-outline text-error">Delete collection</button>
+            <button type="button" class="btn btn-outline text-error" id="deleteCollectionBtn">Delete collection</button>
         </form>
     </div>
 </div>
@@ -152,6 +152,27 @@ include __DIR__ . '/partials/header.php';
     </div>
 </div>
 
+<!-- Dynamic Section Builder -->
+<div class="card mt-20">
+    <div class="card-header-flex">
+        <h3 class="card-title-sm">Page Sections (Dynamic Builder)</h3>
+        <button type="button" class="btn btn-outline btn-sm" id="addSectionBtn">
+            <i data-lucide="plus" class="icon-xs"></i> Add Section
+        </button>
+    </div>
+    <p class="text-muted-sm">Enhance your collection page with Bento Grids, Smoke Sections, FAQs, and more.</p>
+    
+    <div id="sectionsContainer" class="sections-builder-container">
+        <!-- Sections will be rendered here by section-builder.js -->
+        <?php if (empty($sections)): ?>
+            <div class="empty-sections-placeholder">
+                <i data-lucide="layout" class="icon-lg text-muted opacity-2"></i>
+                <p>No custom sections added yet. Click "Add Section" to start building.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <div class="form-actions-bar">
     <div class="actions-left">
         <a href="<?= BASE_URL ?>/admin/collections" class="btn-outline" style="text-decoration: none;">Discard</a>
@@ -162,4 +183,7 @@ include __DIR__ . '/partials/header.php';
 </div>
 </form>
 
+<script>
+    window.initialSectionsData = <?= json_encode($sections) ?>;
+</script>
 <?php include __DIR__ . '/partials/footer.php'; ?>

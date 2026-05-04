@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // SEO Toggle
+    const collectionForm = document.querySelector('form[action*="/admin/collections"]');
+
+    // 1. SEO Toggle
     const toggleSeoBtn = document.getElementById('toggleSeoBtn');
     const seoFields = document.getElementById('seoFields');
     if (toggleSeoBtn && seoFields) {
@@ -8,125 +10,117 @@ document.addEventListener('DOMContentLoaded', function() {
             seoFields.classList.toggle('active');
             toggleSeoBtn.textContent = seoFields.classList.contains('active') ? 'Hide website SEO' : 'Edit website SEO';
         });
-
-        // SEO Real-time Preview Logic
-        const seoTitleInput = document.querySelector('.seo-title-input');
-        const seoDescInput = document.querySelector('.seo-desc-input');
-        const seoPreviewTitle = document.querySelector('.seo-preview-title');
-        const seoPreviewDesc = document.querySelector('.seo-preview-desc');
-        const seoTitleCount = document.querySelector('.seo-title-count');
-        const seoDescCount = document.querySelector('.seo-desc-count');
-        const collectionTitleInput = document.getElementById('collectionTitleInput');
-
-        if (seoTitleInput && seoPreviewTitle) {
-            seoTitleInput.addEventListener('input', function() {
-                const val = this.value.trim();
-                seoPreviewTitle.textContent = val || (collectionTitleInput?.value || 'Collection Title');
-                seoTitleCount.textContent = this.value.length;
-            });
-        }
-
-        if (seoDescInput && seoPreviewDesc) {
-            seoDescInput.addEventListener('input', function() {
-                const val = this.value.trim();
-                seoPreviewDesc.textContent = val || 'Collection description will appear here...';
-                seoDescCount.textContent = this.value.length;
-            });
-        }
-
-        if (collectionTitleInput && seoTitleInput) {
-            collectionTitleInput.addEventListener('input', function() {
-                if (!seoTitleInput.value.trim()) {
-                    seoPreviewTitle.textContent = this.value || 'Collection Title';
-                }
-            });
-        }
     }
 
-    // Slug Generation
-    const collectionTitleInput = document.getElementById('collectionTitleInput');
-    const slugInput = document.getElementById('slugInput');
-    
-    if (collectionTitleInput && slugInput) {
-        collectionTitleInput.addEventListener('input', function() {
-            const val = this.value.trim();
-            if (!slugInput.dataset.manual) {
-                slugInput.value = val.toLowerCase()
-                    .replace(/[^\w\s-]/g, '')
-                    .replace(/[\s_-]+/g, '-')
-                    .replace(/^-+|-+$/g, '');
+    // 2. RTE Toolbar & Sync Logic
+    const editor = document.querySelector('.rte-editor-content');
+    const textarea = document.getElementById('descriptionInput');
+    const rteToolbar = document.querySelector('.rte-toolbar');
+
+    if (editor && rteToolbar) {
+        rteToolbar.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const action = btn.getAttribute('title').toLowerCase();
+            e.preventDefault();
+            editor.focus();
+
+            if (action === 'bold') document.execCommand('bold', false, null);
+            if (action === 'italic') document.execCommand('italic', false, null);
+            if (action === 'list') document.execCommand('insertUnorderedList', false, null);
+            if (action === 'link') {
+                const url = prompt('Enter the link URL:');
+                if (url) document.execCommand('createLink', false, url);
             }
+            if (textarea) textarea.value = editor.innerHTML;
         });
 
-        slugInput.addEventListener('input', function() {
-            this.dataset.manual = true;
+        const headingSelect = rteToolbar.querySelector('.rte-select-clean');
+        if (headingSelect) {
+            headingSelect.addEventListener('change', function() {
+                const val = this.value;
+                editor.focus();
+                if (val === 'Heading 1') document.execCommand('formatBlock', false, '<h1>');
+                else if (val === 'Heading 2') document.execCommand('formatBlock', false, '<h2>');
+                else document.execCommand('formatBlock', false, '<p>');
+                this.selectedIndex = 0;
+                if (textarea) textarea.value = editor.innerHTML;
+            });
+        }
+
+        editor.addEventListener('input', () => {
+            if (textarea) textarea.value = editor.innerHTML;
         });
     }
 
-    // Image Preview
-    const imageInput = document.getElementById('collectionImageInput');
+    // 3. Single Image Preview Logic
+    const collectionImageInput = document.getElementById('collectionImageInput');
     const imagePreview = document.getElementById('imagePreview');
     const imagePlaceholder = document.getElementById('imagePlaceholder');
 
-    if (imageInput) {
-        // Handle New Image Selection
-        imageInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
+    if (collectionImageInput && imagePreview) {
+        collectionImageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = (e) => {
+                    imagePlaceholder.style.display = 'none';
+                    imagePreview.style.display = 'grid';
                     imagePreview.innerHTML = `
-                        <div class="media-item" style="margin: 0; height: 180px;">
-                            <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                            <button type="button" class="btn-action-icon remove-img-btn" style="position: absolute; top: 10px; right: 10px; background: white; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <i data-lucide="trash-2"></i>
-                            </button>
+                        <div class="media-item">
+                            <img src="${e.target.result}" alt="Preview" style="max-height: 200px; width: 100%; object-fit: contain;">
+                            <button type="button" class="btn-remove-media" id="removeCollectionImage"><i data-lucide="x"></i></button>
                         </div>
                     `;
-                    imagePreview.style.display = 'grid';
-                    imagePlaceholder.style.display = 'none';
-                    lucide.createIcons();
+                    if (window.lucide) window.lucide.createIcons();
                     
-                    // Bind remove event to the newly created button
-                    bindRemoveEvent();
+                    document.getElementById('removeCollectionImage').addEventListener('click', () => {
+                        collectionImageInput.value = '';
+                        imagePreview.style.display = 'none';
+                        imagePlaceholder.style.display = 'block';
+                    });
                 };
-                reader.readAsDataURL(this.files[0]);
+                reader.readAsDataURL(file);
             }
         });
-
-        // Function to bind the remove event
-        function bindRemoveEvent() {
-            const removeBtn = imagePreview.querySelector('.remove-img-btn');
-            const existingImageInput = document.querySelector('input[name="existing_image"]');
-            
-            if (removeBtn) {
-                removeBtn.addEventListener('click', function() {
-                    imageInput.value = ''; // Clear file input
-                    if (existingImageInput) existingImageInput.value = ''; // Clear database path
-                    imagePreview.innerHTML = ''; // Clear preview
-                    imagePreview.style.display = 'none';
-                    imagePlaceholder.style.display = 'flex';
-                });
-            }
-        }
-
-        // Run once on load to handle existing images (for Edit page)
-        bindRemoveEvent();
     }
 
-    // Rich Text Editor
-    const rteContent = document.querySelector('.rte-editor-content');
-    const descriptionInput = document.getElementById('descriptionInput');
-    if (rteContent && descriptionInput) {
-        rteContent.addEventListener('input', () => {
-            descriptionInput.value = rteContent.innerHTML;
+    // 4. Slug Generator
+    const titleInput = document.getElementById('collectionTitleInput');
+    const slugInput = document.getElementById('slugInput');
+    if (titleInput && slugInput) {
+        titleInput.addEventListener('input', function() {
+            if (!slugInput.dataset.manual) {
+                slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            }
         });
+        slugInput.addEventListener('input', () => slugInput.dataset.manual = true);
+    }
 
-        // Toolbar functionality
-        document.querySelectorAll('.rte-toolbar button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const command = btn.title.toLowerCase();
-                document.execCommand(command, false, null);
-                rteContent.focus();
+    if (collectionForm) {
+        collectionForm.addEventListener('submit', () => {
+            if (editor && textarea) textarea.value = editor.innerHTML;
+        });
+    }
+
+    // 5. Delete Collection Confirmation
+    const deleteBtn = document.getElementById('deleteCollectionBtn');
+    const deleteForm = document.getElementById('deleteCollectionForm');
+    if (deleteBtn && deleteForm) {
+        deleteBtn.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "All products will be unlinked from this collection!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e16449',
+                cancelButtonColor: '#a3a3a3',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteForm.submit();
+                }
             });
         });
     }

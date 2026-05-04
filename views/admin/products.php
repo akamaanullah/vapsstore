@@ -12,10 +12,10 @@ include __DIR__ . '/partials/header.php';
             <input type="text" placeholder="Search products..." class="search-input">
         </div>
         <select class="status-dropdown">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Draft</option>
-            <option>Archived</option>
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
         </select>
         <div class="per-page-container">
             <span class="text-label">Rows:</span>
@@ -25,10 +25,10 @@ include __DIR__ . '/partials/header.php';
                 <option value="50">50</option>
             </select>
         </div>
-        <button class="btn btn-primary btn-add" id="exportBtn">
+        <a href="<?= BASE_URL ?>/admin/products/export" class="btn btn-primary btn-add">
             <i data-lucide="download"></i>
             <span>Export CSV</span>
-        </button>
+        </a>
         <a href="<?= BASE_URL ?>/admin/products/create" class="btn btn-primary btn-add">
             <i data-lucide="plus"></i>
             <span>Add Product</span>
@@ -64,7 +64,12 @@ include __DIR__ . '/partials/header.php';
                 <tr>
                     <td class="td-product">
                         <div class="product-info-flex">
-                            <img src="<?= BASE_URL ?>/admin_assets/image/placeholder.png" alt="" class="product-image">
+                            <?php 
+                            $imgUrl = !empty($product['featured_image']) 
+                                      ? BASE_URL . '/' . $product['featured_image'] 
+                                      : BASE_URL . '/admin_assets/image/placeholder.png';
+                            ?>
+                            <img src="<?= $imgUrl ?>" alt="" class="product-image" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
                             <span class="product-name-txt"><?= htmlspecialchars($product['name']) ?></span>
                         </div>
                     </td>
@@ -96,9 +101,9 @@ include __DIR__ . '/partials/header.php';
                             <a href="<?= BASE_URL ?>/admin/products/edit/<?= $product['id'] ?>" class="btn-action-icon edit-btn" title="Edit Product">
                                 <i data-lucide="pencil"></i>
                             </a>
-                            <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this product?')">
+                            <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" class="delete-product-form" style="display:inline;">
                                 <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
-                                <button type="submit" class="btn-action-icon delete-btn" title="Delete">
+                                <button type="button" class="btn-action-icon delete-btn" title="Delete">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </form>

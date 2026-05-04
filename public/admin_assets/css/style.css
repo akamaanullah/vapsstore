@@ -1163,6 +1163,139 @@ body.collapsed-sidebar .main-wrapper {
     font-size: 14px;
 }
 
+/* RTE Editor Break Fix */
+.rte-editor-content {
+    min-height: 150px;
+    padding: 15px;
+    outline: none;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Section Builder Premium UI */
+.sections-builder-container {
+    margin-top: 15px;
+    padding: 10px;
+    background: #fcfcfc;
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+}
+
+.section-item-wrapper {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.section-item-header {
+    background: #f8f9fa;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-item-body {
+    padding: 20px;
+}
+
+.drag-handle {
+    color: #a3a3a3;
+    margin-right: 10px;
+}
+
+.sub-item-row {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding-right: 45px; /* Space for remove button */
+    transition: all 0.2s;
+}
+
+.sub-item-row:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.btn-remove-subitem {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff0f0;
+    color: var(--error-color);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.2s;
+}
+
+.btn-remove-subitem:hover {
+    background: var(--error-color);
+    color: white;
+}
+
+.empty-sections-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty-sections-placeholder i {
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.preview-item {
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.remove-preview-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--error-color);
+    color: white;
+    border: 1px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+    transition: transform 0.2s;
+}
+
+.remove-preview-btn:hover {
+    transform: scale(1.1);
+}
+
 .rte-editor-content {
     min-height: 250px;
     padding: 15px;

@@ -48,6 +48,7 @@ $router = new Router();
 
 // 5. Define Static Routes
 $router->get('/', 'Front\HomeController@index');
+$router->get('/collection/{slug}', 'Front\CollectionController@show');
 
 // Admin Auth Routes
 $router->get('/admin/login', 'Admin\AuthController@showLoginForm');
@@ -57,11 +58,20 @@ $router->get('/admin/logout', 'Admin\AuthController@logout');
 // Admin Dashboard Routes
 $router->get('/admin', 'Admin\DashboardController@index');
 $router->get('/admin/products', 'Admin\ProductController@index');
+$router->get('/admin/products/export', 'Admin\ProductController@export');
 $router->get('/admin/products/create', 'Admin\ProductController@create');
 $router->post('/admin/products/store', 'Admin\ProductController@store');
 $router->get('/admin/products/edit/{id}', 'Admin\ProductController@edit');
 $router->post('/admin/products/update/{id}', 'Admin\ProductController@update');
 $router->post('/admin/products/delete/{id}', 'Admin\ProductController@delete');
+
+// Brands Management
+$router->get('/admin/brands', 'Admin\BrandController@index');
+$router->get('/admin/brands/create', 'Admin\BrandController@create');
+$router->post('/admin/brands/store', 'Admin\BrandController@store');
+$router->get('/admin/brands/edit/{id}', 'Admin\BrandController@edit');
+$router->post('/admin/brands/update/{id}', 'Admin\BrandController@update');
+$router->get('/admin/brands/delete/{id}', 'Admin\BrandController@delete');
 
 $router->get('/admin/collections', 'Admin\CollectionController@index');
 $router->get('/admin/collections/create', 'Admin\CollectionController@create');

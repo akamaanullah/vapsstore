@@ -23,6 +23,10 @@ include __DIR__ . '/partials/header.php';
                 <label>Title</label>
                 <input type="text" name="name" id="productTitleInput" class="modal-field-input" placeholder="Short Sleeve T-Shirt" required>
             </div>
+            <div class="form-group">
+                <label>Short Description</label>
+                <textarea name="short_desc" class="modal-field-input" rows="3" placeholder="A brief summary of the product for listing pages..."></textarea>
+            </div>
             <div class="form-group mb-0">
                 <label>Description</label>
                 <div class="rich-text-editor">

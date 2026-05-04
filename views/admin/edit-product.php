@@ -12,9 +12,9 @@ include __DIR__ . '/partials/header.php';
         <h1 class="m-0">Edit: <?= htmlspecialchars($product['name']) ?></h1>
     </div>
     <div class="header-actions">
-        <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this product? This cannot be undone.')">
+        <form action="<?= BASE_URL ?>/admin/products/delete/<?= $product['id'] ?>" method="POST" id="deleteProductForm" style="display:inline;">
             <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
-            <button type="submit" class="btn btn-outline text-error">Delete product</button>
+            <button type="button" class="btn btn-outline text-error" id="deleteProductBtn">Delete product</button>
         </form>
     </div>
 </div>
@@ -28,6 +28,10 @@ include __DIR__ . '/partials/header.php';
             <div class="form-group">
                 <label>Title</label>
                 <input type="text" name="name" id="productTitleInput" class="modal-field-input" value="<?= htmlspecialchars($product['name']) ?>" placeholder="Short Sleeve T-Shirt" required>
+            </div>
+            <div class="form-group">
+                <label>Short Description</label>
+                <textarea name="short_desc" class="modal-field-input" rows="3" placeholder="A brief summary of the product for listing pages..."><?= htmlspecialchars($product['short_desc'] ?? '') ?></textarea>
             </div>
             <div class="form-group mb-0">
                 <label>Description</label>

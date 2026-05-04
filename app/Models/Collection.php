@@ -60,5 +60,12 @@ class Collection extends Model {
         ]);
     }
 
+    public function findBySlug($slug) {
+        $sql = "SELECT * FROM collections WHERE custom_url_path = ? AND is_active = 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$slug]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
     // generateSlug() is provided by the Sluggable trait
 }

@@ -266,17 +266,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 5. RTE & Sync
+    // 5. RTE Toolbar & Sync Logic
     const editor = document.querySelector('.rte-editor-content');
     const textarea = document.getElementById('descriptionInput');
-    if (editor && textarea) {
-        editor.addEventListener('input', () => textarea.value = editor.innerHTML);
+    const rteToolbar = document.querySelector('.rte-toolbar');
+
+    if (editor && rteToolbar) {
+        // Toolbar Button Handlers
+        rteToolbar.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const action = btn.getAttribute('title').toLowerCase();
+            e.preventDefault();
+            editor.focus();
+
+            if (action === 'bold') document.execCommand('bold', false, null);
+            if (action === 'italic') document.execCommand('italic', false, null);
+            if (action === 'list') document.execCommand('insertUnorderedList', false, null);
+            if (action === 'link') {
+                const url = prompt('Enter the link URL:');
+                if (url) document.execCommand('createLink', false, url);
+            }
+            
+            // Sync immediately
+            if (textarea) textarea.value = editor.innerHTML;
+        });
+
+        // Heading Select Handler
+        const headingSelect = rteToolbar.querySelector('.rte-select-clean');
+        if (headingSelect) {
+            headingSelect.addEventListener('change', function() {
+                const val = this.value;
+                editor.focus();
+                if (val === 'Heading 1') document.execCommand('formatBlock', false, '<h1>');
+                else if (val === 'Heading 2') document.execCommand('formatBlock', false, '<h2>');
+                else document.execCommand('formatBlock', false, '<p>');
+                this.selectedIndex = 0; // Reset
+                if (textarea) textarea.value = editor.innerHTML;
+            });
+        }
+
+        editor.addEventListener('input', () => {
+            if (textarea) textarea.value = editor.innerHTML;
+        });
     }
 
     if (productForm) {
         productForm.addEventListener('submit', function() {
             addTag();
-            if (editor && textarea) textarea.value = editor.innerHTML;
+            if (editor && textarea) {
+                // Final clean and sync
+                textarea.value = editor.innerHTML;
+            }
             if (tagsHidden) tagsHidden.value = selectedTagsArr.join(',');
             updateFileInput();
         });
