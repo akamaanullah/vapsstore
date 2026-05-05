@@ -13,11 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (container) {
         new Sortable(container, {
             animation: 150,
-            handle: '.drag-handle', // Only allow dragging from the move icon
+            handle: '.drag-handle',
             ghostClass: 'sortable-ghost',
             onEnd: function() {
-                // Optional: We can update some hidden index fields if needed, 
-                // but standard form submission will follow the new DOM order anyway.
                 console.log('Order updated');
             }
         });
@@ -32,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'smoke_section': 'Smoke Section (Expandable Story)',
                 'faq': 'FAQ Section',
                 'offer_section': 'What We Offer (Icon Cards)',
-                'rich_text': 'Simple Rich Text'
+                'rich_text': 'Rich Text Editor'
             },
             inputPlaceholder: 'Choose a section type',
             showCancelButton: true,
@@ -72,6 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
         container.insertAdjacentHTML('beforeend', sectionHtml);
         if (window.lucide) window.lucide.createIcons();
         
+        // Initialize RTE if needed
+        if (type === 'rich_text') {
+            initRTE(id);
+        }
+
         // Add item button logic
         const addSubItemBtn = container.querySelector(`[data-id="${id}"] .add-sub-item-btn`);
         if (addSubItemBtn) {
@@ -83,8 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remove section logic
         container.querySelector(`[data-id="${id}"] .remove-section-btn`).addEventListener('click', function() {
             this.closest('.section-item-wrapper').remove();
-            if (container.children.length === 0) {
-                container.innerHTML = '<div class="empty-sections-placeholder">...</div>';
+            if (container.querySelectorAll('.section-item-wrapper').length === 0) {
+                container.innerHTML = '<div class="empty-sections-placeholder"><i data-lucide="layout" class="icon-lg text-muted opacity-2"></i><p>No sections added yet. Click "Add Section" to start building.</p></div>';
+                if (window.lucide) window.lucide.createIcons();
             }
         });
     }
@@ -106,20 +110,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemLabel = type === 'faq' ? 'FAQ Item' : 'Grid Item';
             content = `
                 <div class="items-list-container" id="itemsList_${sectionId}">
-                    <!-- Items go here -->
                 </div>
                 <button type="button" class="btn btn-outline btn-sm mt-10 add-sub-item-btn">
                     <i data-lucide="plus" class="icon-xs"></i> Add ${itemLabel}
                 </button>
             `;
             
-            // If we have existing data, render it
             if (data && data.items) {
                 setTimeout(() => {
                     data.items.forEach(item => addSectionItem(type, sectionId, item));
                 }, 0);
             }
         } else if (type === 'rich_text') {
+            const richContent = data ? (data.items[0]?.content || '') : '';
             content = `
                 <div class="form-group mb-10">
                     <label class="fs-12 fw-600">Section Title (Optional)</label>
@@ -127,13 +130,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="form-group mb-0">
                     <label class="fs-12 fw-600">Rich Content</label>
-                    <textarea name="sections[${sectionId}][items][0][content]" class="modal-field-input" rows="6" placeholder="Write your content here...">${data ? (data.items[0]?.content || '') : ''}</textarea>
+                    <div class="rte-toolbar" data-id="${sectionId}">
+                        <button type="button" data-command="bold" title="Bold"><i data-lucide="bold"></i></button>
+                        <button type="button" data-command="italic" title="Italic"><i data-lucide="italic"></i></button>
+                        <button type="button" data-command="underline" title="Underline"><i data-lucide="underline"></i></button>
+                        <button type="button" data-command="insertUnorderedList" title="Bullet List"><i data-lucide="list"></i></button>
+                        <button type="button" data-command="insertOrderedList" title="Numbered List"><i data-lucide="list-ordered"></i></button>
+                        <button type="button" data-command="createLink" title="Insert Link"><i data-lucide="link"></i></button>
+                        <button type="button" data-command="formatBlock" data-value="h2" title="Heading 2"><i data-lucide="heading-2"></i></button>
+                        <button type="button" data-command="formatBlock" data-value="h3" title="Heading 3"><i data-lucide="heading-3"></i></button>
+                        <button type="button" data-command="removeFormat" title="Clear Formatting"><i data-lucide="remove-formatting"></i></button>
+                    </div>
+                    <div class="rte-editor-content modal-field-input" id="rte_${sectionId}" contenteditable="true" style="min-height: 200px; padding: 15px; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;">${richContent}</div>
+                    <input type="hidden" name="sections[${sectionId}][items][0][content]" id="rte_input_${sectionId}" value='${richContent}'>
                 </div>
             `;
-        } else {
-            content = `<p class="text-muted">Fields for ${type} coming soon...</p>`;
         }
         return content;
+    }
+
+    function initRTE(id) {
+        const editor = document.getElementById(`rte_${id}`);
+        const hiddenInput = document.getElementById(`rte_input_${id}`);
+        const toolbar = document.querySelector(`.rte-toolbar[data-id="${id}"]`);
+
+        if (!editor || !toolbar) return;
+
+        toolbar.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const command = this.dataset.command;
+                const value = this.dataset.value || null;
+
+                if (command === 'createLink') {
+                    Swal.fire({
+                        title: 'Insert Link',
+                        input: 'url',
+                        inputLabel: 'Enter the link URL',
+                        inputPlaceholder: 'https://',
+                        inputValue: 'https://',
+                        showCancelButton: true,
+                        confirmButtonText: 'Insert',
+                        confirmButtonColor: '#e16449',
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value) {
+                            document.execCommand(command, false, result.value);
+                            updateInput();
+                        }
+                    });
+                } else {
+                    document.execCommand(command, false, value);
+                }
+                editor.focus();
+                updateInput();
+            });
+        });
+
+        editor.addEventListener('input', updateInput);
+        editor.addEventListener('blur', updateInput);
+
+        function updateInput() {
+            hiddenInput.value = editor.innerHTML;
+        }
     }
 
     function addSectionItem(type, sectionId, data = null) {
@@ -146,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="sub-item-row">
                     <input type="hidden" name="sections[${sectionId}][items][${itemId}][id]" value="${data ? data.id : ''}">
                     <div class="form-group mb-0">
-                        <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input mb-10 fw-600" value="${data ? data.title : ''}" placeholder="Question (e.g. What is the minimum age?)">
+                        <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input mb-10 fw-600" value="${data ? data.title : ''}" placeholder="Question">
                         <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input" rows="2" placeholder="Answer...">${data ? data.content : ''}</textarea>
                     </div>
                     <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
@@ -159,27 +217,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="grid-item-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="form-group mb-10">
                             <label class="fs-12 fw-600">Title</label>
-                            <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input" value="${data ? data.title : ''}" placeholder="e.g. High-Power Box Mods">
+                            <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input" value="${data ? data.title : ''}" placeholder="Title">
                         </div>
                         <div class="form-group mb-10">
                             <label class="fs-12 fw-600">Background Image URL</label>
-                            <input type="text" name="sections[${sectionId}][items][${itemId}][image_url]" class="modal-field-input" value="${data ? data.image_url : ''}" placeholder="assets/product/img.jpg">
-                        </div>
-                        <div class="form-group mb-10">
-                            <label class="fs-12 fw-600">Label (Badge Text)</label>
-                            <input type="text" name="sections[${sectionId}][items][${itemId}][button_text]" class="modal-field-input" value="${data ? data.button_text : ''}" placeholder="e.g. Advanced">
-                        </div>
-                        <div class="form-group mb-10">
-                            <label class="fs-12 fw-600">Grid Size (Span)</label>
-                            <select name="sections[${sectionId}][items][${itemId}][sort_order]" class="modal-field-input">
-                                <option value="1" ${data && data.sort_order == 1 ? 'selected' : ''}>Small (1x1)</option>
-                                <option value="2" ${data && data.sort_order == 2 ? 'selected' : ''}>Big (2x2)</option>
-                                <option value="3" ${data && data.sort_order == 3 ? 'selected' : ''}>Wide (2x1)</option>
-                            </select>
+                            <input type="text" name="sections[${sectionId}][items][${itemId}][image_url]" class="modal-field-input" value="${data ? data.image_url : ''}" placeholder="URL">
                         </div>
                         <div class="form-group mb-0" style="grid-column: span 2;">
-                            <label class="fs-12 fw-600">Description / Content</label>
-                            <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input" rows="3" placeholder="Describe this bento item...">${data ? data.content : ''}</textarea>
+                            <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input" rows="2" placeholder="Content...">${data ? data.content : ''}</textarea>
                         </div>
                     </div>
                     <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
@@ -190,16 +235,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="sub-item-row">
                     <input type="hidden" name="sections[${sectionId}][items][${itemId}][id]" value="${data ? data.id : ''}">
                     <div class="form-group mb-10">
-                        <label class="fs-12">Icon Name (Lucide)</label>
-                        <input type="text" name="sections[${sectionId}][items][${itemId}][image_url]" class="modal-field-input" value="${data ? data.image_url : ''}" placeholder="box, zap, truck, etc.">
-                    </div>
-                    <div class="form-group mb-10">
-                        <label class="fs-12">Title</label>
-                        <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input fw-600" value="${data ? data.title : ''}" placeholder="Service Title">
-                    </div>
-                    <div class="form-group mb-0">
-                        <label class="fs-12">Description</label>
-                        <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input" rows="2" placeholder="Brief description...">${data ? data.content : ''}</textarea>
+                        <input type="text" name="sections[${sectionId}][items][${itemId}][image_url]" class="modal-field-input" value="${data ? data.image_url : ''}" placeholder="Icon name">
+                        <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input fw-600 mt-10" value="${data ? data.title : ''}" placeholder="Title">
+                        <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input mt-10" rows="2" placeholder="Description...">${data ? data.content : ''}</textarea>
                     </div>
                     <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
                 </div>

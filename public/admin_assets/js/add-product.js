@@ -272,44 +272,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const rteToolbar = document.querySelector('.rte-toolbar');
 
     if (editor && rteToolbar) {
-        // Toolbar Button Handlers
-        rteToolbar.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            
-            const action = btn.getAttribute('title').toLowerCase();
-            e.preventDefault();
-            editor.focus();
+        rteToolbar.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const command = this.dataset.command;
+                const value = this.dataset.value || null;
 
-            if (action === 'bold') document.execCommand('bold', false, null);
-            if (action === 'italic') document.execCommand('italic', false, null);
-            if (action === 'list') document.execCommand('insertUnorderedList', false, null);
-            if (action === 'link') {
-                const url = prompt('Enter the link URL:');
-                if (url) document.execCommand('createLink', false, url);
-            }
-            
-            // Sync immediately
-            if (textarea) textarea.value = editor.innerHTML;
-        });
-
-        // Heading Select Handler
-        const headingSelect = rteToolbar.querySelector('.rte-select-clean');
-        if (headingSelect) {
-            headingSelect.addEventListener('change', function() {
-                const val = this.value;
+                if (command === 'createLink') {
+                    Swal.fire({
+                        title: 'Insert Link',
+                        input: 'url',
+                        inputLabel: 'Enter the link URL',
+                        inputPlaceholder: 'https://',
+                        inputValue: 'https://',
+                        showCancelButton: true,
+                        confirmButtonText: 'Insert',
+                        confirmButtonColor: '#e16449',
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value) {
+                            document.execCommand(command, false, result.value);
+                            if (textarea) textarea.value = editor.innerHTML;
+                        }
+                    });
+                } else {
+                    document.execCommand(command, false, value);
+                }
                 editor.focus();
-                if (val === 'Heading 1') document.execCommand('formatBlock', false, '<h1>');
-                else if (val === 'Heading 2') document.execCommand('formatBlock', false, '<h2>');
-                else document.execCommand('formatBlock', false, '<p>');
-                this.selectedIndex = 0; // Reset
                 if (textarea) textarea.value = editor.innerHTML;
             });
-        }
+        });
 
         editor.addEventListener('input', () => {
             if (textarea) textarea.value = editor.innerHTML;
         });
+
+        // If edit mode, load initial content
+        if (editor.innerHTML && textarea) {
+            textarea.value = editor.innerHTML;
+        }
     }
 
     if (productForm) {

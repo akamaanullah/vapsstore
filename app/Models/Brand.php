@@ -53,4 +53,15 @@ class Brand extends Model {
         $stmt = $this->db->prepare("DELETE FROM brands WHERE id = ?");
         return $stmt->execute([$id]);
     }
+
+    public function search($query) {
+        if ($query === 'all') {
+            $stmt = $this->db->prepare("SELECT * FROM {$this->table} LIMIT 50");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name LIKE ? LIMIT 10");
+        $stmt->execute(["%$query%"]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

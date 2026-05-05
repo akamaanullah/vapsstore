@@ -1,5 +1,6 @@
 <?php 
 $pageTitle = "Add Page | Vape Store Admin";
+$pageScript = ["section-builder.js"]; 
 include __DIR__ . '/partials/header.php'; 
 ?>
 
@@ -8,30 +9,73 @@ include __DIR__ . '/partials/header.php';
         <a href="<?= BASE_URL ?>/admin/pages" class="btn-action-icon icon-action-btn">
             <i data-lucide="arrow-left" class="icon-md"></i>
         </a>
-        <h1 class="m-0">Add Page</h1>
+        <h1 class="m-0">Create Page</h1>
     </div>
 </div>
 
+<form action="<?= BASE_URL ?>/admin/pages/store" method="POST">
+<input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
 <div class="form-layout">
     <div class="form-main">
         <div class="card">
             <div class="form-group">
-                <label>Title</label>
-                <input type="text" class="modal-field-input" placeholder="e.g. About Us">
+                <label>Page Title</label>
+                <input type="text" name="title" id="pageTitleInput" class="modal-field-input" placeholder="e.g. About Us, Contact" required>
             </div>
-            <div class="form-group mb-0">
-                <label>Content</label>
-                <div class="rich-text-editor" style="min-height: 300px; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px;">
-                    <p class="text-muted">Editor placeholder...</p>
+        </div>
+
+        <!-- Dynamic Section Builder -->
+        <div class="card mt-20">
+            <div class="card-header-flex">
+                <h3 class="card-title-sm">Page Content (Section Builder)</h3>
+                <button type="button" class="btn btn-outline btn-sm" id="addSectionBtn">
+                    <i data-lucide="plus" class="icon-xs"></i> Add Section
+                </button>
+            </div>
+            
+            <p class="text-muted-sm">Build your page layout using dynamic sections.</p>
+            
+            <div id="sectionsContainer" class="sections-builder-container">
+                <div class="empty-sections-placeholder">
+                    <i data-lucide="layout" class="icon-lg text-muted opacity-2"></i>
+                    <p>No sections added yet. Click "Add Section" to start building.</p>
                 </div>
             </div>
         </div>
 
+        <!-- SEO Listing -->
         <div class="card">
-            <h3 class="card-title-sm mb-15">Search engine listing</h3>
+            <div class="card-header-flex">
+                <h3 class="card-title-sm">Search engine listing</h3>
+                <p class="text-muted-sm m-0">Preview how this page will appear in search results</p>
+            </div>
+            
+            <div class="form-group mt-15">
+                <label>Page title (SEO)</label>
+                <input type="text" name="meta_title" id="metaTitleInput" class="modal-field-input" placeholder="SEO Title" maxlength="70">
+                <div class="char-counter"><span id="metaTitleCount">0</span> of 70 characters used</div>
+            </div>
             <div class="form-group">
+                <label>Meta description</label>
+                <textarea name="meta_desc" id="metaDescInput" class="modal-field-input" rows="3" placeholder="SEO Description" maxlength="320"></textarea>
+                <div class="char-counter"><span id="metaDescCount">0</span> of 320 characters used</div>
+            </div>
+            <div class="form-group mb-20">
                 <label>URL handle</label>
-                <input type="text" class="modal-field-input" placeholder="about-us">
+                <div class="input-prefix-container">
+                    <span class="prefix">/pages/</span>
+                    <input type="text" name="custom_url_path" id="slugInput" class="modal-field-input" placeholder="about-us">
+                </div>
+            </div>
+
+            <div class="seo-preview-box">
+                <div class="seo-preview-header">
+                    <i data-lucide="globe" class="seo-preview-icon"></i>
+                    <span class="seo-preview-site">The Perfect Vape</span>
+                </div>
+                <div class="seo-preview-url"><?= BASE_URL ?>/pages/<span id="previewSlug">about-us</span></div>
+                <div class="seo-preview-title" id="previewTitle">Page Title</div>
+                <div class="seo-preview-desc" id="previewDesc">Add a description to see how this page might appear in a search engine listing...</div>
             </div>
         </div>
     </div>
@@ -39,8 +83,8 @@ include __DIR__ . '/partials/header.php';
     <div class="form-sidebar">
         <div class="card">
             <h3 class="card-title-sm mb-10">Visibility</h3>
-            <select class="modal-field-input">
-                <option value="visible">Visible</option>
+            <select name="status" class="modal-field-input">
+                <option value="active">Published</option>
                 <option value="hidden">Hidden</option>
             </select>
         </div>
@@ -52,8 +96,54 @@ include __DIR__ . '/partials/header.php';
         <a href="<?= BASE_URL ?>/admin/pages" class="btn-outline" style="text-decoration: none;">Discard</a>
     </div>
     <div class="actions-right">
-        <button class="btn btn-primary">Save Page</button>
+        <button type="submit" class="btn btn-primary">Save Page</button>
     </div>
 </div>
+</form>
 
+<script>
+    window.initialSectionsData = []; 
+
+    // SEO Real-time Preview Logic
+    const titleInput = document.getElementById('pageTitleInput');
+    const metaTitleInput = document.getElementById('metaTitleInput');
+    const metaDescInput = document.getElementById('metaDescInput');
+    const slugInput = document.getElementById('slugInput');
+
+    const previewTitle = document.getElementById('previewTitle');
+    const previewDesc = document.getElementById('previewDesc');
+    const previewSlug = document.getElementById('previewSlug');
+
+    const metaTitleCount = document.getElementById('metaTitleCount');
+    const metaDescCount = document.getElementById('metaDescCount');
+
+    // Sync Page Title to Slug and SEO Title
+    titleInput.addEventListener('input', function() {
+        if (!slugInput.value || slugInput.dataset.auto === 'true') {
+            const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            slugInput.value = slug;
+            previewSlug.innerText = slug || 'about-us';
+            slugInput.dataset.auto = 'true';
+        }
+        if (!metaTitleInput.value) {
+            previewTitle.innerText = this.value || 'Page Title';
+        }
+    });
+
+    slugInput.addEventListener('input', () => slugInput.dataset.auto = 'false');
+
+    metaTitleInput.addEventListener('input', function() {
+        previewTitle.innerText = this.value || titleInput.value || 'Page Title';
+        metaTitleCount.innerText = this.value.length;
+    });
+
+    metaDescInput.addEventListener('input', function() {
+        previewDesc.innerText = this.value || 'Add a description to see how this page might appear in a search engine listing...';
+        metaDescCount.innerText = this.value.length;
+    });
+
+    slugInput.addEventListener('input', function() {
+        previewSlug.innerText = this.value || 'about-us';
+    });
+</script>
 <?php include __DIR__ . '/partials/footer.php'; ?>

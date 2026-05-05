@@ -26,15 +26,15 @@ include __DIR__ . '/partials/header.php';
                 <label>Description</label>
                 <div class="rich-text-editor">
                     <div class="rte-toolbar">
-                        <select class="rte-select-clean">
-                            <option>Normal</option>
-                            <option>Heading 1</option>
-                            <option>Heading 2</option>
-                        </select>
-                        <button type="button" title="Bold"><i data-lucide="bold"></i></button>
-                        <button type="button" title="Italic"><i data-lucide="italic"></i></button>
-                        <button type="button" title="Link"><i data-lucide="link"></i></button>
-                        <button type="button" title="List"><i data-lucide="list"></i></button>
+                        <button type="button" data-command="bold" title="Bold"><i data-lucide="bold"></i></button>
+                        <button type="button" data-command="italic" title="Italic"><i data-lucide="italic"></i></button>
+                        <button type="button" data-command="underline" title="Underline"><i data-lucide="underline"></i></button>
+                        <button type="button" data-command="insertUnorderedList" title="Bullet List"><i data-lucide="list"></i></button>
+                        <button type="button" data-command="insertOrderedList" title="Numbered List"><i data-lucide="list-ordered"></i></button>
+                        <button type="button" data-command="createLink" title="Insert Link"><i data-lucide="link"></i></button>
+                        <button type="button" data-command="formatBlock" data-value="h2" title="Heading 2"><i data-lucide="heading-2"></i></button>
+                        <button type="button" data-command="formatBlock" data-value="h3" title="Heading 3"><i data-lucide="heading-3"></i></button>
+                        <button type="button" data-command="removeFormat" title="Clear Formatting"><i data-lucide="remove-formatting"></i></button>
                     </div>
                     <div class="rte-editor-content" contenteditable="true" data-placeholder="Add a detailed description for your collection..."></div>
                     <textarea name="description" id="descriptionInput" style="display: none;"></textarea>

@@ -79,7 +79,21 @@ $router->post('/admin/collections/store', 'Admin\CollectionController@store');
 $router->get('/admin/collections/edit', 'Admin\CollectionController@edit');
 $router->get('/admin/collections/edit/{id}', 'Admin\CollectionController@edit');
 $router->post('/admin/collections/update/{id}', 'Admin\CollectionController@update');
-$router->post('/admin/collections/delete/{id}', 'Admin\CollectionController@delete');
+// Pages Management
+$router->get('/admin/pages', 'Admin\PageController@index');
+$router->get('/admin/pages/create', 'Admin\PageController@create');
+$router->post('/admin/pages/store', 'Admin\PageController@store');
+$router->get('/admin/pages/edit/{id}', 'Admin\PageController@edit');
+$router->post('/admin/pages/update/{id}', 'Admin\PageController@update');
+$router->get('/admin/pages/delete/{id}', 'Admin\PageController@delete');
+
+// Navigation (Menus)
+$router->get('/admin/menus', 'Admin\MenuController@index');
+$router->get('/admin/menus/edit/{id}', 'Admin\MenuController@edit');
+$router->post('/admin/menus/store', 'Admin\MenuController@store');
+$router->post('/admin/menus/update/{id}', 'Admin\MenuController@update');
+$router->get('/admin/menus/search', 'Admin\MenuController@search');
+$router->get('/admin/menus/delete/{id}', 'Admin\MenuController@delete');
 
 $router->get('/admin/customers', 'Admin\CustomerController@index');
 $router->get('/admin/customers/detail', 'Admin\CustomerController@detail');

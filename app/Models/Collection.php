@@ -67,5 +67,16 @@ class Collection extends Model {
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
+    public function search($query) {
+        if ($query === 'all') {
+            $stmt = $this->db->prepare("SELECT * FROM {$this->table} LIMIT 50");
+            $stmt->execute();
+            return $stmt->fetchAll();
+        }
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name LIKE ? LIMIT 10");
+        $stmt->execute(["%$query%"]);
+        return $stmt->fetchAll();
+    }
+
     // generateSlug() is provided by the Sluggable trait
 }
