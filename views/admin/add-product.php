@@ -190,14 +190,17 @@ include __DIR__ . '/partials/header.php';
             </div>
             <div class="form-group mb-15">
                 <label>Collections</label>
-                <div class="collections-check-list" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
-                    <?php foreach ($collections as $collection): ?>
-                        <label class="d-flex align-items-center gap-10 mb-5 pointer">
-                            <input type="checkbox" name="collection_ids[]" value="<?= $collection['id'] ?>">
-                            <span class="fs-14"><?= htmlspecialchars($collection['name']) ?></span>
-                        </label>
-                    <?php endforeach; ?>
+                <div class="collection-search-container">
+                    <input type="text" id="collectionSearchInput" class="modal-field-input" placeholder="Search collections...">
+                    <div id="collectionDropdown" class="search-results-dropdown">
+                        <?php foreach ($collections as $collection): ?>
+                            <div class="search-result-item" data-id="<?= $collection['id'] ?>" data-name="<?= htmlspecialchars($collection['name']) ?>">
+                                <?= htmlspecialchars($collection['name']) ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
+                <div id="selectedCollectionsContainer" class="selected-tags mt-10"></div>
                 <p class="text-muted-sm mt-5">Select one or more collections for this product.</p>
             </div>
             <div class="form-group mb-0">

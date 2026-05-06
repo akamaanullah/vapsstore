@@ -69,34 +69,34 @@ class ProductController extends AdminController {
 
             $productModel = $this->model('Product');
             
+            // Basic Validation
+            if (empty($_POST['name']) || empty($_POST['price'])) {
+                $this->redirect('/admin/products/create?error=Product name and price are required');
+            }
+
             $data = [
-                'name' => $_POST['name'],
-                'base_price' => $_POST['price'],
-                'status' => $_POST['status'],
+                'name' => trim($_POST['name']),
+                'base_price' => (float)$_POST['price'],
+                'status' => $_POST['status'] ?? 'draft',
                 'custom_url' => $_POST['custom_url'] ?? null,
                 'short_desc' => $_POST['short_desc'] ?? null,
                 'long_desc' => $_POST['description'] ?? '',
-                'stock' => $_POST['stock'] ?? 0,
+                'stock' => (int)($_POST['stock'] ?? 0),
                 'sku' => $_POST['sku'] ?? null,
                 'brand_id' => !empty($_POST['brand_id']) ? $_POST['brand_id'] : null,
                 'collection_ids' => $_POST['collection_ids'] ?? [],
                 'variants' => $_POST['variants'] ?? [],
                 'tags' => $_POST['tags'] ?? '',
-                'seo_title' => $_POST['seo_title'] ?? null,
-                'seo_description' => $_POST['seo_description'] ?? null
+                'seo_description' => $_POST['seo_description'] ?? null,
+                'option_names' => $_POST['option_names'] ?? []
             ];
 
             $productId = $productModel->createProduct($data);
 
             if ($productId) {
-                // Handle Image URLs from Media Picker
-                if (!empty($_POST['image_urls']) && is_array($_POST['image_urls'])) {
-                    foreach ($_POST['image_urls'] as $key => $imageUrl) {
-                        if (!empty($imageUrl)) {
-                            $productModel->addImage($productId, $imageUrl, $key);
-                        }
-                    }
-                }
+                // Unified Image Sync (Preserving order from DOM)
+                $allImages = $_POST['product_images'] ?? [];
+                $productModel->syncAllImages($productId, $allImages);
 
                 $this->redirect('/admin/products?success=Product created successfully');
             } else {
@@ -132,10 +132,15 @@ class ProductController extends AdminController {
 
             $productModel = $this->model('Product');
 
+            // Basic Validation
+            if (empty($_POST['name']) || empty($_POST['price'])) {
+                $this->redirect('/admin/products/edit/' . $id . '?error=Product name and price are required');
+            }
+
             $data = [
-                'name' => $_POST['name'],
-                'base_price' => $_POST['price'],
-                'status' => $_POST['status'],
+                'name' => trim($_POST['name']),
+                'base_price' => (float)$_POST['price'],
+                'status' => $_POST['status'] ?? 'draft',
                 'custom_url' => $_POST['custom_url'] ?? null,
                 'short_desc' => $_POST['short_desc'] ?? null,
                 'long_desc' => $_POST['description'] ?? '',
@@ -143,24 +148,15 @@ class ProductController extends AdminController {
                 'tags' => $_POST['tags'] ?? '',
                 'seo_title' => $_POST['seo_title'] ?? null,
                 'seo_description' => $_POST['seo_description'] ?? null,
-                'collection_ids' => $_POST['collection_ids'] ?? []
+                'collection_ids' => $_POST['collection_ids'] ?? [],
+                'variants' => $_POST['variants'] ?? [],
+                'option_names' => $_POST['option_names'] ?? []
             ];
 
             if ($productModel->updateProduct($id, $data)) {
-                // Sync Images (Remove deleted ones and update sort_order)
-                $imagesToKeep = $_POST['existing_images'] ?? [];
-                $productModel->syncImages($id, $imagesToKeep);
-                $productModel->updateImageOrder($id, $imagesToKeep);
-
-                // Handle new image URLs from Media Picker
-                if (!empty($_POST['image_urls']) && is_array($_POST['image_urls'])) {
-                    $startOrder = count($imagesToKeep);
-                    foreach ($_POST['image_urls'] as $key => $imageUrl) {
-                        if (!empty($imageUrl)) {
-                            $productModel->addImage($id, $imageUrl, $startOrder + $key);
-                        }
-                    }
-                }
+                // Unified Image Sync (Preserving order from DOM)
+                $allImages = $_POST['product_images'] ?? [];
+                $productModel->syncAllImages($id, $allImages);
 
                 $this->redirect('/admin/products?success=Product updated successfully');
             } else {

@@ -17,4 +17,35 @@ trait Sluggable {
         $text = strtolower($text);
         return empty($text) ? 'n-a' : $text;
     }
+
+    /**
+     * Generate a unique slug by checking the database.
+     */
+    public function generateUniqueSlug($text, $currentId = null) {
+        $slug = $this->generateSlug($text);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (true) {
+            $sql = "SELECT COUNT(*) FROM {$this->table} WHERE custom_url = ?";
+            $params = [$slug];
+            
+            if ($currentId) {
+                $sql .= " AND id != ?";
+                $params[] = $currentId;
+            }
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            
+            if ($stmt->fetchColumn() == 0) {
+                break;
+            }
+
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
+    }
 }

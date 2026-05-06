@@ -98,6 +98,32 @@ include __DIR__ . '/partials/header.php';
             </div>
         </div>
 
+        <!-- Inventory (For simple product) -->
+        <div class="card" id="inventoryCard" style="display: block;">
+            <h3 class="card-title-sm mb-15">Inventory</h3>
+            <div class="info-grid-2">
+                <?php 
+                $isSimple = count($product['variants']) === 1 && empty($product['variants'][0]['variant_name']);
+                $baseSku = $isSimple ? ($product['variants'][0]['sku'] ?? '') : '';
+                $baseStock = $isSimple ? ($product['variants'][0]['stock_quantity'] ?? '0') : '0';
+                ?>
+                <div class="form-group mb-0">
+                    <label>SKU (Stock Keeping Unit)</label>
+                    <input type="text" name="sku" class="modal-field-input" value="<?= htmlspecialchars($baseSku) ?>" placeholder="Enter SKU">
+                </div>
+                <div class="form-group mb-0">
+                    <label>Quantity Available</label>
+                    <input type="number" name="stock" class="modal-field-input" value="<?= htmlspecialchars($baseStock) ?>">
+                </div>
+            </div>
+            <div class="form-group mt-15 mb-0">
+                <label class="d-flex align-items-center gap-10">
+                    <input type="checkbox" checked>
+                    <span>Track quantity</span>
+                </label>
+            </div>
+        </div>
+
         <!-- Variants Management -->
         <div class="card">
             <div class="card-header-flex">
@@ -203,12 +229,25 @@ include __DIR__ . '/partials/header.php';
             </div>
             <div class="form-group mb-15">
                 <label>Collections</label>
-                <div class="collections-check-list" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+                <div class="collection-search-container">
+                    <input type="text" id="collectionSearchInput" class="modal-field-input" placeholder="Search collections...">
+                    <div id="collectionDropdown" class="search-results-dropdown">
+                        <?php foreach ($collections as $collection): ?>
+                            <div class="search-result-item" data-id="<?= $collection['id'] ?>" data-name="<?= htmlspecialchars($collection['name']) ?>">
+                                <?= htmlspecialchars($collection['name']) ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div id="selectedCollectionsContainer" class="selected-tags mt-10">
                     <?php foreach ($collections as $collection): ?>
-                        <label class="d-flex align-items-center gap-10 mb-5 pointer">
-                            <input type="checkbox" name="collection_ids[]" value="<?= $collection['id'] ?>" <?= in_array($collection['id'], $product['collection_ids']) ? 'checked' : '' ?>>
-                            <span class="fs-14"><?= htmlspecialchars($collection['name']) ?></span>
-                        </label>
+                        <?php if (in_array($collection['id'], $product['collection_ids'])): ?>
+                            <div class="tag-badge" data-id="<?= $collection['id'] ?>">
+                                <?= htmlspecialchars($collection['name']) ?>
+                                <span class="remove-collection" data-id="<?= $collection['id'] ?>"><i data-lucide="x" class="icon-xxs"></i></span>
+                                <input type="hidden" name="collection_ids[]" value="<?= $collection['id'] ?>">
+                            </div>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
                 <p class="text-muted-sm mt-5">Select one or more collections for this product.</p>
@@ -237,3 +276,27 @@ include __DIR__ . '/partials/header.php';
 
 <?php include __DIR__ . '/partials/media-picker-modal.php'; ?>
 <?php include __DIR__ . '/partials/footer.php'; ?>
+
+<!-- Bulk Edit Modal -->
+<div id="bulkEditModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3 id="bulkEditTitle">Edit prices</h3>
+            <button type="button" class="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="bulkEditDescription" class="mb-15">Apply a price to all selected variants</p>
+            <div class="form-group">
+                <div class="input-prefix-container" id="bulkInputContainer">
+                    <span class="prefix" id="bulkInputPrefix">$</span>
+                    <input type="number" id="bulkValueInput" class="modal-field-input" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer mt-20">
+            <button type="button" class="btn-outline close-modal-btn">Cancel</button>
+            <button type="button" class="btn btn-dark" id="applyBulkEdit">Done</button>
+        </div>
+    </div>
+</div>
+

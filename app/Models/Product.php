@@ -16,21 +16,26 @@ class Product extends Model {
     public function createProduct($data) {
         $this->db->beginTransaction();
         try {
-            $sql = "INSERT INTO {$this->table} (brand_id, name, custom_url, short_desc, long_desc, base_price, status, tags, seo_title, seo_description) 
-                    VALUES (:brand_id, :name, :custom_url, :short_desc, :long_desc, :base_price, :status, :tags, :seo_title, :seo_description)";
+            $sql = "INSERT INTO {$this->table} (brand_id, name, custom_url, short_desc, long_desc, base_price, status, tags, seo_title, seo_description, option_names) 
+                    VALUES (:brand_id, :name, :custom_url, :short_desc, :long_desc, :base_price, :status, :tags, :seo_title, :seo_description, :option_names)";
             
             $stmt = $this->db->prepare($sql);
+            
+            // Handle unique slug
+            $customUrl = !empty($data['custom_url']) ? $this->generateSlug($data['custom_url']) : $this->generateUniqueSlug($data['name']);
+
             $stmt->execute([
                 'brand_id' => $data['brand_id'] ?? null,
                 'name' => $data['name'],
-                'custom_url' => !empty($data['custom_url']) ? $data['custom_url'] : $this->generateSlug($data['name']),
+                'custom_url' => $customUrl,
                 'short_desc' => $data['short_desc'] ?? null,
                 'long_desc' => $data['long_desc'] ?? null,
                 'base_price' => $data['base_price'],
                 'status' => $data['status'] ?? 'draft',
                 'tags' => $data['tags'] ?? null,
                 'seo_title' => $data['seo_title'] ?? null,
-                'seo_description' => $data['seo_description'] ?? null
+                'seo_description' => $data['seo_description'] ?? null,
+                'option_names' => !empty($data['option_names']) ? json_encode($data['option_names']) : null
             ]);
 
             $productId = $this->db->lastInsertId();
@@ -46,26 +51,7 @@ class Product extends Model {
 
             // Handle Variants
             if (!empty($data['variants'])) {
-                $variantSql = "INSERT INTO product_variants (product_id, sku, price, stock_quantity, is_default, variant_name) 
-                               VALUES (?, ?, ?, ?, 0, ?)";
-                $variantStmt = $this->db->prepare($variantSql);
-                
-                $logSql = "INSERT INTO inventory_logs (variant_id, change_amount, reason) VALUES (?, ?, 'initial_stock')";
-                $logStmt = $this->db->prepare($logSql);
-
-                foreach ($data['variants'] as $v) {
-                    $variantStmt->execute([
-                        $productId,
-                        $data['sku'] . '-' . $this->generateSlug($v['name']),
-                        $v['price'],
-                        $v['stock'],
-                        $v['name']
-                    ]);
-                    $vId = $this->db->lastInsertId();
-                    if ($v['stock'] > 0) {
-                        $logStmt->execute([$vId, $v['stock']]);
-                    }
-                }
+                $this->updateVariants($productId, $data['variants']);
             } else {
                 // Create default variant for stock management
                 $variantSql = "INSERT INTO product_variants (product_id, sku, price, stock_quantity, is_default) 
@@ -92,11 +78,7 @@ class Product extends Model {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Product creation failed! Error: " . $e->getMessage());
-            // For development, we can also throw it to see it in the browser if error reporting is on
-            if (APP_ENV === 'development') {
-                // die("DB Error: " . $e->getMessage()); // Uncomment for deep debugging
-            }
+            error_log("Product operation failed: " . $e->getMessage());
             return false;
         }
     }
@@ -117,22 +99,28 @@ class Product extends Model {
                     status = :status,
                     tags = :tags,
                     seo_title = :seo_title,
-                    seo_description = :seo_description 
+                    seo_description = :seo_description,
+                    option_names = :option_names
                     WHERE id = :id";
             
             $stmt = $this->db->prepare($sql);
+            
+            // Handle unique slug
+            $customUrl = !empty($data['custom_url']) ? $this->generateSlug($data['custom_url']) : $this->generateUniqueSlug($data['name'], $id);
+
             $stmt->execute([
                 'id' => $id,
                 'brand_id' => $data['brand_id'] ?? null,
                 'name' => $data['name'],
-                'custom_url' => !empty($data['custom_url']) ? $data['custom_url'] : $this->generateSlug($data['name']),
+                'custom_url' => $customUrl,
                 'short_desc' => $data['short_desc'] ?? null,
                 'long_desc' => $data['long_desc'] ?? null,
                 'base_price' => $data['base_price'],
                 'status' => $data['status'] ?? 'draft',
                 'tags' => $data['tags'] ?? null,
                 'seo_title' => $data['seo_title'] ?? null,
-                'seo_description' => $data['seo_description'] ?? null
+                'seo_description' => $data['seo_description'] ?? null,
+                'option_names' => !empty($data['option_names']) ? json_encode($data['option_names']) : null
             ]);
 
             // Sync collections
@@ -157,6 +145,74 @@ class Product extends Model {
     }
 
     /**
+     * Sync, Update or Delete Variants for a product
+     */
+    public function updateVariants($productId, $variants = []) {
+        // 1. Get existing variant IDs from database
+        $stmt = $this->db->prepare("SELECT id, stock_quantity FROM product_variants WHERE product_id = ?");
+        $stmt->execute([$productId]);
+        $existingRows = $stmt->fetchAll();
+        $existingStock = array_column($existingRows, 'stock_quantity', 'id');
+        $existingIds = array_keys($existingStock);
+        $receivedIds = [];
+
+        // 2. Prepare statements
+        $updateSql = "UPDATE product_variants SET price = ?, stock_quantity = ?, variant_name = ? WHERE id = ? AND product_id = ?";
+        $updateStmt = $this->db->prepare($updateSql);
+
+        $insertSql = "INSERT INTO product_variants (product_id, sku, price, stock_quantity, is_default, variant_name) VALUES (?, ?, ?, ?, 0, ?)";
+        $insertStmt = $this->db->prepare($insertSql);
+
+        $logSql = "INSERT INTO inventory_logs (variant_id, change_amount, reason) VALUES (?, ?, ?)";
+        $logStmt = $this->db->prepare($logSql);
+
+        foreach ($variants as $v) {
+            if (!empty($v['id']) && in_array($v['id'], $existingIds)) {
+                // Check if stock changed to log it
+                $oldStock = $existingStock[$v['id']];
+                $newStock = (int)$v['stock'];
+                
+                // Existing variant - Update it
+                $updateStmt->execute([
+                    $v['price'],
+                    $newStock,
+                    $v['name'],
+                    $v['id'],
+                    $productId
+                ]);
+                $receivedIds[] = (int)$v['id'];
+
+                if ($oldStock != $newStock) {
+                    $logStmt->execute([$v['id'], $newStock - $oldStock, 'manual_update']);
+                }
+            } else {
+                // New variant - Insert it
+                $sku = 'SKU-' . $productId . '-' . $this->generateSlug($v['name']);
+                $insertStmt->execute([
+                    $productId,
+                    $sku,
+                    $v['price'],
+                    $v['stock'],
+                    $v['name']
+                ]);
+                
+                $vId = $this->db->lastInsertId();
+                if ($v['stock'] > 0) {
+                    $logStmt->execute([$vId, $v['stock'], 'initial_stock']);
+                }
+            }
+        }
+
+        // 3. Delete variants that were not in the received list
+        $idsToDelete = array_diff($existingIds, $receivedIds);
+        if (!empty($idsToDelete)) {
+            $deleteSql = "DELETE FROM product_variants WHERE product_id = ? AND id IN (" . implode(',', array_fill(0, count($idsToDelete), '?')) . ")";
+            $deleteStmt = $this->db->prepare($deleteSql);
+            $deleteStmt->execute(array_merge([$productId], array_values($idsToDelete)));
+        }
+    }
+
+    /**
      * Get a single product with all related data for the edit page
      */
     public function getProductForEdit($id) {
@@ -168,40 +224,24 @@ class Product extends Model {
         $stmt->execute([$id]);
         $product['variants'] = $stmt->fetchAll();
 
-        // Extract Options (Color, Size etc) from variant names
+        // Professional Option Reconstruction
+        $optionNames = !empty($product['option_names']) ? json_decode($product['option_names'], true) : [];
         $options = [];
-        if (!empty($product['variants'])) {
-            $firstVariant = $product['variants'][0]['variant_name'];
-            if ($firstVariant) {
-                // If name is like "White / Small", we assume 2 options
-                $parts = explode(' / ', $firstVariant);
-                foreach ($parts as $i => $part) {
-                    $options[$i] = [
-                        'name' => 'Option ' . ($i + 1), // Default names if we don't know
-                        'values' => []
-                    ];
-                }
 
-                // Now collect all unique values for each option position
-                foreach ($product['variants'] as $v) {
-                    if ($v['variant_name']) {
-                        $vParts = explode(' / ', $v['variant_name']);
-                        foreach ($vParts as $i => $val) {
-                            if (isset($options[$i]) && !in_array($val, $options[$i]['values'])) {
-                                $options[$i]['values'][] = $val;
-                            }
+        if (!empty($product['variants'])) {
+            // Collect all unique values for each option position
+            foreach ($product['variants'] as $v) {
+                if ($v['variant_name']) {
+                    $vParts = explode(' / ', $v['variant_name']);
+                    foreach ($vParts as $i => $val) {
+                        if (!isset($options[$i])) {
+                            $options[$i] = [
+                                'name' => $optionNames[$i] ?? 'Option ' . ($i + 1),
+                                'values' => []
+                            ];
                         }
-                    }
-                }
-                
-                // Try to be smarter about Option Names if they follow "Name: Value" format
-                foreach ($options as $i => &$opt) {
-                    if (!empty($opt['values'][0]) && strpos($opt['values'][0], ': ') !== false) {
-                        $tempParts = explode(': ', $opt['values'][0]);
-                        $opt['name'] = $tempParts[0];
-                        // Strip the "Name: " part from all values
-                        foreach ($opt['values'] as &$v) {
-                            $v = explode(': ', $v)[1] ?? $v;
+                        if (!in_array($val, $options[$i]['values'])) {
+                            $options[$i]['values'][] = $val;
                         }
                     }
                 }
@@ -257,44 +297,36 @@ class Product extends Model {
     }
 
     /**
-     * Sync images: remove ones not in the provided list
+     * Unified method to sync ALL images (existing and new) with correct sort order.
      */
-    public function syncImages($productId, $imagesToKeep = []) {
-        // Get all current images
-        $stmt = $this->db->prepare("SELECT id, image_url FROM product_images WHERE product_id = ?");
+    public function syncAllImages($productId, $allImages = []) {
+        // 1. Get existing images from DB
+        $stmt = $this->db->prepare("SELECT image_url FROM product_images WHERE product_id = ?");
         $stmt->execute([$productId]);
-        $dbImages = $stmt->fetchAll();
+        $dbImages = array_column($stmt->fetchAll(), 'image_url');
 
-        foreach ($dbImages as $dbImg) {
-            if (!in_array($dbImg['image_url'], $imagesToKeep)) {
-                // Delete from DB
-                $this->db->prepare("DELETE FROM product_images WHERE id = ?")->execute([$dbImg['id']]);
-                // Delete file
-                $filePath = ROOT_DIR . '/public/' . $dbImg['image_url'];
-                if (file_exists($filePath)) @unlink($filePath);
+        // 2. Delete images NOT in the new list
+        foreach ($dbImages as $url) {
+            if (!in_array($url, $allImages)) {
+                $this->db->prepare("DELETE FROM product_images WHERE product_id = ? AND image_url = ?")->execute([$productId, $url]);
+                // File deletion handled by Media Gallery if needed, but here we just unlink reference
             }
         }
-    }
 
-    /**
-     * Add an image to a product
-     */
-    public function addImage($productId, $imageUrl, $sortOrder = 0) {
-        $sql = "INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)";
-        return $this->db->prepare($sql)->execute([$productId, $imageUrl, $sortOrder]);
-    }
+        // 3. Process the list in order
+        $insertStmt = $this->db->prepare("INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)");
+        $updateStmt = $this->db->prepare("UPDATE product_images SET sort_order = ? WHERE product_id = ? AND image_url = ?");
 
-    /**
-     * Update sort order for multiple images
-     */
-    public function updateImageOrder($productId, $imagesOrder = []) {
-        if (empty($imagesOrder)) return;
-        
-        $sql = "UPDATE product_images SET sort_order = ? WHERE image_url = ? AND product_id = ?";
-        $stmt = $this->db->prepare($sql);
-        
-        foreach ($imagesOrder as $index => $url) {
-            $stmt->execute([$index, $url, $productId]);
+        foreach ($allImages as $index => $url) {
+            if (empty($url)) continue;
+
+            if (in_array($url, $dbImages)) {
+                // Existing - Update order
+                $updateStmt->execute([$index, $productId, $url]);
+            } else {
+                // New - Insert with order
+                $insertStmt->execute([$productId, $url, $index]);
+            }
         }
     }
 
