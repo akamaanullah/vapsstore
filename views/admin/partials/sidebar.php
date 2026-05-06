@@ -82,6 +82,12 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
                 <span>Theme Sections</span>
             </a>
         </li>
+        <li>
+            <a href="<?= BASE_URL ?>/admin/media" class="<?= strpos($uri, '/admin/media') !== false ? 'active' : ''; ?>">
+                <i data-lucide="image"></i>
+                <span>Media Gallery</span>
+            </a>
+        </li>
     </ul>
 
     <div class="sidebar-nav-header">Marketing</div>

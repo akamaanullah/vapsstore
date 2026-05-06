@@ -151,46 +151,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 3. Media Logic
     const mediaUploadArea = document.getElementById('mediaUploadArea');
-    const productMediaInput = document.getElementById('productMediaInput');
     const mediaPreviewGrid = document.getElementById('mediaPreviewGrid');
-    const mediaPlaceholder = document.querySelector('.media-placeholder');
-    let uploadedFiles = [];
+    const mediaPlaceholder = document.getElementById('mediaPlaceholder');
+    const openMediaPickerBtn = document.getElementById('openMediaPickerBtn');
+    const urlsContainer = document.getElementById('productMediaUrlsContainer');
+    let uploadedMedia = []; // Array of URL strings
 
-    function updateFileInput() {
-        if (!productMediaInput) return;
-        const dt = new DataTransfer();
-        uploadedFiles.forEach(f => { if (f.fileObj) dt.items.add(f.fileObj); });
-        productMediaInput.files = dt.files;
+    function updateHiddenInputs() {
+        if (!urlsContainer) return;
+        urlsContainer.innerHTML = '';
+        uploadedMedia.forEach(url => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'image_urls[]';
+            input.value = url;
+            urlsContainer.appendChild(input);
+        });
     }
 
     function renderMediaPreviews() {
         if (!mediaPreviewGrid) return;
-        if (uploadedFiles.length > 0) {
+        if (uploadedMedia.length > 0) {
             if (mediaPlaceholder) mediaPlaceholder.style.display = 'none';
             mediaPreviewGrid.style.display = 'grid';
-            mediaPreviewGrid.innerHTML = uploadedFiles.map((file, i) => `
+            mediaPreviewGrid.innerHTML = uploadedMedia.map((url, i) => `
                 <div class="media-item" data-id="${i}">
-                    <img src="${file.preview || ''}" alt="Preview">
+                    <img src="${window.MEDIA_BASE_URL + '/' + url}" alt="Preview">
                     ${i === 0 ? '<span class="badge-featured">Featured</span>' : ''}
                     <button type="button" class="btn-remove-media" onclick="window.removeMedia(${i})"><i data-lucide="x"></i></button>
                 </div>
             `).join('') + `
-                <div class="add-more-media">
+                <div class="add-more-media" id="addMoreMediaBtn">
                     <i data-lucide="plus-circle"></i><span class="fs-12 mt-5">Add media</span>
                 </div>
             `;
             if (window.lucide) window.lucide.createIcons();
+            
+            // Re-bind the add more button
+            document.getElementById('addMoreMediaBtn').addEventListener('click', openPicker);
+
             if (window.Sortable) {
                 new Sortable(mediaPreviewGrid, {
                     animation: 150, filter: '.add-more-media',
                     onEnd: function () {
                         const newOrder = [];
                         mediaPreviewGrid.querySelectorAll('.media-item').forEach(item => {
-                            newOrder.push(uploadedFiles[parseInt(item.getAttribute('data-id'))]);
+                            newOrder.push(uploadedMedia[parseInt(item.getAttribute('data-id'))]);
                         });
-                        uploadedFiles = newOrder;
+                        uploadedMedia = newOrder;
                         renderMediaPreviews();
-                        updateFileInput();
+                        updateHiddenInputs();
                     }
                 });
             }
@@ -200,24 +210,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.removeMedia = (index) => { uploadedFiles.splice(index, 1); renderMediaPreviews(); updateFileInput(); };
+    window.removeMedia = (index) => { 
+        uploadedMedia.splice(index, 1); 
+        renderMediaPreviews(); 
+        updateHiddenInputs(); 
+    };
 
-    if (mediaUploadArea && productMediaInput) {
-        mediaUploadArea.addEventListener('click', (e) => { 
-            if (e.target !== productMediaInput && !e.target.closest('.btn-remove-media')) productMediaInput.click(); 
-        });
-        productMediaInput.addEventListener('click', (e) => e.stopPropagation());
-        productMediaInput.addEventListener('change', function() {
-            Array.from(this.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => { 
-                    uploadedFiles.push({ fileObj: file, preview: e.target.result }); 
+    function openPicker() {
+        if (window.mediaPicker) {
+            window.mediaPicker.open({
+                multiple: true,
+                onSelect: (items) => {
+                    // items can be an array if multiple: true
+                    const newUrls = Array.isArray(items) ? items.map(i => i.file_path) : [items.file_path];
+                    uploadedMedia = [...uploadedMedia, ...newUrls];
                     renderMediaPreviews();
-                    updateFileInput();
-                };
-                reader.readAsDataURL(file);
+                    updateHiddenInputs();
+                }
             });
-        });
+        }
+    }
+
+    if (openMediaPickerBtn) {
+        openMediaPickerBtn.addEventListener('click', openPicker);
     }
 
     // 4. Tags Logic
@@ -320,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 textarea.value = editor.innerHTML;
             }
             if (tagsHidden) tagsHidden.value = selectedTagsArr.join(',');
-            updateFileInput();
+            updateHiddenInputs();
         });
     }
 

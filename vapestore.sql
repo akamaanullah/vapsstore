@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2026 at 06:30 PM
+-- Generation Time: May 05, 2026 at 06:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -65,6 +65,13 @@ CREATE TABLE `brands` (
   `is_active` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `brands`
+--
+
+INSERT INTO `brands` (`id`, `name`, `slug`, `logo_url`, `is_active`) VALUES
+(2, 'test', 'tset', 'uploads/brands/1777935112_Logo-1.png', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -88,9 +95,8 @@ CREATE TABLE `collections` (
 --
 
 INSERT INTO `collections` (`id`, `parent_id`, `name`, `custom_url_path`, `header_image_url`, `short_description`, `meta_title`, `meta_desc`, `is_active`) VALUES
-(1, NULL, 'test collection', 'test-collection', NULL, 'test collectiontest collectiontest collectiontest collectiontest collection', NULL, NULL, 1),
-(2, NULL, 'collectionn tesstingggg', 'disposible/vape-kit', 'public/uploads/collections/1777679489_includes_uploads_private_attachments_Zain.png', 'testinggggggggg desctiptionnnn', 'test', 'test', 1),
-(3, NULL, 'test name', 'test-name', 'uploads/collections/1777680095_ChatGPTImageMay1202609_56_00PM.png', 'test eetse t stest setse&nbsp;', 'test', 'tset', 1);
+(3, NULL, 'test name', 'test-name', 'uploads/collections/1777680095_ChatGPTImageMay1202609_56_00PM.png', 'test eetse t stest setse&nbsp;', 'test', 'tset', 1),
+(4, 3, 'testt collection ', 'testt-collection', 'uploads/collections/1777930412_150827453_btzq9g.png', 'testtt testsete set etset', 'test', 'tsetesset', 1);
 
 -- --------------------------------------------------------
 
@@ -146,11 +152,18 @@ CREATE TABLE `inventory_logs` (
 --
 
 INSERT INTO `inventory_logs` (`id`, `variant_id`, `change_amount`, `reason`, `created_at`) VALUES
-(1, 1, 12, 'initial_stock', '2026-05-01 23:23:58'),
-(2, 2, 12, 'initial_stock', '2026-05-02 00:16:44'),
-(3, 3, 12, 'initial_stock', '2026-05-02 00:16:44'),
 (4, 4, 123, 'initial_stock', '2026-05-04 16:13:05'),
-(5, 5, 123, 'initial_stock', '2026-05-04 16:13:05');
+(5, 5, 123, 'initial_stock', '2026-05-04 16:13:05'),
+(6, 6, 15, 'initial_stock', '2026-05-04 17:24:07'),
+(7, 7, 15, 'initial_stock', '2026-05-04 17:24:07'),
+(8, 8, 15, 'initial_stock', '2026-05-04 17:24:07'),
+(9, 9, 15, 'initial_stock', '2026-05-04 17:24:07'),
+(10, 10, 15, 'initial_stock', '2026-05-04 17:51:40'),
+(11, 11, 15, 'initial_stock', '2026-05-04 17:51:40'),
+(12, 12, 15, 'initial_stock', '2026-05-04 17:51:40'),
+(13, 13, 15, 'initial_stock', '2026-05-04 17:51:40'),
+(19, 19, 15, 'initial_stock', '2026-05-04 18:56:55'),
+(24, 26, 35, 'initial_stock', '2026-05-04 22:54:36');
 
 -- --------------------------------------------------------
 
@@ -163,6 +176,13 @@ CREATE TABLE `menus` (
   `name` varchar(100) NOT NULL,
   `location` varchar(100) NOT NULL COMMENT 'e.g. header_main, footer_links'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `menus`
+--
+
+INSERT INTO `menus` (`id`, `name`, `location`) VALUES
+(2, 'Main menu', 'main_menu');
 
 -- --------------------------------------------------------
 
@@ -181,6 +201,18 @@ CREATE TABLE `menu_items` (
   `css_class` varchar(100) DEFAULT NULL,
   `sort_order` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `menu_items`
+--
+
+INSERT INTO `menu_items` (`id`, `menu_id`, `parent_id`, `title`, `link_type`, `link_value`, `image_url`, `css_class`, `sort_order`) VALUES
+(5, 2, NULL, 'disposible', 'collection', '', NULL, NULL, 0),
+(6, 2, 5, 'Home', 'custom_url', '', NULL, NULL, 0),
+(7, 2, 6, 'yrdyrdy', 'custom_url', '', NULL, NULL, 0),
+(8, 2, NULL, 'Shop', 'custom_url', '', NULL, NULL, 1),
+(9, 2, 8, 'all products', 'custom_url', '', NULL, NULL, 0),
+(10, 2, 9, 'New arrivals', 'custom_url', '', NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -240,6 +272,14 @@ CREATE TABLE `pages` (
   `is_active` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `pages`
+--
+
+INSERT INTO `pages` (`id`, `title`, `custom_url_path`, `meta_title`, `meta_desc`, `is_active`) VALUES
+(1, 'privacy', 'privacy', 'Privacy Policy', 'testing ', 1),
+(2, 'Provacty', 'test', 'Privacy Policy | The Perfect Vape', 'read about Privacy and terms of theperfectvape.com', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -267,9 +307,11 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `brand_id`, `name`, `custom_url`, `short_desc`, `long_desc`, `base_price`, `status`, `tags`, `seo_title`, `seo_description`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'test', 'test', NULL, NULL, 12.00, 'draft', NULL, NULL, NULL, '2026-05-01 23:23:58', '2026-05-01 23:23:58'),
-(4, NULL, 'DATABASE_URL', 'database-url', NULL, '', 12.00, 'draft', '', 'rwar', 'rawr', '2026-05-02 00:16:44', '2026-05-02 00:16:44'),
-(5, NULL, 'T-shirt', 't-shirt', NULL, '', 15000.00, 'draft', '', 'yrdy', 'yryrdy', '2026-05-04 16:13:05', '2026-05-04 16:13:05');
+(5, NULL, 'T-shirt', 't-shirt', NULL, '', 15000.00, 'draft', '', 'yrdy', 'yryrdy', '2026-05-04 16:13:05', '2026-05-04 16:13:05'),
+(6, NULL, 'AuraGlow LED Touch Night Lamp', 'auraglow-led-touch-night-lamp', NULL, '', 14.99, 'draft', '', 'AuraGlow LED Touch Night Lamp', 'Portable rechargeable LED touch lamp with adjustable brightness levels. Perfect for bedside tables, study desks, and room decor. Modern minimalist design with soft ambient lighting.', '2026-05-04 17:24:07', '2026-05-04 17:24:07'),
+(7, NULL, 'FlexFit Smart Hydration Water Bottle', 'flexfit-smart', NULL, 'Stay hydrated smarter with the FlexFit Smart Water Bottle. Designed with a built-in LED reminder system, this bottle alerts you when it\'s time to drink water. Its sleek design, durable material, and temperature retention make it perfect for gym, office, or travel use.', 12.99, 'published', '', 'FlexFit Smart Hydration Water Bottle test', 'Stay hydrated smarter with the FlexFit Smart Water Bottle. Designed with a built-in LED reminder system, this bottle alerts you when it\'s time to drink water. Its sleek design, durable material, and temperature retention make it perfect for gym, office, or travel use.', '2026-05-04 17:51:40', '2026-05-04 18:28:06'),
+(11, NULL, 'test name', 'test-name', NULL, 'testetetsetes', 15.00, 'draft', 'water bottle smart bottle', '', '', '2026-05-04 18:56:55', '2026-05-04 19:05:42'),
+(16, 2, 'test', 'test', 'test', 'test', 34245.00, 'draft', '', '', '', '2026-05-04 22:54:36', '2026-05-04 22:54:36');
 
 -- --------------------------------------------------------
 
@@ -287,11 +329,10 @@ CREATE TABLE `product_collections` (
 --
 
 INSERT INTO `product_collections` (`product_id`, `collection_id`) VALUES
-(4, 1),
-(4, 2),
-(5, 1),
-(5, 2),
-(5, 3);
+(5, 3),
+(6, 3),
+(16, 3),
+(16, 4);
 
 -- --------------------------------------------------------
 
@@ -312,8 +353,11 @@ CREATE TABLE `product_images` (
 --
 
 INSERT INTO `product_images` (`id`, `product_id`, `variant_id`, `image_url`, `sort_order`) VALUES
-(1, 4, NULL, '/uploads/products/1777681004_includes_uploads_private_attachments_Zain.png', 0),
-(2, 5, NULL, '/uploads/products/1777911185_includes_uploads_private_attachments_Zain.png', 0);
+(2, 5, NULL, '/uploads/products/1777911185_includes_uploads_private_attachments_Zain.png', 0),
+(3, 7, NULL, 'uploads/products/1777917100_61i+x6jhVcL._AC_UF894,1000_QL80_.jpg', 0),
+(4, 7, NULL, 'uploads/products/1777919233_150827453_btzq9g.png', 0),
+(12, 11, NULL, 'uploads/products/1777921015_logo_4.png', 0),
+(18, 16, NULL, 'uploads/products/1777935276_logo_4.png', 0);
 
 -- --------------------------------------------------------
 
@@ -357,11 +401,18 @@ CREATE TABLE `product_variants` (
 --
 
 INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `price`, `stock_quantity`, `flavor`, `size`, `nicotine_strength`, `puff_count`, `is_default`, `variant_name`) VALUES
-(1, 1, '123', 12.00, 12, NULL, NULL, NULL, NULL, 1, NULL),
-(2, 4, '123-rwar', 12.00, 12, NULL, NULL, NULL, NULL, 0, 'rwar'),
-(3, 4, '123-rwa', 12.00, 12, NULL, NULL, NULL, NULL, 0, 'rwa'),
 (4, 5, '1232345-black', 15000.00, 123, NULL, NULL, NULL, NULL, 0, 'black'),
-(5, 5, '1232345-blue', 15000.00, 123, NULL, NULL, NULL, NULL, 0, 'blue');
+(5, 5, '1232345-blue', 15000.00, 123, NULL, NULL, NULL, NULL, 0, 'blue'),
+(6, 6, 'AGL-001-black-large', 14.99, 15, NULL, NULL, NULL, NULL, 0, 'Black / Large'),
+(7, 6, 'AGL-001-black-small', 14.99, 15, NULL, NULL, NULL, NULL, 0, 'Black / Small'),
+(8, 6, 'AGL-001-white-large', 14.99, 15, NULL, NULL, NULL, NULL, 0, 'White / Large'),
+(9, 6, 'AGL-001-white-small', 14.99, 15, NULL, NULL, NULL, NULL, 0, 'White / Small'),
+(10, 7, 'AGL-0012324-black-500ml', 12.99, 15, NULL, NULL, NULL, NULL, 0, 'Black / 500ml'),
+(11, 7, 'AGL-0012324-black-750ml', 12.99, 15, NULL, NULL, NULL, NULL, 0, 'Black / 750ml'),
+(12, 7, 'AGL-0012324-blue-500ml', 12.99, 15, NULL, NULL, NULL, NULL, 0, 'Blue / 500ml'),
+(13, 7, 'AGL-0012324-blue-750ml', 12.99, 15, NULL, NULL, NULL, NULL, 0, 'Blue / 750ml'),
+(19, 11, 'AGL-001sdfw-test12', 15.00, 15, NULL, NULL, NULL, NULL, 0, 'test12'),
+(26, 16, 'test', 34245.00, 35, NULL, NULL, NULL, NULL, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -406,6 +457,15 @@ CREATE TABLE `ui_sections` (
   `is_active` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `ui_sections`
+--
+
+INSERT INTO `ui_sections` (`id`, `entity_type`, `entity_id`, `type`, `sort_order`, `is_active`) VALUES
+(1, 'collection', 3, 'bento_grid', 0, 1),
+(2, 'page', 1, 'rich_text', 0, 1),
+(4, 'page', 2, 'rich_text', 0, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -423,6 +483,15 @@ CREATE TABLE `ui_section_items` (
   `button_url` varchar(255) DEFAULT NULL,
   `sort_order` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `ui_section_items`
+--
+
+INSERT INTO `ui_section_items` (`id`, `section_id`, `title`, `content`, `image_url`, `video_url`, `button_text`, `button_url`, `sort_order`) VALUES
+(3, 1, 'test', 'tesgfdgfhfgjhfghfghdgfgfdg', 'https://m.media-amazon.com/images/I/61i+x6jhVcL._AC_UF894,1000_QL80_.jpg', NULL, 'advance', NULL, 0),
+(7, 2, 'Privacy Policy', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe magnam dolore dicta deleniti. Aperiam magnam dolorum molestias sit sunt aliquid explicabo quo nisi. Sit esse impedit officiis perspiciatis a veniam expedita perferendis id porro corporis eos rem, et ipsum est necessitatibus deleniti maiores? Enim, veniam omnis nihil magnam eligendi molestiae maxime, commodi iusto ullam consectetur, delectus culpa tenetur odit laboriosam amet nesciunt! Esse rerum quidem, saepe, minus placeat dignissimos amet doloremque vitae aspernatur voluptas tenetur repellat sed iusto deserunt at dicta similique nulla eaque maxime ad ipsum molestiae eum quisquam! Alias, officiis porro. Suscipit deleniti optio praesentium odit doloremque delectus quisquam animi pariatur nostrum tenetur cum, exercitationem officia tempora numquam sequi! Nobis neque, accusamus doloremque et alias impedit voluptate iusto inventore amet sed iste id dolores explicabo praesentium omnis eligendi distinctio enim laudantium molestiae autem cumque dignissimos facilis necessitatibus. Repellendus aut iste magni laborum odit saepe possimus officiis dicta in tempore molestias, beatae culpa vel unde, placeat expedita sapiente omnis eligendi accusamus ipsum harum eum rerum autem quasi. Molestiae doloremque nemo mollitia quisquam voluptates ullam est? Expedita odit quo qui totam obcaecati autem saepe sed cum sit illo rerum sint at aut aliquid vel, quos doloribus libero corporis consequatur laboriosam officiis! Qui, harum quasi. Illo in provident atque dolor consequatur illum eveniet minus, delectus optio quisquam fuga quo? Saepe obcaecati vitae fugit vel eius repellat alias? Eligendi asperiores pariatur nam ducimus perferendis. Ipsam, cupiditate minus veniam ducimus perspiciatis alias blanditiis delectus, vero in cum accusantium sapiente quo id fuga ullam odio perferendis magnam tempore rerum sed mollitia laborum tempora repellat. Enim, autem error a molestiae nisi ut dignissimos, dolorem sequi saepe ab praesentium et. Non tempore autem quis error commodi facilis reiciendis modi, nam, id dignissimos omnis quas tenetur dolore ab odit! Rem, soluta nulla ullam ipsam cumque nihil eaque doloremque, laborum architecto doloribus deserunt. Omnis, officiis. Temporibus iste quod veritatis officiis vel eius suscipit nisi tempora. Alias temporibus possimus, molestiae rem modi sint! Ab reiciendis minima magnam, ipsam sit, quisquam alias perspiciatis ullam voluptate blanditiis modi dolore similique labore beatae assumenda qui, dolor illo quae corrupti odio nostrum officia saepe accusantium nulla. Placeat quisquam quam asperiores iure quod cum, possimus autem, in consectetur cumque voluptate non atque corporis odio maxime sed quaerat porro. Unde, dignissimos ab! Ipsa dicta quas non qui vel temporibus voluptates nemo quos mollitia? Temporibus quo praesentium nostrum iure? Porro dolorum, corporis ipsam dignissimos ratione, accusamus deserunt mollitia voluptatem adipisci ea molestias aliquam? Eaque ea facilis repudiandae, nemo quisquam accusamus expedita! Veniam labore tenetur animi amet laboriosam officia blanditiis sint est doloremque fuga. Explicabo itaque pariatur doloremque fuga reprehenderit delectus error officiis id. Officiis quo facere sequi deserunt nostrum ab blanditiis debitis repudiandae repellat, aut vel exercitationem voluptatibus laudantium molestias nihil eum, omnis id fuga nisi asperiores? Itaque quis aliquid quisquam, optio recusandae impedit magnam numquam, praesentium ut molestiae eveniet blanditiis quae voluptas tempore doloremque perspiciatis nemo aperiam ab rem earum aliquam, culpa beatae! Optio accusamus magni neque architecto accusantium aliquam delectus, cum temporibus ea voluptatum.', NULL, NULL, NULL, NULL, 0),
+(8, 4, 'Privacy Policy', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe magnam dolore dicta deleniti. Aperiam magnam dolorum molestias sit sunt aliquid explicabo quo nisi. Sit esse impedit officiis perspiciatis a veniam expedita perferendis id porro corporis eos rem, et ipsum est necessitatibus deleniti maiores? Enim, veniam omnis nihil magnam eligendi molestiae maxime, commodi iusto ullam consectetur, delectus culpa tenetur odit laboriosam amet nesciunt! Esse rerum quidem, saepe, minus placeat dignissimos amet doloremque vitae aspernatur voluptas tenetur repellat sed iusto deserunt at dicta similique nulla eaque maxime ad ipsum molestiae eum quisquam! Alias, officiis porro. Suscipit deleniti optio praesentium odit doloremque delectus quisquam animi pariatur nostrum tenetur cum, exercitationem officia tempora numquam sequi! Nobis neque, accusamus doloremque et alias impedit voluptate iusto inventore amet sed iste id dolores explicabo praesentium omnis eligendi distinctio enim laudantium molestiae autem cumque dignissimos facilis necessitatibus. Repellendus aut iste magni laborum odit saepe possimus officiis dicta in tempore molestias, beatae culpa vel unde, placeat expedita sapiente omnis eligendi accusamus ipsum harum eum rerum autem quasi. Molestiae doloremque nemo mollitia quisquam voluptates ullam est? Expedita odit quo qui totam obcaecati autem saepe sed cum sit illo rerum sint at aut aliquid vel, quos doloribus libero corporis consequatur laboriosam officiis! Qui, harum quasi. Illo in provident atque dolor consequatur illum eveniet minus, delectus optio quisquam fuga quo? Saepe obcaecati vitae fugit vel eius repellat alias? Eligendi asperiores pariatur nam ducimus perferendis. Ipsam, cupiditate minus veniam ducimus perspiciatis alias blanditiis delectus, vero in cum accusantium sapiente quo id fuga ullam odio perferendis magnam tempore rerum sed mollitia laborum tempora repellat. Enim, autem error a molestiae nisi ut dignissimos, dolorem sequi saepe ab praesentium et. Non tempore autem quis error commodi facilis reiciendis modi, nam, id dignissimos omnis quas tenetur dolore ab odit! Rem, soluta nulla ullam ipsam cumque nihil eaque doloremque, laborum architecto doloribus deserunt. Omnis, officiis. Temporibus iste quod veritatis officiis vel eius suscipit nisi tempora. Alias temporibus possimus, molestiae rem modi sint! Ab reiciendis minima magnam, ipsam sit, quisquam alias perspiciatis ullam voluptate blanditiis modi dolore similique labore beatae assumenda qui, dolor illo quae corrupti odio nostrum officia saepe accusantium nulla. Placeat quisquam quam asperiores iure quod cum, possimus autem, in consectetur cumque voluptate non atque corporis odio maxime sed quaerat porro. Unde, dignissimos ab! Ipsa dicta quas non qui vel temporibus voluptates nemo quos mollitia? Temporibus quo praesentium nostrum iure? Porro dolorum, corporis ipsam dignissimos ratione, accusamus deserunt mollitia voluptatem adipisci ea molestias aliquam? Eaque ea facilis repudiandae, nemo quisquam accusamus expedita! Veniam labore tenetur animi amet laboriosam officia blanditiis sint est doloremque fuga. Explicabo itaque pariatur doloremque fuga reprehenderit delectus error officiis id. Officiis quo facere sequi deserunt nostrum ab blanditiis debitis repudiandae repellat, aut vel exercitationem voluptatibus laudantium molestias nihil eum, omnis id fuga nisi asperiores? Itaque quis aliquid quisquam, optio recusandae impedit magnam numquam, praesentium ut molestiae eveniet blanditiis quae voluptas tempore doloremque perspiciatis nemo aperiam ab rem earum aliquam, culpa beatae! Optio accusamus magni neque architecto accusantium aliquam delectus, cum temporibus ea voluptatum.', NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -669,13 +738,13 @@ ALTER TABLE `blog_posts`
 -- AUTO_INCREMENT for table `brands`
 --
 ALTER TABLE `brands`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `collections`
 --
 ALTER TABLE `collections`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `contact_messages`
@@ -693,19 +762,19 @@ ALTER TABLE `coupons`
 -- AUTO_INCREMENT for table `inventory_logs`
 --
 ALTER TABLE `inventory_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `menus`
 --
 ALTER TABLE `menus`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `menu_items`
 --
 ALTER TABLE `menu_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -723,19 +792,19 @@ ALTER TABLE `order_items`
 -- AUTO_INCREMENT for table `pages`
 --
 ALTER TABLE `pages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `product_reviews`
@@ -747,7 +816,7 @@ ALTER TABLE `product_reviews`
 -- AUTO_INCREMENT for table `product_variants`
 --
 ALTER TABLE `product_variants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `refund_requests`
@@ -765,13 +834,13 @@ ALTER TABLE `settings`
 -- AUTO_INCREMENT for table `ui_sections`
 --
 ALTER TABLE `ui_sections`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `ui_section_items`
 --
 ALTER TABLE `ui_section_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`

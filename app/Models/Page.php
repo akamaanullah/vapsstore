@@ -50,6 +50,11 @@ class Page extends Model {
     }
 
     public function search($query) {
+        if ($query === 'all') {
+            $stmt = $this->db->prepare("SELECT * FROM {$this->table} LIMIT 50");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE title LIKE ? LIMIT 10");
         $stmt->execute(["%$query%"]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

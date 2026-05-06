@@ -89,19 +89,10 @@ class ProductController extends AdminController {
             $productId = $productModel->createProduct($data);
 
             if ($productId) {
-                // Handle Image Uploads
-                if (!empty($_FILES['images']['name'][0])) {
-                    $uploadDir = ROOT_DIR . '/public/uploads/products/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-
-                    foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-                        $fileName = time() . '_' . $_FILES['images']['name'][$key];
-                        $targetPath = $uploadDir . $fileName;
-
-                        if (move_uploaded_file($tmpName, $targetPath)) {
-                            $imageUrl = 'uploads/products/' . $fileName;
+                // Handle Image URLs from Media Picker
+                if (!empty($_POST['image_urls']) && is_array($_POST['image_urls'])) {
+                    foreach ($_POST['image_urls'] as $key => $imageUrl) {
+                        if (!empty($imageUrl)) {
                             $productModel->addImage($productId, $imageUrl, $key);
                         }
                     }
@@ -161,18 +152,12 @@ class ProductController extends AdminController {
                 $productModel->syncImages($id, $imagesToKeep);
                 $productModel->updateImageOrder($id, $imagesToKeep);
 
-                // Handle new image uploads
-                if (!empty($_FILES['images']['name'][0])) {
-                    $uploadDir = ROOT_DIR . '/public/uploads/products/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-                    foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-                        $fileName = time() . '_' . $_FILES['images']['name'][$key];
-                        $targetPath = $uploadDir . $fileName;
-                        if (move_uploaded_file($tmpName, $targetPath)) {
-                            $imageUrl = 'uploads/products/' . $fileName;
-                            $productModel->addImage($id, $imageUrl, $key);
+                // Handle new image URLs from Media Picker
+                if (!empty($_POST['image_urls']) && is_array($_POST['image_urls'])) {
+                    $startOrder = count($imagesToKeep);
+                    foreach ($_POST['image_urls'] as $key => $imageUrl) {
+                        if (!empty($imageUrl)) {
+                            $productModel->addImage($id, $imageUrl, $startOrder + $key);
                         }
                     }
                 }
@@ -195,13 +180,8 @@ class ProductController extends AdminController {
             $product = $productModel->getProductForEdit($id);
 
             if ($product) {
-                // Delete physical images
-                foreach ($product['images'] as $image) {
-                    $filePath = ROOT_DIR . '/public/' . ltrim($image['image_url'], '/');
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
-                }
+                // Physical images are no longer deleted here because they reside in the global Media Gallery.
+                // productModel->delete() will cascade and remove product_images records.
 
                 if ($productModel->delete($id)) {
                     $this->redirect('/admin/products?success=Product deleted');
@@ -209,5 +189,29 @@ class ProductController extends AdminController {
             }
         }
         $this->redirect('/admin/products?error=Delete failed');
+    }
+
+    public function apiSearch() {
+        $query = $_GET['q'] ?? '';
+        $productModel = $this->model('Product');
+        $products = $productModel->search($query);
+        
+        header('Content-Type: application/json');
+        echo json_encode($products);
+        exit;
+    }
+
+    public function apiByCollection() {
+        $collectionId = $_GET['collection_id'] ?? null;
+        if (!$collectionId) {
+            echo json_encode([]);
+            exit;
+        }
+        $productModel = $this->model('Product');
+        $products = $productModel->getByCollectionId($collectionId);
+        
+        header('Content-Type: application/json');
+        echo json_encode($products);
+        exit;
     }
 }

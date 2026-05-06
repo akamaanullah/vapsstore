@@ -4,6 +4,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('menuItemModal');
     const form = document.getElementById('menuItemForm');
     
+    // Initialize Quill Editor
+    let quill = null;
+    if (document.getElementById('item_quill_editor')) {
+        quill = new Quill('#item_quill_editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['link', 'clean']
+                ]
+            }
+        });
+    }
+    
     let menuItems = window.initialMenuItems || [];
     let editMode = false;
     let editingId = null;
@@ -24,39 +39,111 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modalTitle').innerText = editMode ? 'Edit Menu Item' : 'Add Menu Item';
         document.getElementById('item_title').value = data ? data.title : '';
         document.getElementById('item_link_type').value = data ? data.link_type : 'custom_url';
-        document.getElementById('item_link_value').value = data ? data.link_value : '';
+        
+        // Handle content vs link value
+        if (data && ['text_block', 'html'].includes(data.link_type)) {
+            const content = data.link_value || '';
+            document.getElementById('item_content_value').value = content;
+            if (quill) quill.root.innerHTML = content;
+            document.getElementById('item_link_value').value = '';
+        } else {
+            document.getElementById('item_link_value').value = data ? data.link_value : '';
+            document.getElementById('item_content_value').value = '';
+            if (quill) quill.root.innerHTML = '';
+        }
+
         document.getElementById('item_image_url').value = data ? (data.image_url || '') : '';
         
-        handleLinkTypeChange();
+        filterOptionsByLocation();
+        
+        handleLinkTypeChange(true); // Pass true to prevent clearing values on open
         modal.style.display = 'flex';
     }
 
     document.getElementById('closeMenuItemModal').addEventListener('click', () => modal.style.display = 'none');
     document.getElementById('cancelMenuItemBtn').addEventListener('click', () => modal.style.display = 'none');
 
-    document.getElementById('item_link_type').addEventListener('change', handleLinkTypeChange);
+    document.getElementById('item_link_type').addEventListener('change', () => handleLinkTypeChange(false));
 
-    function handleLinkTypeChange() {
+    function filterOptionsByLocation() {
+        const typeSelect = document.getElementById('item_link_type');
+        const options = typeSelect.options;
+        const location = window.menuLocation || 'main_menu';
+
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            const val = opt.value;
+
+            // Header specific
+            if (['mega_menu_column'].includes(val)) {
+                opt.hidden = (location.includes('footer'));
+            }
+            // Footer specific
+            if (['text_block', 'newsletter', 'html'].includes(val)) {
+                opt.hidden = (!location.includes('footer'));
+            }
+        }
+    }
+
+    function handleLinkTypeChange(isInitial = false) {
         const type = document.getElementById('item_link_type').value;
         const label = document.getElementById('linkValueLabel');
         const promoFields = document.getElementById('promoFields');
         const linkContainer = document.getElementById('linkValueContainer');
         const linkInput = document.getElementById('item_link_value');
+        const contentInput = document.getElementById('item_content_value');
+        const quillWrapper = document.getElementById('item_quill_editor');
+        const resultsBox = document.getElementById('searchResults');
         
-        promoFields.style.display = (type === 'promo_banner') ? 'block' : 'none';
-        linkContainer.style.display = (type === 'no_link') ? 'none' : 'block';
-        
-        switch(type) {
-            case 'collection': label.innerText = 'Select Collection'; break;
-            case 'brand': label.innerText = 'Select Brand'; break;
-            case 'page': label.innerText = 'Select Page'; break;
-            case 'custom_url': label.innerText = 'Link URL'; break;
-            case 'mega_menu_column': label.innerText = 'Column Heading (Optional Link)'; break;
-            case 'promo_banner': label.innerText = 'Promotion Link'; break;
+        // Only clear previous values if it's a manual change, not on modal open
+        if (!isInitial) {
+            linkInput.value = '';
+            contentInput.value = '';
+            if (quill) quill.root.innerHTML = '';
+            resultsBox.style.display = 'none';
         }
 
+        promoFields.style.display = (type === 'promo_banner') ? 'block' : 'none';
+        
+        // Show textarea/editor for content types
+        const quillToolbar = document.querySelector('.ql-toolbar');
+        
+        if (['text_block', 'html'].includes(type)) {
+            linkInput.style.display = 'none';
+            if (type === 'text_block') {
+                quillWrapper.style.display = 'block';
+                if (quillToolbar) quillToolbar.style.display = 'block';
+                contentInput.style.display = 'none';
+            } else {
+                quillWrapper.style.display = 'none';
+                if (quillToolbar) quillToolbar.style.display = 'none';
+                contentInput.style.display = 'block'; // Show raw textarea for HTML
+                contentInput.classList.add('modal-field-input');
+                contentInput.style.height = '120px';
+            }
+            label.innerText = type === 'text_block' ? 'Description Content' : 'HTML Content';
+        } else {
+            linkInput.style.display = 'block';
+            contentInput.style.display = 'none';
+            if (quillWrapper) quillWrapper.style.display = 'none';
+            if (quillToolbar) quillToolbar.style.display = 'none';
+            
+            switch(type) {
+                case 'collection': label.innerText = 'Select Collection'; break;
+                case 'brand': label.innerText = 'Select Brand'; break;
+                case 'page': label.innerText = 'Select Page'; break;
+                case 'custom_url': label.innerText = 'Link URL'; break;
+                case 'mega_menu_column': label.innerText = 'Column Heading (Optional Link)'; break;
+                case 'promo_banner': label.innerText = 'Image / Promotion Link'; break;
+                case 'newsletter': label.innerText = 'Newsletter Form Settings (Optional JSON)'; break;
+                case 'no_link': label.innerText = 'Text Only'; break;
+            }
+        }
+
+        linkContainer.style.display = (type === 'no_link') ? 'none' : 'block';
+        
         // Trigger search for "all" when type changes to help user
-        if (['collection', 'brand', 'page'].includes(type) && !linkInput.value) {
+        if (['collection', 'brand', 'page'].includes(type)) {
             performSearch(type, 'all');
         }
     }
@@ -128,7 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const type = document.getElementById('item_link_type').value;
-        const linkValue = document.getElementById('item_link_value').value.trim();
+        let linkValue = document.getElementById('item_link_value').value.trim();
+        
+        // Use textarea/quill value for content types
+        if (type === 'text_block') {
+            linkValue = quill.root.innerHTML;
+        } else if (type === 'html') {
+            linkValue = document.getElementById('item_content_value').value.trim();
+        }
 
         // Validation: For Collection, Brand, Page - must be a valid link (starts with / or is full URL)
         if (['collection', 'brand', 'page'].includes(type) && type !== 'no_link') {

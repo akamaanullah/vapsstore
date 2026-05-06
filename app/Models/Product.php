@@ -326,4 +326,15 @@ class Product extends Model {
         $stmt->execute([$collectionId]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    public function search($query, $limit = 50) {
+        $sql = "SELECT p.id, p.name, 
+                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
+                FROM products p 
+                WHERE p.name LIKE ? AND p.status = 'published' 
+                LIMIT ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['%' . $query . '%', (int)$limit]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }

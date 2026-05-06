@@ -27,14 +27,8 @@ class CollectionController extends AdminController {
             $collectionModel = $this->model('Collection');
             
             $headerImage = null;
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = ROOT_DIR . '/public/uploads/collections/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-                
-                $fileName = time() . '_' . $_FILES['image']['name'];
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $fileName)) {
-                    $headerImage = 'uploads/collections/' . $fileName;
-                }
+            if (!empty($_POST['header_image_url'])) {
+                $headerImage = $_POST['header_image_url'];
             }
 
             $data = [
@@ -91,21 +85,9 @@ class CollectionController extends AdminController {
             $uiModel = $this->model('UISection');
             
             $headerImage = $_POST['existing_image'] ?? null;
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = ROOT_DIR . '/public/uploads/collections/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-                
-                $fileName = time() . '_' . $_FILES['image']['name'];
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $fileName)) {
-                    // Delete old image if it exists
-                    if (!empty($_POST['existing_image'])) {
-                        $oldPath = ROOT_DIR . '/public/' . ltrim($_POST['existing_image'], '/');
-                        if (file_exists($oldPath)) unlink($oldPath);
-                    }
-                    $headerImage = 'uploads/collections/' . $fileName;
-                }
+            if (isset($_POST['header_image_url'])) {
+                $headerImage = $_POST['header_image_url'];
             }
-
             $data = [
                 'name' => $_POST['name'],
                 'parent_id' => $_POST['parent_id'],
@@ -140,11 +122,7 @@ class CollectionController extends AdminController {
             $collection = $collectionModel->find($id);
 
             if ($collection) {
-                // Delete physical image
-                if (!empty($collection['header_image_url'])) {
-                    $filePath = ROOT_DIR . '/public/' . ltrim($collection['header_image_url'], '/');
-                    if (file_exists($filePath)) unlink($filePath);
-                }
+                // No longer deleting physical image here as it's part of the global media gallery
 
                 if ($collectionModel->delete($id)) {
                     $this->redirect('/admin/collections?success=Collection deleted');

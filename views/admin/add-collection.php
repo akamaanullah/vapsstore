@@ -45,15 +45,18 @@ include __DIR__ . '/partials/header.php';
         <div class="card">
             <h3 class="card-title-sm mb-15">Collection Image</h3>
             <div class="media-upload-area" id="mediaUploadArea" style="min-height: 120px; padding: 20px;">
-                <input type="file" name="image" id="collectionImageInput" accept="image/*" style="display: none;">
+                <input type="hidden" name="header_image_url" id="collectionImageUrlInput" value="">
                 <div class="media-placeholder" id="imagePlaceholder">
                     <i data-lucide="image" class="icon-lg text-muted"></i>
-                    <p class="mt-10 mb-5 fw-600">Click to upload collection image</p>
+                    <p class="mt-10 mb-5 fw-600">Select collection image</p>
                     <p class="text-muted-sm m-0">This image will appear at the top of the collection page.</p>
-                    <button type="button" class="btn btn-outline btn-sm mt-15" onclick="document.getElementById('collectionImageInput').click()">Add Image</button>
+                    <button type="button" class="btn btn-outline btn-sm mt-15" id="openMediaPickerBtn">Browse Media</button>
                 </div>
                 <div id="imagePreview" class="media-preview-grid" style="display: none; grid-template-columns: 1fr; gap: 0;">
-                    <!-- Preview will go here -->
+                    <div class="preview-item">
+                        <img id="collectionPreviewImg" src="" style="width: 100%; max-height: 150px; object-fit: contain;">
+                        <button type="button" class="remove-preview-btn" onclick="removeCollectionImage()">&times;</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,5 +159,27 @@ include __DIR__ . '/partials/header.php';
 
 <script>
     window.initialSectionsData = []; // Always empty for new collection
+
+    document.getElementById('openMediaPickerBtn').addEventListener('click', () => {
+        if (window.mediaPicker) {
+            window.mediaPicker.open({
+                multiple: false,
+                onSelect: (item) => {
+                    document.getElementById('collectionImageUrlInput').value = item.file_path;
+                    document.getElementById('collectionPreviewImg').src = window.MEDIA_BASE_URL + '/' + item.file_path;
+                    document.getElementById('imagePlaceholder').style.display = 'none';
+                    document.getElementById('imagePreview').style.display = 'grid';
+                }
+            });
+        }
+    });
+
+    function removeCollectionImage() {
+        document.getElementById('collectionImageUrlInput').value = '';
+        document.getElementById('imagePlaceholder').style.display = 'flex';
+        document.getElementById('imagePreview').style.display = 'none';
+    }
 </script>
+
+<?php include __DIR__ . '/partials/media-picker-modal.php'; ?>
 <?php include __DIR__ . '/partials/footer.php'; ?>

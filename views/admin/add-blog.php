@@ -162,9 +162,10 @@ include __DIR__ . '/partials/header.php';
         <div class="card">
             <h3 class="card-title-sm">Featured image</h3>
             <div class="image-upload-box" id="imageUploadBox">
-                <input type="file" id="featuredImageInput" accept="image/*" style="display: none;">
-                <img id="imagePreview" src="" alt="Featured image preview">
-                <button class="btn-outline" id="addImageBoxBtn">Add image</button>
+                <input type="hidden" name="featured_image_url" id="featuredImageUrlInput" value="">
+                <img id="imagePreview" src="" alt="Featured image preview" style="display: none;">
+                <button type="button" class="btn-outline" id="openMediaPickerBtn">Browse Media</button>
+                <button type="button" class="btn-outline text-error mt-10" id="removeImageBtn" style="display:none; width:100%;" onclick="removeFeaturedImage()">Remove</button>
             </div>
         </div>
     </div>
@@ -179,6 +180,31 @@ include __DIR__ . '/partials/header.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/partials/footer.php'; ?>
+<script>
+document.getElementById('openMediaPickerBtn').addEventListener('click', () => {
+    if (window.mediaPicker) {
+        window.mediaPicker.open({
+            multiple: false,
+            onSelect: (item) => {
+                document.getElementById('featuredImageUrlInput').value = item.file_path;
+                document.getElementById('imagePreview').src = window.MEDIA_BASE_URL + '/' + item.file_path;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('openMediaPickerBtn').style.display = 'none';
+                document.getElementById('removeImageBtn').style.display = 'block';
+            }
+        });
+    }
+});
 
+function removeFeaturedImage() {
+    document.getElementById('featuredImageUrlInput').value = '';
+    document.getElementById('imagePreview').src = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('openMediaPickerBtn').style.display = 'block';
+    document.getElementById('removeImageBtn').style.display = 'none';
+}
+</script>
+
+<?php include __DIR__ . '/partials/media-picker-modal.php'; ?>
+<?php include __DIR__ . '/partials/footer.php'; ?>
 

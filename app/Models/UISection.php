@@ -26,15 +26,47 @@ class UISection extends Model {
     }
 
     /**
+     * Get all sections for a global entity type (e.g. global_home)
+     */
+    public function getGlobalSections($entityType) {
+        $sql = "SELECT * FROM ui_sections 
+                WHERE entity_type = ? AND entity_id IS NULL 
+                ORDER BY sort_order ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$entityType]);
+        $sections = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($sections as &$section) {
+            $section['items'] = $this->getSectionItems($section['id']);
+        }
+
+        return $sections;
+    }
+
+    /**
      * Get items for a specific section
      */
     public function getSectionItems($sectionId) {
-        $sql = "SELECT * FROM ui_section_items 
-                WHERE section_id = ? 
-                ORDER BY sort_order ASC";
+        $sql = "SELECT i.*, 
+                p.name as live_product_name,
+                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as live_product_image
+                FROM ui_section_items i
+                LEFT JOIN products p ON (i.entity_type = 'product' AND i.entity_id = p.id)
+                WHERE i.section_id = ? 
+                ORDER BY i.sort_order ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$sectionId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Override with live data for products
+        foreach ($items as &$item) {
+            if ($item['entity_type'] === 'product' && !empty($item['live_product_name'])) {
+                $item['title'] = $item['live_product_name'];
+                $item['image_url'] = $item['live_product_image'];
+            }
+        }
+        
+        return $items;
     }
 
     /**
@@ -45,18 +77,24 @@ class UISection extends Model {
             $this->db->beginTransaction();
 
             // 1. Get current section IDs to know what to delete
-            $stmt = $this->db->prepare("SELECT id FROM ui_sections WHERE entity_type = ? AND entity_id = ?");
-            $stmt->execute([$entityType, $entityId]);
-            $existingIds = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
+            $sql = "SELECT id FROM ui_sections WHERE entity_type = ? AND " . ($entityId === null ? "entity_id IS NULL" : "entity_id = ?");
+            $stmt = $this->db->prepare($sql);
+            $params = [$entityType];
+            if ($entityId !== null) $params[] = $entityId;
+            $stmt->execute($params);
+            $existingIds = array_map('intval', array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id'));
 
             $newSectionIds = [];
 
             foreach ($sectionsData as $index => $data) {
-                if (!empty($data['id'])) {
+                if (!empty($data['id']) && (int)$data['id'] > 0) {
                     // Update existing section
-                    $sql = "UPDATE ui_sections SET type = ?, sort_order = ?, is_active = ? WHERE id = ?";
+                    $sql = "UPDATE ui_sections SET type = ?, title = ?, button_text = ?, button_url = ?, sort_order = ?, is_active = ? WHERE id = ?";
                     $this->db->prepare($sql)->execute([
                         $data['type'],
+                        $data['title'] ?? null,
+                        $data['button_text'] ?? null,
+                        $data['button_url'] ?? null,
                         $index,
                         $data['is_active'] ?? 1,
                         $data['id']
@@ -65,14 +103,18 @@ class UISection extends Model {
                     $newSectionIds[] = $sectionId;
                 } else {
                     // Create new section
-                    $sql = "INSERT INTO ui_sections (entity_type, entity_id, type, sort_order) VALUES (?, ?, ?, ?)";
+                    $sql = "INSERT INTO ui_sections (entity_type, entity_id, type, title, button_text, button_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)";
                     $this->db->prepare($sql)->execute([
                         $entityType,
                         $entityId,
                         $data['type'],
+                        $data['title'] ?? null,
+                        $data['button_text'] ?? null,
+                        $data['button_url'] ?? null,
                         $index
                     ]);
                     $sectionId = $this->db->lastInsertId();
+                    $newSectionIds[] = $sectionId;
                 }
 
                 // Sync items for this section
@@ -91,9 +133,9 @@ class UISection extends Model {
             $this->db->commit();
             return true;
         } catch (\Exception $e) {
-            $this->db->rollBack();
+            if ($this->db->inTransaction()) $this->db->rollBack();
             error_log("SyncSections failed: " . $e->getMessage());
-            return false;
+            throw $e;
         }
     }
 
@@ -101,43 +143,50 @@ class UISection extends Model {
         // 1. Get existing item IDs to know what to delete
         $stmt = $this->db->prepare("SELECT id FROM ui_section_items WHERE section_id = ?");
         $stmt->execute([$sectionId]);
-        $existingItemIds = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
+        $existingItemIds = array_map('intval', array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id'));
 
         $newItemIds = [];
 
         foreach ($items as $index => $item) {
-            if (!empty($item['id'])) {
+            if (!empty($item['id']) && (int)$item['id'] > 0) {
                 // Update existing item
+                $isProduct = ($item['entity_type'] ?? null) === 'product';
                 $sql = "UPDATE ui_section_items SET 
+                        entity_id = ?, entity_type = ?,
                         title = ?, content = ?, image_url = ?, video_url = ?, 
                         button_text = ?, button_url = ?, sort_order = ? 
                         WHERE id = ?";
                 $this->db->prepare($sql)->execute([
-                    $item['title'] ?? null,
+                    $item['entity_id'] ?? null,
+                    $item['entity_type'] ?? null,
+                    $isProduct ? null : ($item['title'] ?? null),
                     $item['content'] ?? null,
-                    $item['image_url'] ?? null,
+                    $isProduct ? null : ($item['image_url'] ?? null),
                     $item['video_url'] ?? null,
                     $item['button_text'] ?? null,
                     $item['button_url'] ?? null,
                     $index,
                     $item['id']
                 ]);
-                $newItemIds[] = $item['id'];
+                $newItemIds[] = (int)$item['id'];
             } else {
                 // Insert new item
-                $sql = "INSERT INTO ui_section_items (section_id, title, content, image_url, video_url, button_text, button_url, sort_order) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                $isProduct = ($item['entity_type'] ?? null) === 'product';
+                $sql = "INSERT INTO ui_section_items (section_id, entity_id, entity_type, title, content, image_url, video_url, button_text, button_url, sort_order) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 $this->db->prepare($sql)->execute([
                     $sectionId,
-                    $item['title'] ?? null,
+                    $item['entity_id'] ?? null,
+                    $item['entity_type'] ?? null,
+                    $isProduct ? null : ($item['title'] ?? null),
                     $item['content'] ?? null,
-                    $item['image_url'] ?? null,
+                    $isProduct ? null : ($item['image_url'] ?? null),
                     $item['video_url'] ?? null,
                     $item['button_text'] ?? null,
                     $item['button_url'] ?? null,
                     $index
                 ]);
-                $newItemIds[] = $this->db->lastInsertId();
+                $newItemIds[] = (int)$this->db->lastInsertId();
             }
         }
 

@@ -51,12 +51,11 @@ include __DIR__ . '/partials/header.php';
         <div class="card">
             <h3 class="card-title-sm mb-15">Media</h3>
             <div class="media-upload-area" id="mediaUploadArea">
-                <input type="file" name="images[]" id="productMediaInput" multiple accept="image/*" style="display: none;">
-                <div class="media-placeholder">
-                    <i data-lucide="upload-cloud" class="icon-lg text-muted"></i>
-                    <p class="mt-10 mb-5 fw-600">Click to upload or drag and drop</p>
-                    <p class="text-muted-sm m-0">PNG, JPG, GIF up to 10MB</p>
-                    <button type="button" class="btn btn-outline btn-sm mt-15">Add Media</button>
+                <div id="productMediaUrlsContainer"></div>
+                <div class="media-placeholder" id="mediaPlaceholder">
+                    <i data-lucide="image" class="icon-lg text-muted"></i>
+                    <p class="mt-10 mb-5 fw-600">Select images from gallery</p>
+                    <button type="button" class="btn btn-outline btn-sm mt-15" id="openMediaPickerBtn">Browse Media</button>
                 </div>
                 <div class="media-preview-grid" id="mediaPreviewGrid" style="display: none;">
                     <!-- Previews will go here -->
@@ -222,6 +221,7 @@ include __DIR__ . '/partials/header.php';
 </div>
 </form>
 
+<?php include __DIR__ . '/partials/media-picker-modal.php'; ?>
 <?php include __DIR__ . '/partials/footer.php'; ?>
 
 <!-- Bulk Edit Modal -->

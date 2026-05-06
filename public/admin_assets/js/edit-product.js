@@ -150,49 +150,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 3. Media Logic (DataTransfer)
+    // 3. Media Logic (Media Picker)
     const mediaUploadArea = document.getElementById('mediaUploadArea');
-    const productMediaInput = document.getElementById('productMediaInput');
     const mediaPreviewGrid = document.getElementById('mediaPreviewGrid');
-    const mediaPlaceholder = document.querySelector('.media-placeholder');
-    let uploadedFiles = []; 
+    const mediaPlaceholder = document.getElementById('mediaPlaceholder');
+    const openMediaPickerBtn = document.getElementById('openMediaPickerBtn');
+    const urlsContainer = document.getElementById('productMediaUrlsContainer');
+    let uploadedMedia = []; // Array of new URL strings
 
-    function updateFileInput() {
-        if (!productMediaInput) return;
-        const dt = new DataTransfer();
-        uploadedFiles.forEach(f => { if (!f.isExisting && f.fileObj) dt.items.add(f.fileObj); });
-        productMediaInput.files = dt.files;
+    function updateHiddenInputs() {
+        if (!urlsContainer) return;
+        urlsContainer.innerHTML = '';
+        uploadedMedia.forEach(url => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'image_urls[]';
+            input.value = url;
+            urlsContainer.appendChild(input);
+        });
     }
 
     function renderMediaPreviews() {
         if (!mediaPreviewGrid) return;
-        if (uploadedFiles.length > 0) {
+        
+        // Remove only the newly added items and the add button, keep existing items
+        const newItems = mediaPreviewGrid.querySelectorAll('.new-media-item, .add-more-media');
+        newItems.forEach(item => item.remove());
+
+        if (uploadedMedia.length > 0 || mediaPreviewGrid.querySelectorAll('.media-item').length > 0) {
             if (mediaPlaceholder) mediaPlaceholder.style.display = 'none';
             mediaPreviewGrid.style.display = 'grid';
-            mediaPreviewGrid.innerHTML = uploadedFiles.map((file, i) => `
-                <div class="media-item" data-id="${i}">
-                    <img src="${file.preview || ''}" alt="Preview">
-                    ${i === 0 ? '<span class="badge-featured">Featured</span>' : ''}
-                    <button type="button" class="btn-remove-media" onclick="window.removeMedia(${i})"><i data-lucide="x"></i></button>
-                    ${file.isExisting ? `<input type="hidden" name="existing_images[]" value="${file.originalPath}">` : ''}
+            
+            const newHtml = uploadedMedia.map((url, i) => `
+                <div class="media-item new-media-item" data-new-id="${i}">
+                    <img src="${window.MEDIA_BASE_URL + '/' + url}" alt="Preview">
+                    <button type="button" class="btn-remove-media" onclick="window.removeNewMedia(${i})"><i data-lucide="x"></i></button>
                 </div>
             `).join('') + `
-                <div class="add-more-media">
+                <div class="add-more-media" id="addMoreMediaBtn">
                     <i data-lucide="plus-circle"></i><span class="fs-12 mt-5">Add media</span>
                 </div>
             `;
+            
+            mediaPreviewGrid.insertAdjacentHTML('beforeend', newHtml);
+            
             if (window.lucide) window.lucide.createIcons();
-            if (window.Sortable) {
-                new Sortable(mediaPreviewGrid, {
+            
+            // Re-bind the add more button
+            const addBtn = document.getElementById('addMoreMediaBtn');
+            if (addBtn) addBtn.addEventListener('click', openPicker);
+
+            if (window.Sortable && !mediaPreviewGrid.sortableInstance) {
+                mediaPreviewGrid.sortableInstance = new Sortable(mediaPreviewGrid, {
                     animation: 150, filter: '.add-more-media',
                     onEnd: function () {
-                        const newOrder = [];
-                        mediaPreviewGrid.querySelectorAll('.media-item').forEach(item => {
-                            newOrder.push(uploadedFiles[parseInt(item.getAttribute('data-id'))]);
-                        });
-                        uploadedFiles = newOrder;
-                        renderMediaPreviews();
-                        updateFileInput();
+                        // The order is handled by the backend receiving the inputs in order
+                        // The inputs are re-ordered before submit based on DOM
                     }
                 });
             }
@@ -202,32 +215,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.removeMedia = (index) => { uploadedFiles.splice(index, 1); renderMediaPreviews(); updateFileInput(); };
+    window.removeNewMedia = (index) => { 
+        uploadedMedia.splice(index, 1); 
+        renderMediaPreviews(); 
+        updateHiddenInputs(); 
+    };
 
-    if (mediaUploadArea && productMediaInput) {
-        const existingImgs = document.querySelectorAll('.media-item img');
-        if (existingImgs.length > 0) {
-            existingImgs.forEach(img => {
-                const src = img.src;
-                const rel = src.includes('/uploads/') ? 'uploads/' + src.split('/uploads/')[1] : src;
-                uploadedFiles.push({ preview: src, originalPath: rel, isExisting: true });
-            });
-            renderMediaPreviews();
-        }
-        mediaUploadArea.addEventListener('click', (e) => { 
-            if (e.target !== productMediaInput && !e.target.closest('.btn-remove-media') && !e.target.closest('.media-item')) productMediaInput.click(); 
-        });
-        productMediaInput.addEventListener('click', (e) => e.stopPropagation());
-        productMediaInput.addEventListener('change', function() {
-            Array.from(this.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => { 
-                    uploadedFiles.push({ fileObj: file, preview: e.target.result, isExisting: false }); 
+    window.removeExistingMedia = (btn) => {
+        btn.closest('.media-item').remove();
+        renderMediaPreviews();
+    };
+
+    function openPicker() {
+        if (window.mediaPicker) {
+            window.mediaPicker.open({
+                multiple: true,
+                onSelect: (items) => {
+                    const newUrls = Array.isArray(items) ? items.map(i => i.file_path) : [items.file_path];
+                    uploadedMedia = [...uploadedMedia, ...newUrls];
                     renderMediaPreviews();
-                    updateFileInput();
-                };
-                reader.readAsDataURL(file);
+                    updateHiddenInputs();
+                }
             });
+        }
+    }
+
+    if (openMediaPickerBtn) {
+        openMediaPickerBtn.addEventListener('click', openPicker);
+    }
+    
+    // Bind existing add more button if it exists on load
+    const existingAddBtn = document.getElementById('addMoreMediaBtn');
+    if (existingAddBtn) existingAddBtn.addEventListener('click', openPicker);
+
+    // Initial Sortable setup for existing images
+    if (mediaPreviewGrid && window.Sortable) {
+        mediaPreviewGrid.sortableInstance = new Sortable(mediaPreviewGrid, {
+            animation: 150, filter: '.add-more-media'
         });
     }
 
@@ -333,7 +357,33 @@ document.addEventListener('DOMContentLoaded', function() {
             addTag(); // Convert current input to tag if user forgot to press Enter
             if (editor && textarea) textarea.value = editor.innerHTML;
             if (tagsHidden) tagsHidden.value = selectedTagsArr.join(',');
-            updateFileInput();
+            
+            // Before submit, re-order the hidden inputs in the DOM to match the visual grid order
+            const orderedInputsContainer = document.createElement('div');
+            orderedInputsContainer.style.display = 'none';
+            mediaPreviewGrid.querySelectorAll('.media-item').forEach(item => {
+                const existingInput = item.querySelector('input[name="existing_images[]"]');
+                if (existingInput) {
+                    orderedInputsContainer.appendChild(existingInput.cloneNode());
+                } else {
+                    const newId = item.getAttribute('data-new-id');
+                    const url = uploadedMedia[newId];
+                    if (url) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'image_urls[]';
+                        input.value = url;
+                        orderedInputsContainer.appendChild(input);
+                    }
+                }
+            });
+            
+            // Clean out old containers
+            if (urlsContainer) urlsContainer.innerHTML = '';
+            mediaPreviewGrid.querySelectorAll('input[name="existing_images[]"]').forEach(i => i.remove());
+            
+            // Append the ordered container
+            productForm.appendChild(orderedInputsContainer);
         });
     }
 

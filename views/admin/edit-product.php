@@ -57,28 +57,33 @@ include __DIR__ . '/partials/header.php';
         <div class="card">
             <h3 class="card-title-sm mb-15">Media</h3>
             <div class="media-upload-area" id="mediaUploadArea">
-                <input type="file" name="images[]" id="productMediaInput" multiple accept="image/*" style="display: none;">
+                <div id="productMediaUrlsContainer"></div>
                 
-                <?php if (!empty($product['images'])): ?>
-                <div class="media-preview-grid" id="mediaPreviewGrid" style="display: grid;">
-                    <?php foreach ($product['images'] as $image): 
-                        $imgUrl = (strpos($image['image_url'], '/') === 0) 
-                                  ? BASE_URL . $image['image_url'] 
-                                  : BASE_URL . '/' . $image['image_url'];
-                    ?>
-                    <div class="media-item">
-                        <img src="<?= $imgUrl ?>" alt="Product image">
-                    </div>
-                    <?php endforeach; ?>
+                <div class="media-preview-grid" id="mediaPreviewGrid" style="<?= !empty($product['images']) ? 'display: grid;' : 'display: none;' ?>">
+                    <?php if (!empty($product['images'])): ?>
+                        <?php foreach ($product['images'] as $index => $image): 
+                            $imgUrl = (strpos($image['image_url'], '/') === 0) 
+                                      ? BASE_URL . $image['image_url'] 
+                                      : BASE_URL . '/' . $image['image_url'];
+                        ?>
+                        <div class="media-item" data-id="<?= $index ?>">
+                            <img src="<?= $imgUrl ?>" alt="Product image">
+                            <input type="hidden" name="existing_images[]" value="<?= htmlspecialchars($image['image_url']) ?>">
+                            <?php if ($index === 0): ?><span class="badge-featured">Featured</span><?php endif; ?>
+                            <button type="button" class="btn-remove-media" onclick="window.removeExistingMedia(this)"><i data-lucide="x"></i></button>
+                        </div>
+                        <?php endforeach; ?>
+                        <div class="add-more-media" id="addMoreMediaBtn">
+                            <i data-lucide="plus-circle"></i><span class="fs-12 mt-5">Add media</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <?php else: ?>
-                <div class="media-placeholder">
-                    <i data-lucide="upload-cloud" class="icon-lg text-muted"></i>
-                    <p class="mt-10 mb-5 fw-600">Click to upload or drag and drop</p>
-                    <p class="text-muted-sm m-0">PNG, JPG, GIF up to 10MB</p>
-                    <button type="button" class="btn btn-outline btn-sm mt-15">Add Media</button>
+
+                <div class="media-placeholder" id="mediaPlaceholder" style="<?= !empty($product['images']) ? 'display: none;' : '' ?>">
+                    <i data-lucide="image" class="icon-lg text-muted"></i>
+                    <p class="mt-10 mb-5 fw-600">Select images from gallery</p>
+                    <button type="button" class="btn btn-outline btn-sm mt-15" id="openMediaPickerBtn">Browse Media</button>
                 </div>
-                <?php endif; ?>
             </div>
         </div>
 
@@ -230,4 +235,5 @@ include __DIR__ . '/partials/header.php';
 </div>
 </form>
 
+<?php include __DIR__ . '/partials/media-picker-modal.php'; ?>
 <?php include __DIR__ . '/partials/footer.php'; ?>

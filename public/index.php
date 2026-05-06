@@ -64,6 +64,8 @@ $router->post('/admin/products/store', 'Admin\ProductController@store');
 $router->get('/admin/products/edit/{id}', 'Admin\ProductController@edit');
 $router->post('/admin/products/update/{id}', 'Admin\ProductController@update');
 $router->post('/admin/products/delete/{id}', 'Admin\ProductController@delete');
+$router->get('/admin/products/api/search', 'Admin\ProductController@apiSearch');
+$router->get('/admin/products/api/by-collection', 'Admin\ProductController@apiByCollection');
 
 // Brands Management
 $router->get('/admin/brands', 'Admin\BrandController@index');
@@ -129,6 +131,13 @@ $router->get('/admin/menus', 'Admin\MenuController@index');
 $router->get('/admin/menus/edit', 'Admin\MenuController@edit');
 $router->get('/admin/menus/settings', 'Admin\MenuController@settings');
 $router->get('/admin/theme', 'Admin\ThemeController@index');
+$router->post('/admin/theme/update', 'Admin\ThemeController@update');
+
+// Media Gallery Routes
+$router->get('/admin/media', 'Admin\MediaController@index');
+$router->post('/admin/media/upload', 'Admin\MediaController@upload');
+$router->post('/admin/media/delete/{id}', 'Admin\MediaController@delete');
+$router->get('/admin/media/search', 'Admin\MediaController@apiSearch');
 
 $router->get('/admin/coupons', 'Admin\CouponController@index');
 $router->get('/admin/coupons/create', 'Admin\CouponController@create');

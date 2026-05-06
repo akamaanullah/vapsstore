@@ -800,179 +800,20 @@ require 'partials/header.php';
     <!-- New Starter CTA Section -->
     <section class="starter-cta-section">
         <div class="container">
-            <div class="starter-container">
-                <!-- Floating Pod Left -->
-                <div class="floating-pod pod-left">
-                    <img src="assets/image/cta-1.png" alt="Vape Pod Left" id="podLeftImg">
+            <div class="cta-content-wrapper">
+                <div class="cta-text">
+                    <h2>Ready to Experience The Perfect Vape?</h2>
+                    <p>Join thousands of satisfied customers who have elevated their vaping journey with our premium
+                        selection and expert support.</p>
                 </div>
-
-                <div class="starter-content">
-                    <span class="starter-badge">Get Started</span>
-                    <h2>Are you ready to vape with us?</h2>
-                    <p>Experience the next level of satisfaction with our premium starter kits. Crafted for performance,
-                        styled for you.</p>
-                    <div class="starter-actions">
-                        <a href="#" class="btn btn-starter-solid">Get Started</a>
-                        <a href="#" class="btn btn-starter-outline"><i data-lucide="play"></i> About Us</a>
-                    </div>
+                <div class="cta-actions">
+                    <a href="#" class="btn btn-primary btn-lg">Shop Best Sellers</a>
+                    <a href="#" class="btn btn-outline btn-lg">Contact Expert</a>
                 </div>
-
-                <!-- Floating Pod Right -->
-                <div class="floating-pod pod-right">
-                    <img src="assets/image/cta-2.png" alt="Vape Pod Right" id="podRightImg">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials-section">
-        <div class="container">
-            <div class="section-header-center">
-                <h2>What Our Customers Say</h2>
-            </div>
-            <div class="swiper testimonials-swiper">
-                <div class="swiper-wrapper">
-                    <!-- Testimonial 1 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"The quality of the e-liquids here is unmatched. I've tried many
-                                stores, but the flavor profiles and smooth delivery from The Perfect Vape are on another
-                                level."</p>
-                            <div class="testimonial-author">
-                                <img src="assets/image/testimonial-1.jpg" alt="James Wilson">
-                                <div class="author-info">
-                                    <h4>James Wilson</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 2 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"Fast shipping and incredible customer support. They helped me
-                                pick the right coil for my device and it's been working perfectly ever since. Highly
-                                recommend!"</p>
-                            <div class="testimonial-author">
-                                <img src="assets/image/testimonial-2.jpg" alt="Sarah Jenkins">
-                                <div class="author-info">
-                                    <h4>Sarah Jenkins</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 3 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"As a wholesale partner, I couldn't be happier. The consistent
-                                quality and professional communication make them the best supplier in the industry."</p>
-                            <div class="testimonial-author">
-                                <img src="assets/image/testimonial-3.jpg" alt="Michael Chen">
-                                <div class="author-info">
-                                    <h4>Michael Chen</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 4 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"The quality of the e-liquids here is unmatched. I've tried many
-                                stores, but the flavor profiles and smooth delivery from The Perfect Vape are on another
-                                level."</p>
-                            <div class="testimonial-author">
-                                <img src="assets/image/testimonial-4.jpg" alt="James Wilson">
-                                <div class="author-info">
-                                    <h4>James Wilson</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 5 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"Fast shipping and incredible customer support. They helped me
-                                pick the right coil for my device and it's been working perfectly ever since. Highly
-                                recommend!"</p>
-                            <div class="testimonial-author">
-                                <img src="assets/image/testimonial-5.jpg" alt="Sarah Jenkins">
-                                <div class="author-info">
-                                    <h4>Sarah Jenkins</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 6 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"As a wholesale partner, I couldn't be happier. The consistent
-                                quality and professional communication make them the best supplier in the industry."</p>
-                            <div class="testimonial-author">
-                                <img src="assets/image/testimonial-6.jpg" alt="Michael Chen">
-                                <div class="author-info">
-                                    <h4>Michael Chen</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Slider Pagination -->
-                <div class="swiper-pagination"></div>
             </div>
         </div>
     </section>
 
 </main>
-
-<!-- Swiper JS -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <?php require 'partials/footer.php'; ?>

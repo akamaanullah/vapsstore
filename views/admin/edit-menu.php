@@ -3,6 +3,10 @@ $pageTitle = "Edit Menu | Vape Store Admin";
 include __DIR__ . '/partials/header.php'; 
 ?>
 
+<!-- Quill Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
 <style>
     /* Menu Builder UI Fixes */
     .modal-container {
@@ -20,6 +24,7 @@ include __DIR__ . '/partials/header.php';
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         position: relative;
+        overflow: visible !important; /* Allow dropdowns to show outside */
     }
     @keyframes modalSlideUp {
         from { transform: translateY(30px); opacity: 0; }
@@ -167,12 +172,17 @@ include __DIR__ . '/partials/header.php';
                         <option value="no_link">No Link (Text Only)</option>
                         <option value="mega_menu_column">Mega Menu Heading (Column)</option>
                         <option value="promo_banner">Promo Banner</option>
+                        <option value="text_block">Text Block / Description</option>
+                        <option value="newsletter">Newsletter Signup Form</option>
+                        <option value="html">HTML Content</option>
                     </select>
                 </div>
                 <div id="linkValueContainer" class="form-group" style="position: relative;">
                     <label id="linkValueLabel">Select Collection</label>
                     <div id="linkSelectorContainer">
                         <input type="text" id="item_link_value" class="modal-field-input" placeholder="Type to search or paste URL">
+                        <div id="item_quill_editor" style="height: 150px; display: none;"></div>
+                        <textarea id="item_content_value" style="display: none;"></textarea>
                         <div id="searchResults" class="search-results-dropdown"></div>
                     </div>
                 </div>
@@ -196,6 +206,7 @@ include __DIR__ . '/partials/header.php';
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
     window.menuId = <?= $menu['id'] ?>;
+    window.menuLocation = '<?= $menu['location'] ?>';
     window.initialMenuItems = <?= json_encode($items) ?>;
 </script>
 <script src="<?= BASE_URL ?>/admin_assets/js/menu-builder.js"></script>
