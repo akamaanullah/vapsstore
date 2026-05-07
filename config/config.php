@@ -12,7 +12,14 @@ define('APP_NAME', $_ENV['APP_NAME'] ?? 'The Perfect Vape');
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
 
 // Base URLs
-define('BASE_URL', $_ENV['BASE_URL'] ?? 'http://localhost/vapestore/public');
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$scriptName = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+// Remove /public if we are already in the public folder to avoid duplication
+$basePath = str_replace('/public', '', $scriptName);
+$dynamicBaseUrl = $protocol . "://" . $host . $basePath;
+
+define('BASE_URL', $_ENV['BASE_URL'] ?? $dynamicBaseUrl);
 define('ASSET_URL', BASE_URL . '/assets');
 
 // Directories
