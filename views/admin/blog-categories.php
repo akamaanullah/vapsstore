@@ -75,6 +75,7 @@ include __DIR__ . '/partials/header.php';
             <button class="close-modal" onclick="closeModal()"><i data-lucide="x"></i></button>
         </div>
         <form id="categoryForm" action="" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
             <div class="modal-body pt-20">
                 <div class="form-group mb-20">
                     <label class="form-label fw-600 mb-8">Category Name</label>
@@ -250,6 +251,13 @@ function confirmDelete(id) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '<?php echo BASE_URL; ?>/admin/blog-categories/delete/' + id;
+            
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrf_token';
+            csrf.value = '<?= \App\Core\Session::getCsrfToken() ?>';
+            form.appendChild(csrf);
+
             document.body.appendChild(form);
             form.submit();
         }

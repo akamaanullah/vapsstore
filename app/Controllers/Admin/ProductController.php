@@ -42,9 +42,33 @@ class ProductController extends AdminController {
     }
 
     public function index() {
+        $page = $_GET['page'] ?? 1;
+        $perPage = $_GET['per_page'] ?? 10;
+        $search = $_GET['search'] ?? '';
+        $status = $_GET['status'] ?? '';
+        
         $productModel = $this->model('Product');
-        $products = $productModel->getAdminList();
-        $this->view('admin/products', ['products' => $products]);
+        $pagination = $productModel->getAdminList($page, $perPage, [
+            'search' => $search,
+            'status' => $status
+        ]);
+
+        $data = [
+            'products' => $pagination['data'],
+            'pagination' => $pagination,
+            'filters' => [
+                'search' => $search,
+                'status' => $status
+            ]
+        ];
+        
+        // Detect AJAX request
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            $this->view('admin/partials/products-table', $data);
+            return;
+        }
+
+        $this->view('admin/products', $data);
     }
 
     public function create() {

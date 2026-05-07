@@ -22,19 +22,16 @@
     <?php endif; ?>
     <script>
         // Collection requirement check (Only for Product pages)
-        document.querySelector('form')?.addEventListener('submit', function(e) {
-            const collectionCheckboxes = document.querySelectorAll('input[name="collection_ids[]"]');
-            if (collectionCheckboxes.length > 0) {
-                const checked = document.querySelectorAll('input[name="collection_ids[]"]:checked');
-                if (checked.length === 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Collection Required',
-                        text: 'Please select at least one collection for this product.',
-                        confirmButtonColor: 'var(--primary-color)'
-                    });
-                }
+        document.querySelector('form#productForm')?.addEventListener('submit', function(e) {
+            const collections = document.querySelectorAll('input[name="collection_ids[]"]');
+            if (collections.length === 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Collection Required',
+                    text: 'Please select at least one collection for this product.',
+                    confirmButtonColor: '#6f6af8'
+                });
             }
         });
     </script>

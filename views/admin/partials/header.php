@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= \App\Core\Session::getCsrfToken() ?>">
     <title><?php echo isset($pageTitle) ? $pageTitle : 'Vape Admin Dashboard'; ?></title>
     
     <!-- Google Fonts: Poppins -->

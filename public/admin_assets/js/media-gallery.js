@@ -29,6 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', BASE + '/admin/media/upload', true);
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+        }
+
         xhr.upload.addEventListener('progress', (ev) => {
             if (ev.lengthComputable) {
                 progressBar.style.width = Math.round((ev.loaded / ev.total) * 100) + '%';

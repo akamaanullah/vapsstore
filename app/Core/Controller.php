@@ -44,4 +44,32 @@ class Controller {
         header("Location: " . BASE_URL . $url);
         exit;
     }
+
+    /**
+     * Generate a CSRF hidden input field for forms
+     */
+    protected function csrf_field() {
+        $token = Session::getCsrfToken();
+        return '<input type="hidden" name="csrf_token" value="' . $token . '">';
+    }
+
+    /**
+     * Validate CSRF token from POST request
+     */
+    protected function validateCsrf() {
+        if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+            $token = $_POST['csrf_token'] ?? '';
+            
+            if (empty($token)) {
+                // Try various header formats
+                $headers = function_exists('getallheaders') ? getallheaders() : [];
+                $token = $headers['X-CSRF-TOKEN'] ?? $headers['x-csrf-token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            }
+
+            if (!Session::validateCsrfToken($token)) {
+                http_response_code(403);
+                die("CSRF token validation failed. Possible request forgery detected.");
+            }
+        }
+    }
 }

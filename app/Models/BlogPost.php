@@ -21,6 +21,33 @@ class BlogPost {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getAdminList($page = 1, $perPage = 10) {
+        $offset = ($page - 1) * $perPage;
+        
+        // Get total count
+        $total = $this->db->query("SELECT COUNT(*) FROM blog_posts")->fetchColumn();
+
+        $stmt = $this->db->prepare("
+            SELECT b.*, c.name as category_name 
+            FROM blog_posts b 
+            LEFT JOIN blog_categories c ON b.category_id = c.id 
+            ORDER BY b.published_at DESC
+            LIMIT :limit OFFSET :offset
+        ");
+        $stmt->bindValue(':limit', (int)$perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'data' => $items,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => (int)$page,
+            'last_page' => (int)ceil($total / $perPage)
+        ];
+    }
+
     public function find($id) {
         $stmt = $this->db->prepare("SELECT * FROM blog_posts WHERE id = ?");
         $stmt->execute([$id]);

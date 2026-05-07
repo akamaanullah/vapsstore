@@ -57,4 +57,41 @@ class Model {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    /**
+     * Get paginated results
+     */
+    public function paginate($page = 1, $perPage = 10, $where = '', $params = [], $orderBy = 'id DESC') {
+        $offset = ($page - 1) * $perPage;
+        
+        $sql = "SELECT * FROM {$this->table}";
+        if (!empty($where)) {
+            $sql .= " WHERE {$where}";
+        }
+        $sql .= " ORDER BY {$orderBy} LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        // Bind parameters
+        if (!empty($params)) {
+            foreach ($params as $key => $val) {
+                $stmt->bindValue($key, $val);
+            }
+        }
+        $stmt->bindValue(':limit', (int)$perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        
+        $stmt->execute();
+        $items = $stmt->fetchAll();
+        
+        $total = $this->count($where, $params);
+        
+        return [
+            'data' => $items,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => (int)$page,
+            'last_page' => (int)ceil($total / $perPage)
+        ];
+    }
 }

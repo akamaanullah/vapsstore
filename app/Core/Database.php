@@ -21,8 +21,9 @@ class Database {
         try {
             $this->pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // In a real production app, we would log this instead of echoing
-            die("Database Connection Failed: " . $e->getMessage());
+            // Re-throw with a more descriptive message if needed, 
+            // or just let it bubble to the global ErrorHandler
+            throw new PDOException("Database Connection Failed: " . $e->getMessage(), (int)$e->getCode());
         }
     }
 

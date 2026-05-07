@@ -1,6 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Helper to get full image URL
+    function getImageUrl(path) {
+        if (!path) return window.BASE_URL + '/admin_assets/image/placeholder.png';
+        if (path.startsWith('http')) return path;
+        return window.BASE_URL + '/' + path.replace(/^\//, '');
+    }
+
     const container = document.getElementById('sectionsContainer');
     const addBtn = document.getElementById('addSectionBtn');
+    
+    // Clear placeholder if we have initial data
+    if (container && (window.initialSectionsData && window.initialSectionsData.length > 0)) {
+        container.innerHTML = ''; 
+    }
+
     let sectionCount = document.querySelectorAll('.section-item-wrapper').length;
 
     if (addBtn) {
@@ -261,12 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let cleanPath = path.trim();
         if (cleanPath.startsWith('/')) cleanPath = cleanPath.substring(1);
         
-        // If BASE_URL already exists in cleanPath, don't add it again
-        const baseUrlPath = new URL(window.BASE_URL).pathname;
-        if (cleanPath.startsWith(baseUrlPath.substring(1))) {
-            return window.BASE_URL + '/' + cleanPath.substring(baseUrlPath.length - (baseUrlPath.endsWith('/') ? 1 : 0));
-        }
-
         return window.BASE_URL + '/' + cleanPath;
     }
 

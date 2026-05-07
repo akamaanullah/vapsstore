@@ -112,6 +112,7 @@
         <?php endif; ?>
 
         <form action="<?= BASE_URL ?>/admin/login" method="POST">
+            <?= $this->csrf_field() ?>
             <div class="form-group">
                 <label for="email">Admin Email</label>
                 <input type="email" id="email" name="email" required autocomplete="email">

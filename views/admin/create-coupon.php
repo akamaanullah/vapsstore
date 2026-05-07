@@ -14,6 +14,7 @@ include __DIR__ . '/partials/header.php';
 </div>
 
 <form action="<?= BASE_URL ?>/admin/coupons/store" method="POST">
+    <?= $this->csrf_field() ?>
     <div class="form-layout">
         <div class="form-main">
             <!-- Amount Section -->

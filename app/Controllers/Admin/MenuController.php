@@ -141,6 +141,19 @@ class MenuController extends AdminController {
                     ];
                 }
                 break;
+            case 'product':
+                $model = new \App\Models\Product();
+                $items = $model->search($query);
+                foreach ($items as $item) {
+                    $results[] = [
+                        'id' => $item['id'],
+                        'title' => $item['name'],
+                        'price' => $item['base_price'],
+                        'url' => '/products/' . ($item['custom_url'] ?? ''),
+                        'featured_image' => $item['featured_image']
+                    ];
+                }
+                break;
         }
 
         echo json_encode($results);

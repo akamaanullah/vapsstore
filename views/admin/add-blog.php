@@ -5,6 +5,7 @@ include __DIR__ . '/partials/header.php';
 ?>
 
 <form action="<?= BASE_URL ?>/admin/blogs/store" method="POST">
+<input type="hidden" name="csrf_token" value="<?= \App\Core\Session::getCsrfToken() ?>">
 <div class="page-header-container page-header-between">
     <div class="header-title-group">
         <a href="<?= BASE_URL ?>/admin/blogs" class="btn-action-icon icon-action-btn">
@@ -20,7 +21,7 @@ include __DIR__ . '/partials/header.php';
         <div class="card mb-20">
             <div class="form-group mb-0">
                 <label>Blog Title</label>
-                <input type="text" name="title" id="blogTitle" class="modal-field-input" placeholder="e.g. Top 10 Disposable Vapes of 2026" required>
+                <input type="text" name="title" id="blogTitleInput" class="modal-field-input" placeholder="e.g. Top 10 Disposable Vapes of 2026" required>
             </div>
         </div>
 
@@ -39,14 +40,39 @@ include __DIR__ . '/partials/header.php';
 
         <!-- SEO Card -->
         <div class="card mt-30">
-            <h3 class="card-title-sm mb-15">Search Engine Listing</h3>
-            <div class="form-group">
-                <label>Page Title</label>
-                <input type="text" name="seo_title" class="modal-field-input" placeholder="SEO Title">
+            <div class="card-header-flex">
+                <h3 class="card-title-sm">Search Engine Listing</h3>
+                <p class="text-muted-sm m-0">Preview how this post will appear in search results</p>
             </div>
-            <div class="form-group mb-0">
+            
+            <div class="form-group mt-15">
+                <label>Page Title</label>
+                <input type="text" name="seo_title" id="seoTitleInput" class="modal-field-input" placeholder="SEO Title" maxlength="70">
+                <div class="char-counter"><span id="seoTitleCount">0</span> of 70 characters used</div>
+            </div>
+            
+            <div class="form-group">
                 <label>Meta Description</label>
-                <textarea name="seo_description" class="modal-field-input" rows="3" placeholder="SEO Description"></textarea>
+                <textarea name="seo_description" id="seoDescInput" class="modal-field-input" rows="3" placeholder="SEO Description" maxlength="320"></textarea>
+                <div class="char-counter"><span id="seoDescCount">0</span> of 320 characters used</div>
+            </div>
+
+            <div class="form-group mb-20">
+                <label>URL handle</label>
+                <div class="input-prefix-container">
+                    <span class="prefix">/blogs/</span>
+                    <input type="text" name="slug" id="slugInput" class="modal-field-input" placeholder="top-10-vapes">
+                </div>
+            </div>
+
+            <div class="seo-preview-box">
+                <div class="seo-preview-header">
+                    <i data-lucide="globe" class="seo-preview-icon"></i>
+                    <span class="seo-preview-site">The Perfect Vape</span>
+                </div>
+                <div class="seo-preview-url"><?= BASE_URL ?>/blogs/<span id="previewSlug">top-10-vapes</span></div>
+                <div class="seo-preview-title" id="previewTitle">Blog Title</div>
+                <div class="seo-preview-desc" id="previewDesc">Add a description to see how this blog post might appear in search results...</div>
             </div>
         </div>
     </div>
@@ -121,11 +147,53 @@ document.getElementById('openMediaPickerBtn').addEventListener('click', () => {
     }
 });
 
-function removeFeaturedImage() {
-    document.getElementById('featuredImageUrlInput').value = '';
-    document.getElementById('imagePreviewContainer').style.display = 'none';
-    document.getElementById('openMediaPickerBtn').style.display = 'block';
-}
+    function removeFeaturedImage() {
+        document.getElementById('featuredImageUrlInput').value = '';
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        document.getElementById('openMediaPickerBtn').style.display = 'block';
+    }
+
+    // SEO Real-time Preview Logic
+    const blogTitleInput = document.getElementById('blogTitleInput');
+    const seoTitleInput = document.getElementById('seoTitleInput');
+    const seoDescInput = document.getElementById('seoDescInput');
+    const slugInput = document.getElementById('slugInput');
+
+    const previewTitle = document.getElementById('previewTitle');
+    const previewDesc = document.getElementById('previewDesc');
+    const previewSlug = document.getElementById('previewSlug');
+
+    const seoTitleCount = document.getElementById('seoTitleCount');
+    const seoDescCount = document.getElementById('seoDescCount');
+
+    // Sync Blog Title to Slug and SEO Title
+    blogTitleInput.addEventListener('input', function() {
+        if (!slugInput.value || slugInput.dataset.auto === 'true') {
+            const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            slugInput.value = slug;
+            previewSlug.innerText = slug || 'top-10-vapes';
+            slugInput.dataset.auto = 'true';
+        }
+        if (!seoTitleInput.value) {
+            previewTitle.innerText = this.value || 'Blog Title';
+        }
+    });
+
+    slugInput.addEventListener('input', () => slugInput.dataset.auto = 'false');
+
+    seoTitleInput.addEventListener('input', function() {
+        previewTitle.innerText = this.value || blogTitleInput.value || 'Blog Title';
+        seoTitleCount.innerText = this.value.length;
+    });
+
+    seoDescInput.addEventListener('input', function() {
+        previewDesc.innerText = this.value || 'Add a description to see how this blog post might appear in search results...';
+        seoDescCount.innerText = this.value.length;
+    });
+
+    slugInput.addEventListener('input', function() {
+        previewSlug.innerText = this.value || 'top-10-vapes';
+    });
 </script>
 
 <?php include __DIR__ . '/partials/media-picker-modal.php'; ?>

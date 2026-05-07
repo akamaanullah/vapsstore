@@ -34,7 +34,11 @@ if (file_exists($envPath)) {
     (new DotEnv($envPath))->load();
 }
 
-// 3. Load Configuration
+// 3. Register Global Error Handler
+use App\Core\ErrorHandler;
+ErrorHandler::register();
+
+// 4. Load Configuration
 require_once dirname(__DIR__) . '/config/config.php';
 
 // 4. Initialize Core Components
@@ -81,6 +85,7 @@ $router->post('/admin/collections/store', 'Admin\CollectionController@store');
 $router->get('/admin/collections/edit', 'Admin\CollectionController@edit');
 $router->get('/admin/collections/edit/{id}', 'Admin\CollectionController@edit');
 $router->post('/admin/collections/update/{id}', 'Admin\CollectionController@update');
+$router->post('/admin/collections/delete/{id}', 'Admin\CollectionController@delete');
 // Pages Management
 $router->get('/admin/pages', 'Admin\PageController@index');
 $router->get('/admin/pages/create', 'Admin\PageController@create');

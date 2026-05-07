@@ -282,18 +282,61 @@ class Product extends Model {
     /**
      * Get products with brand names for the admin list
      */
-    public function getAdminList() {
+    public function getAdminList($page = 1, $perPage = 10, $filters = []) {
+        $offset = ($page - 1) * $perPage;
+        
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['search'])) {
+            $where[] = "p.name LIKE :search";
+            $params[':search'] = '%' . $filters['search'] . '%';
+        }
+
+        if (!empty($filters['status']) && $filters['status'] !== 'all status') {
+            $where[] = "p.status = :status";
+            $params[':status'] = $filters['status'];
+        }
+
+        $whereClause = !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
+
+        // Get total count for pagination
+        $countSql = "SELECT COUNT(*) as total FROM products p" . $whereClause;
+        $countStmt = $this->db->prepare($countSql);
+        foreach ($params as $key => $val) {
+            $countStmt->bindValue($key, $val);
+        }
+        $countStmt->execute();
+        $total = $countStmt->fetch()['total'];
+
         $sql = "SELECT p.*, b.name as brand_name, 
                        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image,
-                       GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') as collection_names,
+                       (SELECT GROUP_CONCAT(c.name SEPARATOR ', ') FROM collections c 
+                        JOIN product_collections pc ON pc.collection_id = c.id 
+                        WHERE pc.product_id = p.id) as collection_names,
                        (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) as variants_count
                 FROM products p 
                 LEFT JOIN brands b ON p.brand_id = b.id 
-                LEFT JOIN product_collections pc ON p.id = pc.product_id
-                LEFT JOIN collections c ON pc.collection_id = c.id
-                GROUP BY p.id
-                ORDER BY p.id DESC";
-        return $this->query($sql);
+                $whereClause
+                ORDER BY p.id DESC
+                LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->bindValue(':limit', (int)$perPage, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        $items = $stmt->fetchAll();
+
+        return [
+            'data' => $items,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => (int)$page,
+            'last_page' => (int)ceil($total / $perPage)
+        ];
     }
 
     /**
@@ -360,13 +403,13 @@ class Product extends Model {
     }
 
     public function search($query, $limit = 50) {
-        $sql = "SELECT p.id, p.name, 
-                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
+        $sql = "SELECT p.id, p.name, p.base_price, p.custom_url, pi.image_url as featured_image
                 FROM products p 
-                WHERE p.name LIKE ? AND p.status = 'published' 
-                LIMIT ?";
+                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
+                WHERE p.name LIKE ? 
+                LIMIT " . (int)$limit;
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['%' . $query . '%', (int)$limit]);
+        $stmt->execute(['%' . $query . '%']);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

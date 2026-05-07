@@ -156,6 +156,11 @@ class MediaPicker {
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${this.base_url}/admin/media/upload`, true);
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+        }
 
         xhr.upload.addEventListener('progress', (ev) => {
             if (ev.lengthComputable) {

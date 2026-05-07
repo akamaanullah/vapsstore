@@ -74,6 +74,27 @@ include __DIR__ . '/partials/header.php';
             </div>
         </div>
 
+        <!-- Dynamic Section Builder -->
+        <div class="card mt-20">
+            <div class="card-header-flex">
+                <h3 class="card-title-sm">Page Sections (Dynamic Builder)</h3>
+                <button type="button" class="btn btn-outline btn-sm" id="addSectionBtn">
+                    <i data-lucide="plus" class="icon-xs"></i> Add Section
+                </button>
+            </div>
+            <p class="text-muted-sm">Enhance your collection page with Bento Grids, Smoke Sections, FAQs, and more.</p>
+            
+            <div id="sectionsContainer" class="sections-builder-container">
+                <!-- Sections will be rendered here by section-builder.js -->
+                <?php if (empty($sections)): ?>
+                    <div class="empty-sections-placeholder">
+                        <i data-lucide="layout" class="icon-lg text-muted opacity-2"></i>
+                        <p>No custom sections added yet. Click "Add Section" to start building.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <!-- Search Engine Listing -->
         <div class="card">
             <div class="card-header-flex">
@@ -142,27 +163,6 @@ include __DIR__ . '/partials/header.php';
                 <p class="text-muted-sm mt-5">Choose a parent if this is a sub-collection.</p>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Dynamic Section Builder -->
-<div class="card mt-20">
-    <div class="card-header-flex">
-        <h3 class="card-title-sm">Page Sections (Dynamic Builder)</h3>
-        <button type="button" class="btn btn-outline btn-sm" id="addSectionBtn">
-            <i data-lucide="plus" class="icon-xs"></i> Add Section
-        </button>
-    </div>
-    <p class="text-muted-sm">Enhance your collection page with Bento Grids, Smoke Sections, FAQs, and more.</p>
-    
-    <div id="sectionsContainer" class="sections-builder-container">
-        <!-- Sections will be rendered here by section-builder.js -->
-        <?php if (empty($sections)): ?>
-            <div class="empty-sections-placeholder">
-                <i data-lucide="layout" class="icon-lg text-muted opacity-2"></i>
-                <p>No custom sections added yet. Click "Add Section" to start building.</p>
-            </div>
-        <?php endif; ?>
     </div>
 </div>
 

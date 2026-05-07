@@ -4,9 +4,24 @@ namespace App\Controllers\Admin;
 class BlogController extends AdminController {
     
     public function index() {
+        $page = $_GET['page'] ?? 1;
+        $perPage = $_GET['per_page'] ?? 12;
+        
         $blogModel = new \App\Models\BlogPost();
-        $posts = $blogModel->all();
-        $this->view('admin/blogs', ['posts' => $posts]);
+        $pagination = $blogModel->getAdminList($page, $perPage);
+
+        $data = [
+            'posts' => $pagination['data'],
+            'pagination' => $pagination
+        ];
+        
+        // Detect AJAX request
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            $this->view('admin/partials/blogs-list', $data);
+            return;
+        }
+
+        $this->view('admin/blogs', $data);
     }
 
     public function create() {

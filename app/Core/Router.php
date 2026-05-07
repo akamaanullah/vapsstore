@@ -71,34 +71,39 @@ class Router {
 
     protected function dispatchDynamicSeoRoute($url) {
         $db = Database::getInstance()->getConnection();
-        $cleanUrl = ltrim($url, '/'); // DB stores without leading slash e.g. "collections/shop/vapes"
+        $cleanUrl = ltrim($url, '/'); // DB stores without leading slash
 
-        // Check Pages table
-        $stmt = $db->prepare("SELECT id FROM pages WHERE custom_url_path = ? AND is_active = 1 LIMIT 1");
-        $stmt->execute([$cleanUrl]);
-        if ($stmt->fetch()) {
-            return $this->executeAction('Front\PageController@show', ['url' => $cleanUrl]);
-        }
+        /**
+         * OPTIMIZATION: Unified SEO Lookup
+         * We use UNION ALL to check all potential content tables in a single database trip.
+         * This prevents the "N+1" query problem during routing.
+         */
+        $sql = "
+            (SELECT 'page' as entity_type, id FROM pages WHERE custom_url_path = ? AND is_active = 1)
+            UNION ALL
+            (SELECT 'collection' as entity_type, id FROM collections WHERE custom_url_path = ? AND is_active = 1)
+            UNION ALL
+            (SELECT 'product' as entity_type, id FROM products WHERE custom_url = ? AND status = 'published')
+            UNION ALL
+            (SELECT 'blog' as entity_type, id FROM blog_posts WHERE custom_url_path = ? AND is_active = 1)
+            LIMIT 1
+        ";
 
-        // Check Collections table
-        $stmt = $db->prepare("SELECT id FROM collections WHERE custom_url_path = ? AND is_active = 1 LIMIT 1");
-        $stmt->execute([$cleanUrl]);
-        if ($stmt->fetch()) {
-            return $this->executeAction('Front\CollectionController@show', ['url' => $cleanUrl]);
-        }
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$cleanUrl, $cleanUrl, $cleanUrl, $cleanUrl]);
+        $result = $stmt->fetch();
 
-        // Check Products table
-        $stmt = $db->prepare("SELECT id FROM products WHERE custom_url = ? AND status = 'published' LIMIT 1");
-        $stmt->execute([$cleanUrl]);
-        if ($stmt->fetch()) {
-            return $this->executeAction('Front\ProductController@show', ['url' => $cleanUrl]);
-        }
-
-        // Check Blog Posts table
-        $stmt = $db->prepare("SELECT id FROM blog_posts WHERE custom_url_path = ? AND is_active = 1 LIMIT 1");
-        $stmt->execute([$cleanUrl]);
-        if ($stmt->fetch()) {
-            return $this->executeAction('Front\BlogController@show', ['url' => $cleanUrl]);
+        if ($result) {
+            switch ($result['entity_type']) {
+                case 'page':
+                    return $this->executeAction('Front\PageController@show', ['url' => $cleanUrl]);
+                case 'collection':
+                    return $this->executeAction('Front\CollectionController@show', ['url' => $cleanUrl]);
+                case 'product':
+                    return $this->executeAction('Front\ProductController@show', ['url' => $cleanUrl]);
+                case 'blog':
+                    return $this->executeAction('Front\BlogController@show', ['url' => $cleanUrl]);
+            }
         }
 
         return false;

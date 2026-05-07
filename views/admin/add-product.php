@@ -207,6 +207,7 @@ include __DIR__ . '/partials/header.php';
                 <label>Tags</label>
                 <div class="tag-input-wrapper mb-10">
                     <input type="text" id="tagInput" class="tag-field-input" placeholder="Add tags">
+                    <input type="hidden" name="tags" id="tagsHidden">
                 </div>
                 <div id="selectedTags" class="selected-tags"></div>
             </div>

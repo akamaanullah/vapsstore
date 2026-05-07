@@ -124,4 +124,48 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // 6. SEO Real-time Preview Logic
+    const seoTitleInput = document.querySelector('.seo-title-input');
+    const seoDescInput = document.querySelector('.seo-desc-input');
+    const seoTitlePreview = document.querySelector('.seo-preview-title');
+    const seoDescPreview = document.querySelector('.seo-preview-desc');
+    const seoSlugPreview = document.querySelector('.seo-preview-url');
+    const seoTitleCount = document.querySelector('.seo-title-count');
+    const seoDescCount = document.querySelector('.seo-desc-count');
+
+    if (seoTitleInput && seoTitlePreview) {
+        seoTitleInput.addEventListener('input', function() {
+            seoTitlePreview.textContent = this.value || titleInput.value || 'Collection Title';
+            if (seoTitleCount) seoTitleCount.textContent = this.value.length;
+        });
+    }
+
+    if (seoDescInput && seoDescPreview) {
+        seoDescInput.addEventListener('input', function() {
+            seoDescPreview.textContent = this.value || 'Discover our curated selection of high-performance products...';
+            if (seoDescCount) seoDescCount.textContent = this.value.length;
+        });
+    }
+
+    if (slugInput && seoSlugPreview) {
+        slugInput.addEventListener('input', function() {
+            const baseUrl = 'www.theperfectvape.com/collections/';
+            seoSlugPreview.textContent = baseUrl + (this.value || 'summer-sale');
+        });
+        
+        // Initial sync
+        const initialSlug = slugInput.value;
+        if (initialSlug) {
+            seoSlugPreview.textContent = 'www.theperfectvape.com/collections/' + initialSlug;
+        }
+    }
+
+    if (titleInput) {
+        titleInput.addEventListener('input', function() {
+            if (!seoTitleInput || !seoTitleInput.value) {
+                seoTitlePreview.textContent = this.value || 'Collection Title';
+            }
+        });
+    }
 });
