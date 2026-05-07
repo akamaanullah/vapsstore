@@ -1,0 +1,130 @@
+/* Coupons Module Specific Styles */
+
+.empty-state-wrapper {
+    padding: 100px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+.empty-state-icon {
+    background: #f8fafc;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+.empty-state-icon i {
+    width: 36px;
+    height: 36px;
+    color: #94a3b8;
+}
+.empty-state-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.empty-state-desc {
+    color: #64748b;
+    margin: 10px auto 0;
+    font-size: 14px;
+    max-width: 300px;
+    line-height: 1.5;
+}
+.btn-add-first {
+    margin-top: 25px;
+    padding: 0 30px;
+    height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 15px -3px rgba(111, 106, 248, 0.2);
+}
+.badge-light {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Create/Edit Form Styles */
+.input-group-modern {
+    display: flex;
+    gap: 8px;
+}
+.input-prefix-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-prefix {
+    position: absolute;
+    left: 15px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.input-prefix-wrapper .modal-field-input {
+    padding-left: 35px;
+}
+.custom-radio-card {
+    display: block;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+.custom-radio-card input {
+    display: none;
+}
+.radio-card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.radio-bullet {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    position: relative;
+    transition: all 0.2s;
+}
+.custom-radio-card input:checked + .radio-card-content .radio-bullet {
+    border-color: #6f6af8;
+}
+.custom-radio-card input:checked + .radio-card-content .radio-bullet::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: #6f6af8;
+    border-radius: 50%;
+}
+.radio-label {
+    font-size: 14px;
+    color: #334155;
+    font-weight: 500;
+}
+.custom-checkbox-item {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+.checkbox-label {
+    user-select: none;
+}

@@ -112,9 +112,15 @@ $router->get('/admin/refunds/requests', 'Admin\RefundController@requests');
 
 $router->get('/admin/blogs', 'Admin\BlogController@index');
 $router->get('/admin/blogs/create', 'Admin\BlogController@create');
+$router->post('/admin/blogs/store', 'Admin\BlogController@store');
 $router->get('/admin/blogs/edit', 'Admin\BlogController@edit');
 $router->get('/admin/blogs/edit/{id}', 'Admin\BlogController@edit');
+$router->post('/admin/blogs/update/{id}', 'Admin\BlogController@update');
+$router->post('/admin/blogs/delete/{id}', 'Admin\BlogController@delete');
 $router->get('/admin/blog-categories', 'Admin\BlogController@categories');
+$router->post('/admin/blog-categories/store', 'Admin\BlogController@storeCategory');
+$router->post('/admin/blog-categories/update/{id}', 'Admin\BlogController@updateCategory');
+$router->post('/admin/blog-categories/delete/{id}', 'Admin\BlogController@deleteCategory');
 $router->get('/admin/messages', 'Admin\MessageController@index');
 
 $router->get('/admin/brands', 'Admin\BrandController@index');
@@ -141,8 +147,11 @@ $router->get('/admin/media/search', 'Admin\MediaController@apiSearch');
 
 $router->get('/admin/coupons', 'Admin\CouponController@index');
 $router->get('/admin/coupons/create', 'Admin\CouponController@create');
+$router->post('/admin/coupons/store', 'Admin\CouponController@store');
 $router->get('/admin/coupons/edit', 'Admin\CouponController@edit');
 $router->get('/admin/coupons/edit/{id}', 'Admin\CouponController@edit');
+$router->post('/admin/coupons/update/{id}', 'Admin\CouponController@update');
+$router->post('/admin/coupons/delete/{id}', 'Admin\CouponController@delete');
 $router->get('/admin/reviews', 'Admin\ReviewController@index');
 $router->get('/admin/settings', 'Admin\SettingController@index');
 

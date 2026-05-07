@@ -21,6 +21,11 @@
     
     <!-- Custom Style -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/admin_assets/css/style.css">
+
+    <script>
+        window.BASE_URL = '<?= BASE_URL ?>';
+        window.MEDIA_BASE_URL = '<?= BASE_URL ?>';
+    </script>
 </head>
 <body>
     <div class="app-container">

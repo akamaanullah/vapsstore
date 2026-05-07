@@ -1,125 +1,57 @@
 <?php 
 $pageTitle = "Edit Blog | Vape Store Admin";
-$pageScript = "edit-blog.js";
+$pageScript = "section-builder.js";
 include __DIR__ . '/partials/header.php'; 
 ?>
 
+<script>
+    window.initialSectionsData = <?= json_encode($sections) ?>;
+</script>
+
+<form action="<?= BASE_URL ?>/admin/blogs/update/<?= $post['id'] ?>" method="POST">
 <div class="page-header-container page-header-between">
     <div class="header-title-group">
         <a href="<?= BASE_URL ?>/admin/blogs" class="btn-action-icon icon-action-btn">
             <i data-lucide="arrow-left" class="icon-md"></i>
         </a>
-        <h1 class="m-0">Edit blog post</h1>
+        <h1 class="m-0">Edit Blog Post: <?= htmlspecialchars($post['title']) ?></h1>
     </div>
 </div>
 
 <div class="form-layout">
     <div class="form-main">
-        <!-- Title & Content Card -->
-        <div class="card">
-            <div class="form-group">
-                <label>Title</label>
-                <div class="input-with-icon">
-                    <input type="text" class="modal-field-input" placeholder="e.g. Blog about your latest products or deals">
-                    <i data-lucide="sparkles"></i>
-                </div>
+        <!-- Title Card -->
+        <div class="card mb-20">
+            <div class="form-group mb-10">
+                <label>Blog Title</label>
+                <input type="text" name="title" id="blogTitle" class="modal-field-input" value="<?= htmlspecialchars($post['title']) ?>" required>
             </div>
             <div class="form-group mb-0">
-                <label>Content</label>
-                <div class="rich-text-editor">
-                    <div class="rte-toolbar">
-                        <select class="rte-select-clean" id="formatSelect" title="Text Format">
-                            <option value="p">Normal</option>
-                            <option value="h1">Heading 1</option>
-                            <option value="h2">Heading 2</option>
-                            <option value="h3">Heading 3</option>
-                        </select>
-                        
-                        <button type="button" title="Bold" data-command="bold"><i data-lucide="bold"></i></button>
-                        <button type="button" title="Italic" data-command="italic"><i data-lucide="italic"></i></button>
-                        <button type="button" title="Underline" data-command="underline"><i data-lucide="underline"></i></button>
-                        <button type="button" title="Strikethrough" data-command="strikeThrough"><i data-lucide="strikethrough"></i></button>
-                        
-                        <button type="button" title="Numbered List" data-command="insertOrderedList"><span style="font-weight: 700; font-size: 14px;">1.</span></button>
-                        <button type="button" title="Bulleted List" data-command="insertUnorderedList"><i data-lucide="list"></i></button>
-                        
-                        <label class="color-picker-label" title="Text Color">
-                            <span class="icon-text-color">A</span>
-                            <input type="color" id="colorPicker" class="rte-color-picker">
-                        </label>
-                        
-                        <label class="color-picker-label" title="Highlight Color">
-                            <span class="icon-bg-color">A</span>
-                            <input type="color" id="bgColorPicker" class="rte-color-picker">
-                        </label>
-                        
-                        <div style="position: relative; display: inline-flex;">
-                            <button type="button" title="Insert Link" id="insertLinkBtn"><i data-lucide="link"></i></button>
-                            <div class="rte-link-popover" id="linkPopover" style="display: none;">
-                                <input type="text" id="linkInput" placeholder="Paste link..." class="modal-field-input">
-                                <button type="button" id="applyLinkBtn" class="btn btn-primary">Add</button>
-                            </div>
-                        </div>
-                        <button type="button" title="Insert Image" data-command="insertImage">
-                            <svg width="18" height="18" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
-                                <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M3 16L10 13L21 18" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M16 10C17.1046 10 18 9.10457 18 8C18 6.89543 17.1046 6 16 6C14.8954 6 14 6.89543 14 8C14 9.10457 14.8954 10 16 10Z" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                        <button type="button" title="Insert Video" data-command="insertVideo"><i data-lucide="video"></i></button>
-                        <button type="button" title="Clear Formatting" data-command="removeFormat">
-                            <span class="icon-clear-format">T<sub>x</sub></span>
-                        </button>
-                    </div>
-                    <div class="rte-editor-content" id="editorContent" contenteditable="true" data-placeholder="Write your blog content here..."></div>
-                </div>
+                <label>URL Slug</label>
+                <input type="text" name="slug" class="modal-field-input" value="<?= htmlspecialchars($post['custom_url_path']) ?>">
             </div>
         </div>
 
-        <!-- Excerpt Card -->
-        <div class="card">
-            <div class="card-header-flex">
-                <h3 class="card-title-sm">Excerpt</h3>
-                <a href="#" id="toggleExcerptBtn" class="link-primary-sm">Add Excerpt</a>
-            </div>
-            <p class="text-muted-sm">Add a summary of the post to appear on your home page or blog.</p>
-            
-            <div id="excerptField" class="hidden-field">
-                <textarea class="modal-field-input" rows="3" placeholder="Add an excerpt..."></textarea>
-            </div>
+        <!-- Section Builder Container -->
+        <div id="sectionsContainer" class="sections-builder-wrapper">
+            <!-- Sections will be injected here by JS -->
         </div>
+
+        <button type="button" id="addSectionBtn" class="btn btn-outline btn-full mt-20">
+            <i data-lucide="plus"></i>
+            <span>Add Content Section</span>
+        </button>
 
         <!-- SEO Card -->
-        <div class="card">
-            <div class="card-header-flex">
-                <h3 class="card-title-sm">Search engine listing</h3>
-                <a href="#" id="toggleSeoBtn" class="link-primary-sm">Edit website SEO</a>
+        <div class="card mt-30">
+            <h3 class="card-title-sm mb-15">Search Engine Listing</h3>
+            <div class="form-group">
+                <label>Page Title</label>
+                <input type="text" name="seo_title" class="modal-field-input" value="<?= htmlspecialchars($post['meta_title'] ?? '') ?>" placeholder="SEO Title">
             </div>
-            <p class="text-muted-sm">Add a title and description to see how this Blog post might appear in a search engine listing</p>
-            
-            <div id="seoFields" class="seo-fields-container">
-                <div class="form-group">
-                    <label>Page title</label>
-                    <input type="text" class="modal-field-input seo-title-input" placeholder="Enter page title" maxlength="70">
-                    <div class="char-counter"><span class="seo-title-count">0</span> of 70 characters used</div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Meta description</label>
-                    <textarea class="modal-field-input seo-desc-input" rows="4" placeholder="Enter meta description" maxlength="320"></textarea>
-                    <div class="char-counter"><span class="seo-desc-count">0</span> of 320 characters used</div>
-                </div>
-
-                <div class="seo-preview-box">
-                    <div class="seo-preview-header">
-                        <i data-lucide="globe" class="seo-preview-icon"></i>
-                        <span class="seo-preview-site">The Perfect Vape</span>
-                    </div>
-                    <div class="seo-preview-url">www.theperfectvape.com/blogs/news/...</div>
-                    <div class="seo-preview-title">Blog Post Title</div>
-                    <div class="seo-preview-desc">Blog post description will appear here...</div>
-                </div>
+            <div class="form-group mb-0">
+                <label>Meta Description</label>
+                <textarea name="seo_description" class="modal-field-input" rows="3" placeholder="SEO Description"><?= htmlspecialchars($post['meta_desc'] ?? '') ?></textarea>
             </div>
         </div>
     </div>
@@ -127,46 +59,48 @@ include __DIR__ . '/partials/header.php';
     <div class="form-sidebar">
         <!-- Visibility Card -->
         <div class="card">
-            <h3 class="card-title-sm">Visibility</h3>
-            <div class="form-group mb-10">
-                <select class="modal-field-input" name="visibility">
-                    <option value="visible">Visible</option>
-                    <option value="hidden" selected>Hidden</option>
-                </select>
-            </div>
-            <a href="#" id="toggleVisibilityDateBtn" class="link-primary-sm fw-normal">Set visibility date</a>
-            
-            <div id="visibilityDateField" class="hidden-field">
-                <div class="form-group mb-0">
-                    <label>Visibility date</label>
-                    <input type="datetime-local" class="modal-field-input">
-                </div>
-            </div>
+            <h3 class="card-title-sm mb-15">Visibility</h3>
+            <select name="status" class="modal-field-input">
+                <option value="active" <?= $post['is_active'] ? 'selected' : '' ?>>Visible</option>
+                <option value="hidden" <?= !$post['is_active'] ? 'selected' : '' ?>>Hidden</option>
+            </select>
         </div>
 
         <!-- Category Card -->
         <div class="card">
-            <h3 class="card-title-sm">Category</h3>
-            <div class="form-group mb-0">
-                <select class="modal-field-input" name="blog_category">
-                    <option value="" disabled selected>Select category</option>
-                    <option value="news">News & Announcements</option>
-                    <option value="reviews">Product Reviews</option>
-                    <option value="guides">Guides & Tutorials</option>
-                    <option value="promotions">Promotions</option>
-                </select>
-            </div>
+            <h3 class="card-title-sm mb-15">Category</h3>
+            <select name="category_id" class="modal-field-input">
+                <option value="">Uncategorized</option>
+                <?php foreach ($categories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>" <?= $post['category_id'] == $cat['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($cat['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
 
         <!-- Featured Image Card -->
         <div class="card">
-            <h3 class="card-title-sm">Featured image</h3>
+            <h3 class="card-title-sm mb-15">Featured Image</h3>
             <div class="image-upload-box" id="imageUploadBox">
-                <input type="hidden" name="featured_image_url" id="featuredImageUrlInput" value="">
-                <img id="imagePreview" src="" alt="Featured image preview" style="display: none;">
-                <button type="button" class="btn-outline" id="openMediaPickerBtn">Browse Media</button>
-                <button type="button" class="btn-outline text-error mt-10" id="removeImageBtn" style="display:none; width:100%;" onclick="removeFeaturedImage()">Remove</button>
+                <input type="hidden" name="featured_image_url" id="featuredImageUrlInput" value="<?= htmlspecialchars($post['featured_image_url'] ?? '') ?>">
+                
+                <div id="imagePreviewContainer" style="<?= $post['featured_image_url'] ? 'display: block;' : 'display: none;' ?>">
+                    <img id="imagePreview" src="<?= $post['featured_image_url'] ? BASE_URL . '/' . $post['featured_image_url'] : '' ?>" alt="Preview" style="width: 100%; border-radius: 8px; margin-bottom: 10px;">
+                    <button type="button" class="btn btn-outline btn-sm btn-full text-error" onclick="removeFeaturedImage()">Remove Image</button>
+                </div>
+                
+                <button type="button" class="btn btn-outline btn-full" id="openMediaPickerBtn" style="<?= $post['featured_image_url'] ? 'display: none;' : 'display: block;' ?>">
+                    <i data-lucide="image" class="icon-xs"></i> Select Image
+                </button>
             </div>
+        </div>
+
+        <!-- Excerpt Card -->
+        <div class="card">
+            <h3 class="card-title-sm mb-15">Excerpt</h3>
+            <textarea name="excerpt" class="modal-field-input" rows="4" placeholder="Summary for blog listing..."><?= htmlspecialchars($post['excerpt'] ?? '') ?></textarea>
+            <p class="text-muted-xs mt-10">This summary will appear on the blog listing page.</p>
         </div>
     </div>
 </div>
@@ -176,9 +110,10 @@ include __DIR__ . '/partials/header.php';
         <a href="<?= BASE_URL ?>/admin/blogs" class="btn-outline" style="text-decoration: none;">Discard</a>
     </div>
     <div class="actions-right">
-        <button class="btn btn-primary">Save changes</button>
+        <button type="submit" class="btn btn-primary">Update Blog Post</button>
     </div>
 </div>
+</form>
 
 <script>
 document.getElementById('openMediaPickerBtn').addEventListener('click', () => {
@@ -188,9 +123,8 @@ document.getElementById('openMediaPickerBtn').addEventListener('click', () => {
             onSelect: (item) => {
                 document.getElementById('featuredImageUrlInput').value = item.file_path;
                 document.getElementById('imagePreview').src = window.MEDIA_BASE_URL + '/' + item.file_path;
-                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('imagePreviewContainer').style.display = 'block';
                 document.getElementById('openMediaPickerBtn').style.display = 'none';
-                document.getElementById('removeImageBtn').style.display = 'block';
             }
         });
     }
@@ -198,13 +132,10 @@ document.getElementById('openMediaPickerBtn').addEventListener('click', () => {
 
 function removeFeaturedImage() {
     document.getElementById('featuredImageUrlInput').value = '';
-    document.getElementById('imagePreview').src = '';
-    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('imagePreviewContainer').style.display = 'none';
     document.getElementById('openMediaPickerBtn').style.display = 'block';
-    document.getElementById('removeImageBtn').style.display = 'none';
 }
 </script>
 
 <?php include __DIR__ . '/partials/media-picker-modal.php'; ?>
 <?php include __DIR__ . '/partials/footer.php'; ?>
-

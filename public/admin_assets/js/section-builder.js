@@ -30,7 +30,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 'smoke_section': 'Smoke Section (Expandable Story)',
                 'faq': 'FAQ Section',
                 'offer_section': 'What We Offer (Icon Cards)',
-                'rich_text': 'Rich Text Editor'
+                'rich_text': 'Rich Text Editor',
+                'product_embed': 'Product Embed (Add to Cart Card)'
             },
             inputPlaceholder: 'Choose a section type',
             showCancelButton: true,
@@ -73,6 +74,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize RTE if needed
         if (type === 'rich_text') {
             initRTE(id);
+        }
+
+        // Initialize Product Search if needed
+        if (type === 'product_embed') {
+            initProductSearch(id);
         }
 
         // Add item button logic
@@ -145,6 +151,59 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="hidden" name="sections[${sectionId}][items][0][content]" id="rte_input_${sectionId}" value='${richContent}'>
                 </div>
             `;
+        } else if (type === 'product_embed') {
+            const item = data?.items?.[0];
+            const productTitle = item?.title || '';
+            const productId = item?.entity_id || '';
+            const productImage = item?.image_url || '';
+            const hasProduct = !!productId;
+
+            content = `
+                <div class="product-embed-manager" data-id="${sectionId}">
+                    <div class="form-group mb-15" style="position: relative;">
+                        <label class="fs-12 fw-600">Embed Product</label>
+                        <div class="input-with-icon">
+                            <input type="text" class="modal-field-input product-search-input" placeholder="Search by name or SKU...">
+                            <i data-lucide="search"></i>
+                        </div>
+                        <div class="product-search-results" style="display:none;"></div>
+                    </div>
+                    
+                    <div class="selected-product-preview ${hasProduct ? 'has-product' : 'placeholder-empty p-30'}">
+                        ${hasProduct ? `
+                            <div class="d-flex align-items-center">
+                                <div class="product-preview-image-box" style="margin-right: 25px;">
+                                    <img src="${getImageUrl(productImage)}" alt="Preview">
+                                </div>
+                                <div class="flex-grow-1 min-width-0" style="padding-left: 15px;">
+                                    <h4 class="m-0 fs-16 res-title text-truncate">${productTitle}</h4>
+                                    <p class="m-0 fs-12 text-muted mt-5">Price: $${item?.price || '0.00'}</p>
+                                </div>
+                                <button type="button" class="btn-remove-product flex-shrink-0" title="Remove Product">
+                                    <i data-lucide="x" class="icon-xs"></i>
+                                </button>
+                                <input type="hidden" name="sections[${sectionId}][items][0][title]" class="product-title-hidden" value="${productTitle}">
+                                <input type="hidden" name="sections[${sectionId}][items][0][entity_id]" class="product-id-hidden" value="${productId}">
+                                <input type="hidden" name="sections[${sectionId}][items][0][entity_type]" value="product">
+                                <input type="hidden" name="sections[${sectionId}][items][0][image_url]" class="product-image-hidden" value="${productImage}">
+                                <input type="hidden" name="sections[${sectionId}][items][0][price]" class="product-price-hidden" value="${item?.price || ''}">
+                            </div>
+                        ` : `
+                            <div class="empty-preview-content">
+                                <div class="empty-icon-circle">
+                                    <i data-lucide="shopping-bag" class="icon-md text-muted"></i>
+                                </div>
+                                <p class="m-0 fs-13 fw-500">No product selected yet</p>
+                                <p class="m-0 fs-11 text-muted mt-5">Search and select a product to embed it here.</p>
+                                <input type="hidden" name="sections[${sectionId}][items][0][title]" class="product-title-hidden" value="">
+                                <input type="hidden" name="sections[${sectionId}][items][0][entity_id]" class="product-id-hidden" value="">
+                                <input type="hidden" name="sections[${sectionId}][items][0][entity_type]" value="product">
+                                <input type="hidden" name="sections[${sectionId}][items][0][image_url]" class="product-image-hidden" value="">
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
         }
         return content;
     }
@@ -192,6 +251,138 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateInput() {
             hiddenInput.value = editor.innerHTML;
         }
+    }
+
+    function getImageUrl(path) {
+        if (!path || path === '') return window.BASE_URL + '/admin_assets/image/placeholder.png';
+        if (path.startsWith('http')) return path;
+        
+        // Remove leading slash if exists
+        let cleanPath = path.trim();
+        if (cleanPath.startsWith('/')) cleanPath = cleanPath.substring(1);
+        
+        // If BASE_URL already exists in cleanPath, don't add it again
+        const baseUrlPath = new URL(window.BASE_URL).pathname;
+        if (cleanPath.startsWith(baseUrlPath.substring(1))) {
+            return window.BASE_URL + '/' + cleanPath.substring(baseUrlPath.length - (baseUrlPath.endsWith('/') ? 1 : 0));
+        }
+
+        return window.BASE_URL + '/' + cleanPath;
+    }
+
+    function initProductSearch(sectionId) {
+        const wrapper = document.querySelector(`.product-embed-manager[data-id="${sectionId}"]`);
+        if (!wrapper) return;
+
+        const input = wrapper.querySelector('.product-search-input');
+        const resultsBox = wrapper.querySelector('.product-search-results');
+        const previewContainer = wrapper.querySelector('.selected-product-preview');
+        
+        let timeout = null;
+
+        input.addEventListener('input', () => {
+            clearTimeout(timeout);
+            const query = input.value.trim();
+            if (query.length < 2) {
+                resultsBox.style.display = 'none';
+                return;
+            }
+
+            timeout = setTimeout(() => {
+                fetch(`${window.BASE_URL}/admin/menus/search?type=product&q=${query}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        resultsBox.innerHTML = '';
+                        if (data.length === 0) {
+                            resultsBox.innerHTML = '<div class="p-15 fs-12 text-muted text-center">No products found</div>';
+                        } else {
+                            data.forEach(item => {
+                                const imagePath = getImageUrl(item.featured_image);
+                                const div = document.createElement('div');
+                                div.className = 'search-result-item cursor-pointer';
+                                div.innerHTML = `
+                                    <img src="${imagePath}" class="search-result-image" alt="Product">
+                                    <div class="search-result-info flex-grow-1">
+                                        <div class="res-title">${item.title}</div>
+                                        <div class="res-price">$${item.price || '0.00'}</div>
+                                    </div>
+                                    <i data-lucide="plus-circle" class="icon-xs icon-add"></i>
+                                `;
+                                div.addEventListener('click', () => {
+                                    selectProduct(sectionId, item);
+                                    resultsBox.style.display = 'none';
+                                    input.value = '';
+                                });
+                                resultsBox.appendChild(div);
+                            });
+                            if (window.lucide) window.lucide.createIcons();
+                        }
+                        resultsBox.style.display = 'block';
+                    });
+            }, 300);
+        });
+
+        // Delegate remove button click
+        previewContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-remove-product')) {
+                removeProduct(sectionId);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) resultsBox.style.display = 'none';
+        });
+    }
+
+    function selectProduct(sectionId, item) {
+        const wrapper = document.querySelector(`.product-embed-manager[data-id="${sectionId}"]`);
+        const previewContainer = wrapper.querySelector('.selected-product-preview');
+        const imagePath = getImageUrl(item.featured_image);
+        const imageValue = item.featured_image || '';
+
+        previewContainer.className = 'selected-product-preview has-product';
+        previewContainer.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="product-preview-image-box" style="margin-right: 15px;">
+                    <img src="${imagePath}" alt="Preview">
+                </div>
+                <div class="flex-grow-1 min-width-0" style="padding-left: 15px;">
+                    <h4 class="m-0 fs-16 res-title text-truncate">${item.title}</h4>
+                    <p class="m-0 fs-12 text-muted mt-5">Price: $${item.price || '0.00'}</p>
+                </div>
+                <button type="button" class="btn-remove-product flex-shrink-0" title="Remove Product">
+                    <i data-lucide="x" class="icon-xs"></i>
+                </button>
+                <input type="hidden" name="sections[${sectionId}][items][0][title]" class="product-title-hidden" value="${item.title}">
+                <input type="hidden" name="sections[${sectionId}][items][0][entity_id]" class="product-id-hidden" value="${item.id}">
+                <input type="hidden" name="sections[${sectionId}][items][0][entity_type]" value="product">
+                <input type="hidden" name="sections[${sectionId}][items][0][image_url]" class="product-image-hidden" value="${imageValue}">
+                <input type="hidden" name="sections[${sectionId}][items][0][price]" class="product-price-hidden" value="${item.price || ''}">
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function removeProduct(sectionId) {
+        const wrapper = document.querySelector(`.product-embed-manager[data-id="${sectionId}"]`);
+        const previewContainer = wrapper.querySelector('.selected-product-preview');
+        
+        previewContainer.className = 'selected-product-preview placeholder-empty p-30';
+        previewContainer.innerHTML = `
+            <div class="empty-preview-content">
+                <div class="empty-icon-circle">
+                    <i data-lucide="shopping-bag" class="icon-md text-muted"></i>
+                </div>
+                <p class="m-0 fs-13 fw-500">No product selected yet</p>
+                <p class="m-0 fs-11 text-muted mt-5">Search and select a product to embed it here.</p>
+                <input type="hidden" name="sections[${sectionId}][items][0][title]" class="product-title-hidden" value="">
+                <input type="hidden" name="sections[${sectionId}][items][0][entity_id]" class="product-id-hidden" value="">
+                <input type="hidden" name="sections[${sectionId}][items][0][entity_type]" value="product">
+                <input type="hidden" name="sections[${sectionId}][items][0][image_url]" class="product-image-hidden" value="">
+                <input type="hidden" name="sections[${sectionId}][items][0][price]" class="product-price-hidden" value="">
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function addSectionItem(type, sectionId, data = null) {

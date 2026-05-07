@@ -49,6 +49,7 @@ class UISection extends Model {
     public function getSectionItems($sectionId) {
         $sql = "SELECT i.*, 
                 p.name as live_product_name,
+                p.base_price as live_product_price,
                 (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as live_product_image
                 FROM ui_section_items i
                 LEFT JOIN products p ON (i.entity_type = 'product' AND i.entity_id = p.id)
@@ -63,6 +64,7 @@ class UISection extends Model {
             if ($item['entity_type'] === 'product' && !empty($item['live_product_name'])) {
                 $item['title'] = $item['live_product_name'];
                 $item['image_url'] = $item['live_product_image'];
+                $item['price'] = $item['live_product_price'];
             }
         }
         
