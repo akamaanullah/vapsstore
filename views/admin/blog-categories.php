@@ -79,14 +79,14 @@ include __DIR__ . '/partials/header.php';
             <div class="modal-body pt-20">
                 <div class="form-group mb-20">
                     <label class="form-label fw-600 mb-8">Category Name</label>
-                    <input type="text" name="name" id="catName" class="form-input form-input-full" required placeholder="e.g. Vaping Guides" style="height: 48px; border-radius: 10px; padding-inline: 10px;">
+                    <input type="text" name="name" id="catName" class="form-input form-input-full" required placeholder="e.g. Vaping Guides" style="height: 48px; border-radius: 10px; padding-inline: 10px; border: 1px solid var(--border-color);">
                 </div>
                 <div class="form-group mb-0">
                     <label class="form-label fw-600 mb-8">URL Slug (Optional)</label>
                     <div class="input-prefix-wrapper" style="position: relative; width: 100%;">
-                        <input type="text" name="slug" id="catSlug" class="form-input form-input-full" placeholder="vaping-guides" style="height: 48px; border-radius: 10px; padding-inline: 10px;">
+                        <input type="text" name="slug" id="catSlug" class="form-input form-input-full" placeholder="vaping-guides" style="height: 48px; border-radius: 10px; padding-inline: 10px; border: 1px solid var(--border-color);">
                     </div>
-                    <p class="fs-12 text-muted mt-8">Must be unique, lowercase and use hyphens.</p>
+                    <p class="fs-12 text-muted mt-8" style="font-size: 12px;">Must be unique, lowercase and use hyphens.</p>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-12 pb-25">
@@ -187,9 +187,9 @@ include __DIR__ . '/partials/header.php';
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
-.modal-header { padding: 25px 25px 0; display: flex; justify-content: space-between; align-items: center; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; }
 .modal-body { padding: 25px; }
-.modal-footer { padding: 0 25px 25px; display: flex; justify-content: flex-end; gap: 12px; }
+.modal-footer { display: flex; justify-content: space-between; gap: 12px; }
 .close-modal { 
     background: #f1f5f9; 
     border: none; 

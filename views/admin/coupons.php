@@ -63,7 +63,7 @@ include __DIR__ . '/partials/header.php';
                                 <?php echo $statusText; ?>
                             </span>
                         </td>
-                        <td class="td-default fw-600 text-dark"><?php echo $displayValue; ?></td>
+                        <td class="td-default fw-500"><?php echo $displayValue; ?></td>
                         <td class="td-default"><span class="badge badge-light"><?php echo $coupon['uses_count']; ?> / <?php echo $coupon['max_uses'] ?: '∞'; ?></span></td>
                         <td class="td-default text-muted fs-12">
                             <?php echo $coupon['end_date'] ? date('M d, Y', strtotime($coupon['end_date'])) : 'Never'; ?>

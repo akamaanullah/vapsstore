@@ -61,7 +61,7 @@ include __DIR__ . '/partials/header.php';
         </div>
         <div class="section-card-actions">
             <button class="btn btn-outline btn-sm" onclick="editSection(<?php echo $section['id']; ?>)">
-                <i data-lucide="edit-3"></i>
+                <i data-lucide="edit-2"></i>
                 <span>Manage Content</span>
             </button>
         </div>

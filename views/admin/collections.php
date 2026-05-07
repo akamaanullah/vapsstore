@@ -22,11 +22,11 @@ include __DIR__ . '/partials/header.php';
         <table class="product-table" id="collectionsTable">
             <thead>
                 <tr>
-                    <th style="padding-left: 20px;">Collection</th>
-                    <th>Parent</th>
-                    <th>Status</th>
-                    <th>URL Path</th>
-                    <th class="text-right" style="padding-right: 20px;">Action</th>
+                    <th class="th-product" style="padding-left: 20px;">Collection</th>
+                    <th class="th-default">Parent</th>
+                    <th class="th-default">Status</th>
+                    <th class="th-default">URL Path</th>
+                    <th class="th-action text-right" style="padding-right: 20px;">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,7 +41,7 @@ include __DIR__ . '/partials/header.php';
                     </tr>
                 <?php else: foreach ($collections as $col): ?>
                 <tr class="collection-row">
-                    <td style="padding-left: 20px;">
+                    <td class="td-product" style="padding-left: 20px;">
                         <div class="product-info-flex">
                             <?php if (!empty($col['header_image_url'])): ?>
                                 <img src="<?= BASE_URL . '/' . $col['header_image_url'] ?>" class="product-image" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
@@ -53,13 +53,13 @@ include __DIR__ . '/partials/header.php';
                             <span class="product-name-txt fw-600"><?= htmlspecialchars($col['name']) ?></span>
                         </div>
                     </td>
-                    <td class="text-muted fs-13"><?= $col['parent_name'] ?? '<span style="opacity: 0.5;">—</span>' ?></td>
-                    <td>
+                    <td class="td-default text-muted fs-13"><?= $col['parent_name'] ?? '<span style="opacity: 0.5;">—</span>' ?></td>
+                    <td class="td-default">
                         <span class="status-badge <?= $col['is_active'] ? 'badge-active' : 'badge-draft' ?>">
                             <?= $col['is_active'] ? 'Active' : 'Hidden' ?>
                         </span>
                     </td>
-                    <td class="text-muted fs-13"><code>/<?= $col['custom_url_path'] ?></code></td>
+                    <td class="td-default text-muted fs-13"><code>/<?= $col['custom_url_path'] ?></code></td>
                     <td class="td-action text-right" style="padding-right: 20px;">
                         <div class="action-flex justify-content-end">
                             <a href="<?= BASE_URL ?>/admin/collections/edit/<?= $col['id'] ?>" class="btn-action-icon edit-btn" title="Edit">

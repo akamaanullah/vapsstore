@@ -111,13 +111,25 @@ p {
     position: fixed;
     height: 100vh;
     z-index: 1000;
+    padding-bottom: 20px;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 .sidebar-header {
-    height: 80px;
+    height: 90px;
     display: flex;
     align-items: center;
-    padding: 0 15px;
+    padding: 15px 15px;
+    position: sticky;
+    top: 0;
+    background-color: var(--sidebar-bg);
+    z-index: 10;
 }
 
 .sidebar-branding {
@@ -158,7 +170,6 @@ p {
 .sidebar-menu {
     list-style: none;
     padding: 0;
-    flex: 1;
 }
 
 .sidebar-menu li a {
@@ -293,6 +304,53 @@ body.collapsed-sidebar .sidebar-menu li a {
     justify-content: center;
     padding: 12px 0;
     gap: 0;
+    position: relative;
+}
+
+/* Tooltips for Collapsed Sidebar (JS Powered) */
+.sidebar-js-tooltip {
+    position: fixed;
+    background: var(--primary-color);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10001;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-50%) translateX(0px);
+}
+
+.sidebar-js-tooltip.show {
+    opacity: 1;
+    transform: translateY(-50%) translateX(5px);
+}
+
+.sidebar-js-tooltip::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: var(--primary-color);
+}
+
+body.collapsed-sidebar .sidebar-menu li a:hover::after,
+body.collapsed-sidebar .sidebar-menu li a:hover::before {
+    opacity: 1;
+}
+
+body.collapsed-sidebar .sidebar-menu li a:hover::after {
+    transform: translateY(-50%) translateX(12px);
+}
+
+body.collapsed-sidebar .sidebar-menu li a:hover::before {
+    transform: translateY(-50%) translateX(6px);
 }
 
 body.collapsed-sidebar .sidebar-menu li a.active {
@@ -3488,10 +3546,10 @@ body.collapsed-sidebar .main-wrapper {
 /* Professional Pagination Styles */
 .pagination-container {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    margin-top: 30px;
-    padding: 20px 0;
+    padding: 15px 25px;
+    border-top: 1px solid #f1f5f9;
 }
 
 .pagination {
@@ -3506,14 +3564,13 @@ body.collapsed-sidebar .main-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    height: 40px;
+    min-width: 32px;
+    height: 32px;
     padding: 0 14px;
     border-radius: 10px;
-    border: 1px solid var(--border-color);
     color: var(--text-dark);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     background: white;
@@ -3527,17 +3584,13 @@ body.collapsed-sidebar .main-wrapper {
 }
 
 .page-item.disabled .page-link {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background: #f8fafc;
-    border-color: #e2e8f0;
+   color: #cbd5e1;
+    pointer-events: none;
+    background-color: var(--white);
 }
 
 .page-item:not(.active):not(.disabled) .page-link:hover {
-    border-color: #6f6af8;
-    color: #6f6af8;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+   background: #f1f5f9;
 }
 
 .pagination-info {

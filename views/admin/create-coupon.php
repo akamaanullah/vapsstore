@@ -29,7 +29,7 @@ include __DIR__ . '/partials/header.php';
                             <input type="text" name="code" id="couponCode" class="modal-field-input" placeholder="e.g. SUMMER20" required style="text-transform: uppercase;">
                             <button type="button" class="btn btn-light btn-sm" onclick="generateCode()">Generate</button>
                         </div>
-                        <p class="fs-12 text-muted mt-8">Customers will enter this code at checkout.</p>
+                        <p class="fs-12 text-muted mt-8" style="font-size: 12px;">Customers will enter this code at checkout.</p>
                     </div>
 
                     <div class="info-grid-2">

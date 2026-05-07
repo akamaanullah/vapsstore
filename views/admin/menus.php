@@ -14,20 +14,15 @@ include __DIR__ . '/partials/header.php';
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header-flex">
-        <h3 class="card-title-sm">Menus</h3>
-        <p class="text-muted-sm m-0">Menus or navigations are used to help customers find their way around your store.</p>
-    </div>
-
-    <div class="table-responsive mt-20">
-        <table class="data-table">
+<div class="card card-no-padding">
+    <div class="table-responsive">
+        <table class="product-table">
             <thead>
                 <tr>
-                    <th style="width: 45%;">Title</th>
-                    <th style="width: 25%;">Location (Handle)</th>
-                    <th style="width: 15%;">Items Count</th>
-                    <th class="text-right" style="width: 15%;">Actions</th>
+                    <th class="th-product" style="padding-left: 20px; width: 45%;">Title</th>
+                    <th class="th-default" style="width: 25%;">Location (Handle)</th>
+                    <th class="th-default" style="width: 15%;">Items Count</th>
+                    <th class="th-action text-right" style="width: 15%; padding-right: 20px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,20 +35,22 @@ include __DIR__ . '/partials/header.php';
                 <?php else: ?>
                     <?php foreach ($menus as $menu): ?>
                     <tr class="align-middle">
-                        <td>
-                            <div class="d-flex flex-column">
-                                <a href="<?= BASE_URL ?>/admin/menus/edit/<?= $menu['id'] ?>" class="fw-700 text-dark fs-15"><?= htmlspecialchars($menu['name']) ?></a>
-                                <span class="text-muted-sm mt-2"><?= $menu['id'] == 1 ? 'Primary Menu' : 'Secondary Menu' ?></span>
+                        <td class="td-product" style="padding-left: 20px;">
+                            <div class="product-info-flex">
+                                <div class="d-flex flex-column">
+                                    <a href="<?= BASE_URL ?>/admin/menus/edit/<?= $menu['id'] ?>" class="product-name-txt fw-600"><?= htmlspecialchars($menu['name']) ?></a>
+                                    <span class="text-muted-sm mt-2"><?= $menu['id'] == 1 ? 'Primary Menu' : 'Secondary Menu' ?></span>
+                                </div>
                             </div>
                         </td>
-                        <td>
+                        <td class="td-default">
                             <code class="handle-badge"><?= htmlspecialchars($menu['location']) ?></code>
                         </td>
-                        <td class="text-muted">-</td>
-                        <td class="text-right">
-                            <div class="table-actions justify-content-end">
-                                <a href="<?= BASE_URL ?>/admin/menus/edit/<?= $menu['id'] ?>" class="btn-action-icon" title="Edit Menu"><i data-lucide="pencil" class="icon-sm"></i></a>
-                                <button class="btn-action-icon text-error delete-menu" data-id="<?= $menu['id'] ?>" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
+                        <td class="td-default text-muted">-</td>
+                        <td class="td-action text-right" style="padding-right: 20px;">
+                            <div class="action-flex justify-content-end">
+                                <a href="<?= BASE_URL ?>/admin/menus/edit/<?= $menu['id'] ?>" class="btn-action-icon edit-btn" title="Edit Menu"><i data-lucide="pencil" class="icon-xs"></i></a>
+                                <button class="btn-action-icon delete-btn text-error delete-menu" data-id="<?= $menu['id'] ?>" title="Delete"><i data-lucide="trash-2" class="icon-xs"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -65,16 +62,9 @@ include __DIR__ . '/partials/header.php';
 </div>
 
 <style>
-    .data-table {
-        width: 100% !important;
-        border-collapse: collapse;
-    }
-    /* Utility Classes if missing */
     .d-flex { display: flex !important; }
     .flex-column { flex-direction: column !important; }
-    .align-items-center { align-items: center !important; }
-    .gap-10 { gap: 10px !important; }
-    
+    .mt-2 { margin-top: 8px !important; }
     .handle-badge {
         background: #f8fafc;
         color: #475569;
@@ -85,27 +75,11 @@ include __DIR__ . '/partials/header.php';
         border: 1px solid #e2e8f0;
         display: inline-block;
     }
-    .data-table th, .data-table td {
-        padding: 12px 15px;
-        text-align: left;
-    }
-    .data-table th {
-        background: #f8fafc;
-        color: #64748b;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 700;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    .data-table th.text-right, .data-table td.text-right {
-        text-align: right;
-    }
     .text-muted-sm {
         color: #94a3b8;
         font-size: 12px;
     }
-    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
 </style>
 
 <?php include __DIR__ . '/partials/footer.php'; ?>
