@@ -412,4 +412,29 @@ class Product extends Model {
         $stmt->execute(['%' . $query . '%']);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Get multiple products by their IDs with featured images
+     */
+    public function getByIds($ids) {
+        if (empty($ids)) return [];
+        
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT p.*, pi.image_url as featured_image 
+                FROM products p 
+                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
+                WHERE p.id IN ($placeholders) AND p.status = 'published'";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($ids);
+        $products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Sort them in the order they were requested
+        $idMap = array_flip($ids);
+        usort($products, function($a, $b) use ($idMap) {
+            return $idMap[$a['id']] <=> $idMap[$b['id']];
+        });
+
+        return $products;
+    }
 }

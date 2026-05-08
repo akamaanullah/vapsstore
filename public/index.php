@@ -52,7 +52,20 @@ $router = new Router();
 
 // 5. Define Static Routes
 $router->get('/', 'Front\HomeController@index');
-$router->get('/collection/{slug}', 'Front\CollectionController@show');
+$router->get('/collection', 'Front\CollectionController@index');
+$router->get('/product/{slug}', 'Front\ProductController@show');
+$router->get('/blog', 'Front\BlogController@index');
+$router->get('/contact-us', 'Front\HomeController@contact');
+$router->get('/wishlist', 'Front\HomeController@wishlist');
+$router->get('/checkout', 'Front\HomeController@checkout');
+
+// Policy Routes
+$router->get('/shipping-policy', 'Front\HomeController@shippingPolicy');
+$router->get('/refund-policy', 'Front\HomeController@refundPolicy');
+$router->get('/return-policy', 'Front\HomeController@returnPolicy');
+$router->get('/privacy-policy', 'Front\HomeController@privacyPolicy');
+$router->get('/terms-and-conditions', 'Front\HomeController@termsAndConditions');
+$router->get('/fda-disclaimer', 'Front\HomeController@fdaDisclaimer');
 
 // Admin Auth Routes
 $router->get('/admin/login', 'Admin\AuthController@showLoginForm');

@@ -15,25 +15,19 @@
                 </div>
 
                 <div class="footer-links-grid mb-40">
-                    <div class="link-col">
-                        <h4>Quick Links</h4>
-                        <ul>
-                            <li><a href="contact-us.php">Contact Us</a></li>
-                            <li><a href="login.php">My Account</a></li>
-                            <li><a href="wishlist.php">Wishlist</a></li>
-                            <li><a href="blog.php">Vaping Blogs</a></li>
-                            <li><a href="#">Our Stores</a></li>
-                        </ul>
-                    </div>
+                    <?php 
+                    use App\Helpers\NavigationHelper;
+                    NavigationHelper::renderFooterColumn('footer_menu', 'Quick Links'); 
+                    ?>
                     <div class="link-col">
                         <h4>Policies</h4>
                         <ul>
-                            <li><a href="shipping-policy.php">Shipping Policy</a></li>
-                            <li><a href="refund-policy.php">Refund Policy</a></li>
-                            <li><a href="return-policy.php">Return Policy</a></li>
-                            <li><a href="privacy-policy.php">Privacy Policy</a></li>
-                            <li><a href="fda-disclaimer.php">FDA Disclaimer</a></li>
-                            <li><a href="terms-and-conditions.php">Terms & Conditions</a></li>
+                            <li><a href="<?= BASE_URL ?>/shipping-policy">Shipping Policy</a></li>
+                            <li><a href="<?= BASE_URL ?>/refund-policy">Refund Policy</a></li>
+                            <li><a href="<?= BASE_URL ?>/return-policy">Return Policy</a></li>
+                            <li><a href="<?= BASE_URL ?>/privacy-policy">Privacy Policy</a></li>
+                            <li><a href="<?= BASE_URL ?>/fda-disclaimer">FDA Disclaimer</a></li>
+                            <li><a href="<?= BASE_URL ?>/terms-and-conditions">Terms & Conditions</a></li>
                         </ul>
                     </div>
                     <div class="link-col">
@@ -50,14 +44,14 @@
                     <p class="text-12 text-muted mb-15">© 2025 The Perfect Vape. All Rights Reserved. | Designed,
                         Developed & Managed By Antigravity</p>
                     <div class="payment-methods">
-                        <img src="assets/footer/Logos-01.png" alt="Payment">
-                        <img src="assets/footer/Logos-02.png" alt="Payment">
-                        <img src="assets/footer/Logos-03.png" alt="Payment">
-                        <img src="assets/footer/Logos-04.png" alt="Payment">
-                        <img src="assets/footer/Logos-05.png" alt="Payment">
-                        <img src="assets/footer/Logos-07.png" alt="Payment">
-                        <img src="assets/footer/Logos-08.png" alt="Payment">
-                        <img src="assets/footer/Logos-10.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-01.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-02.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-03.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-04.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-05.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-07.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-08.png" alt="Payment">
+                        <img src="<?= BASE_URL ?>/assets/footer/Logos-10.png" alt="Payment">
                     </div>
                 </div>
             </div>
@@ -65,7 +59,7 @@
             <!-- Right Branding Image -->
             <div class="footer-content-right">
                 <div class="footer-branding-card">
-                    <img src="assets/footer/branding.jpg" alt="Branding" class="footer-brand-img">
+                    <img src="<?= BASE_URL ?>/assets/footer/branding.jpg" alt="Branding" class="footer-brand-img">
                 </div>
             </div>
         </div>
@@ -73,8 +67,10 @@
 </footer>
 
 <!-- Scripts -->
-<script src="js/cart.js"></script>
-<script src="js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="<?= BASE_URL ?>/js/cart.js"></script>
+<script src="<?= BASE_URL ?>/js/main.js"></script>
 </body>
 
 </html>

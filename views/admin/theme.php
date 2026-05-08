@@ -121,14 +121,14 @@ include __DIR__ . '/partials/header.php';
                 <input type="text" id="sectionTitleInput" class="modal-field-input" placeholder="e.g. Featured Products, New Arrivals...">
             </div>
 
-            <div class="row mb-20" id="sectionButtonGroup">
-                <div class="col-md-6">
+            <div class="row mb-20" id="sectionButtonGroup" style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
                     <div class="form-group">
                         <label>Button Text (Optional)</label>
                         <input type="text" id="sectionButtonTextInput" class="modal-field-input" placeholder="e.g. View All, Shop Now">
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div style="flex: 1;">
                     <div class="form-group">
                         <label>Button URL (Optional)</label>
                         <input type="text" id="sectionButtonUrlInput" class="modal-field-input" placeholder="e.g. /collections/all">

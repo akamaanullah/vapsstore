@@ -45,21 +45,25 @@
             div.dataset.entityType = item.entity_type;
         }
 
-        let fields = `
-            <div class="remove-item" onclick="removeSectionItem(${index})"><i data-lucide="trash-2"></i></div>
-        `;
+        let fields = '';
+        if (type !== 'collection_grid') {
+            fields += `
+                <div class="remove-item" onclick="removeSectionItem(${index})"><i data-lucide="trash-2"></i></div>
+            `;
+        }
 
         if (type === 'collection_grid') {
             fields += `
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <img src="${item.image_url || 'https://placehold.co/50x50?text=P'}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;">
+                <div class="selected-product-row" style="display: flex; gap: 15px; align-items: center; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;">
+                    <img src="${item.image_url ? (item.image_url.startsWith('http') ? item.image_url : window.adminBaseUrl + '/public/' + item.image_url) : 'https://placehold.co/50x50?text=P'}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
                     <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 0.875rem;">${item.title || 'Product Name'}</div>
-                        <div style="font-size: 0.75rem; color: #64748b;">Entity ID: ${item.entity_id}</div>
+                        <div style="font-weight: 600; font-size: 0.875rem; color: #1e293b;">${item.title || 'Product Name'}</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">ID: ${item.entity_id}</div>
                     </div>
                     <input type="hidden" class="item-title" value="${item.title || ''}">
                     <input type="hidden" class="item-image" value="${item.image_url || ''}">
                     <input type="hidden" class="item-url" value="${item.button_url || ''}">
+                    <div class="remove-item-inline" onclick="removeSectionItem(${index})" style="cursor: pointer; color: #ef4444;"><i data-lucide="x"></i></div>
                 </div>
             `;
         } else {
@@ -211,6 +215,17 @@
 
         document.getElementById('modalTitle').innerText = 'Manage ' + section.type.replace('_', ' ').toUpperCase();
         
+        // Show/Hide Section Heading and Buttons based on type
+        const titleGroup = document.getElementById('sectionTitleGroup');
+        const buttonGroup = document.getElementById('sectionButtonGroup');
+        
+        // Brand Story and Feature Highlight use item titles, so global heading is confusing
+        const needsGlobalHeading = ['collection_grid', 'promo_grid'].includes(section.type);
+        const needsGlobalButtons = ['collection_grid'].includes(section.type);
+        
+        if (titleGroup) titleGroup.style.display = needsGlobalHeading ? 'block' : 'none';
+        if (buttonGroup) buttonGroup.style.display = needsGlobalButtons ? 'flex' : 'none';
+
         // Set Section Title & Buttons
         const titleInput = document.getElementById('sectionTitleInput');
         if (titleInput) titleInput.value = section.title || '';
@@ -233,9 +248,11 @@
             if (!manageBtn) {
                 manageBtn = document.createElement('button');
                 manageBtn.id = 'manageProductsBtn';
-                manageBtn.className = 'btn btn-primary mb-20'; // Primary to make it visible
+                manageBtn.className = 'btn btn-primary mb-20'; 
                 manageBtn.style.width = '100%';
-                manageBtn.innerHTML = '<i data-lucide="plus"></i> <span>Manage Products from Collection</span>';
+                manageBtn.style.background = '#6366f1'; // Premium Indigo
+                manageBtn.style.padding = '12px';
+                manageBtn.innerHTML = '<i data-lucide="plus-circle"></i> <span style="margin-left: 8px;">Select Products to Display</span>';
                 container.before(manageBtn);
                 manageBtn.onclick = openProductPicker;
             }

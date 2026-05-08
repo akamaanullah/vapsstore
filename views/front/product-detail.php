@@ -1,7 +1,4 @@
-<?php
-$pageTitle = "Product Detail | The Perfect Vape";
-require 'partials/header.php';
-?>
+<?php require VIEW_DIR . '/front/partials/header.php'; ?>
 
 <main class="product-detail-page">
     <div class="container">
@@ -14,32 +11,32 @@ require 'partials/header.php';
             <!-- Left Side: Images -->
             <div class="product-gallery-side">
                 <div class="main-image-container">
-                    <img src="assets/product/product-1.jpg" id="mainProductImage" alt="Product Main Image">
+                    <img src="<?= BASE_URL ?>/assets/product/product-1.jpg" id="mainProductImage" alt="Product Main Image">
                 </div>
 
                 <!-- Thumbnail Slider -->
                 <div class="swiper product-thumb-slider">
                     <div class="swiper-wrapper">
                         <div class="swiper-slide thumb-item active">
-                            <img src="assets/product/product-1.jpg" alt="Thumb 1">
+                            <img src="<?= BASE_URL ?>/assets/product/product-1.jpg" alt="Thumb 1">
                         </div>
                         <div class="swiper-slide thumb-item">
-                            <img src="assets/product/product-2.jpg" alt="Thumb 2">
+                            <img src="<?= BASE_URL ?>/assets/product/product-2.jpg" alt="Thumb 2">
                         </div>
                         <div class="swiper-slide thumb-item">
-                            <img src="assets/product/product-3.jpg" alt="Thumb 3">
+                            <img src="<?= BASE_URL ?>/assets/product/product-3.jpg" alt="Thumb 3">
                         </div>
                         <div class="swiper-slide thumb-item">
-                            <img src="assets/product/product-4.jpg" alt="Thumb 4">
+                            <img src="<?= BASE_URL ?>/assets/product/product-4.jpg" alt="Thumb 4">
                         </div>
                         <div class="swiper-slide thumb-item">
-                            <img src="assets/product/product-5.jpg" alt="Thumb 5">
+                            <img src="<?= BASE_URL ?>/assets/product/product-5.jpg" alt="Thumb 5">
                         </div>
                         <div class="swiper-slide thumb-item">
-                            <img src="assets/product/product-6.jpg" alt="Thumb 6">
+                            <img src="<?= BASE_URL ?>/assets/product/product-6.jpg" alt="Thumb 6">
                         </div>
                         <div class="swiper-slide thumb-item">
-                            <img src="assets/product/product-7.jpg" alt="Thumb 7">
+                            <img src="<?= BASE_URL ?>/assets/product/product-7.jpg" alt="Thumb 7">
                         </div>
                     </div>
                     <!-- Navigation Buttons -->
@@ -300,7 +297,7 @@ require 'partials/header.php';
                 foreach ($products as $p): ?>
                     <div class="product-card">
                         <div class="product-img-wrapper">
-                            <img src="assets/product/<?php echo $p['img']; ?>" alt="<?php echo $p['name']; ?>"
+                            <img src="<?= BASE_URL ?>/assets/product/<?php echo $p['img']; ?>" alt="<?php echo $p['name']; ?>"
                                 loading="lazy">
                             <div class="product-actions">
                                 <button class="action-btn" title="Add to Wishlist"><i data-lucide="heart"></i></button>
@@ -327,7 +324,6 @@ require 'partials/header.php';
 
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<!-- Product Detail JS -->
-<script src="js/product-detail.js"></script>
+<script src="<?= BASE_URL ?>/js/product-detail.js"></script>
 
-<?php require 'partials/footer.php'; ?>
+<?php require VIEW_DIR . '/front/partials/footer.php'; ?>
