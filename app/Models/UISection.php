@@ -91,8 +91,10 @@ class UISection extends Model {
             foreach ($sectionsData as $index => $data) {
                 if (!empty($data['id']) && (int)$data['id'] > 0) {
                     // Update existing section
-                    $sql = "UPDATE ui_sections SET type = ?, title = ?, button_text = ?, button_url = ?, sort_order = ?, is_active = ? WHERE id = ?";
+                    $sql = "UPDATE ui_sections SET entity_type = ?, entity_id = ?, type = ?, title = ?, button_text = ?, button_url = ?, sort_order = ?, is_active = ? WHERE id = ?";
                     $this->db->prepare($sql)->execute([
+                        $entityType,
+                        $entityId,
                         $data['type'],
                         $data['title'] ?? null,
                         $data['button_text'] ?? null,

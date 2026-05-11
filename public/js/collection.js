@@ -1,24 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Mock Data for Products
-    const products = [
-        { id: 1, name: "SMOK Nord 5 Kit", price: 35.99, category: "pod", brand: "SMOK", image: "assets/product/product-1.jpg", date: "2024-04-01", badge: "" },
-        { id: 2, name: "Vaporesso XROS 3", price: 29.50, category: "pod", brand: "Vaporesso", image: "assets/product/product-2.jpg", date: "2024-03-15", badge: "" },
-        { id: 3, name: "Voopoo Drag 4 Mod", price: 65.00, category: "advanced", brand: "Voopoo", image: "assets/product/product-3.jpg", date: "2024-02-20", badge: "" },
-        { id: 4, name: "GeekVape L200 Classic", price: 79.99, category: "10000-puffs", brand: "GeekVape", image: "assets/product/product-4.jpg", date: "2024-04-10", badge: "" },
-        { id: 5, name: "Dinner Lady Lemon Tart", price: 15.99, category: "freebase", brand: "Dinner Lady", image: "assets/product/product-5.jpg", date: "2024-01-10", badge: "" },
-        { id: 6, name: "SMOK Novo 5", price: 28.00, category: "600-puffs", brand: "SMOK", image: "assets/product/product-6.jpg", date: "2024-03-25", badge: "" },
-        { id: 7, name: "Vaporesso Target 200", price: 55.00, category: "advanced", brand: "Vaporesso", image: "assets/product/product-7.jpg", date: "2024-03-05", badge: "" },
-        { id: 8, name: "Nasty Juice Bad Blood", price: 18.50, category: "nic-salts", brand: "Nasty Juice", image: "assets/product/product-8.jpg", date: "2024-04-05", badge: "" },
-        { id: 9, name: "Uwell Caliburn G3", price: 32.00, category: "pod", brand: "Uwell", image: "assets/product/product-9.jpg", date: "2024-04-12", badge: "" },
-        { id: 10, name: "GeekVape Wenax Q", price: 22.00, category: "pod", brand: "GeekVape", image: "assets/product/product-1.jpg", date: "2024-03-20", badge: "" },
-        { id: 11, name: "Voopoo Argus P1", price: 45.00, category: "pod", brand: "Voopoo", image: "assets/product/product-2.jpg", date: "2024-02-15", badge: "" },
-        { id: 12, name: "SMOK Mag Solo", price: 49.99, category: "advanced", brand: "SMOK", image: "assets/product/product-3.jpg", date: "2024-03-10", badge: "" },
-        { id: 13, name: "Vaporesso Luxe XR Max", price: 42.00, category: "pod", brand: "Vaporesso", image: "assets/product/product-4.jpg", date: "2024-04-15", badge: "" }
-    ];
-
-    let filteredProducts = [...products];
+    // 1. Initial State
     let currentPage = 1;
     let productsPerPage = 12;
+    let currentCollectionId = document.body.dataset.collectionId || null;
 
     // 2. DOM Elements
     const productGrid = document.getElementById('productGrid');
@@ -36,159 +20,290 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Initialize
     function init() {
-        renderProducts();
+        // Parse URL parameters for initial filters
+        parseUrlParams();
+        fetchProducts(true); // Initial load (skip history push)
         setupEventListeners();
-        lucide.createIcons(); // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (e) => {
+            if (e.state) {
+                parseUrlParams();
+                fetchProducts(true);
+            }
+        });
     }
 
-    // 4. Render Products
-    function renderProducts() {
-        const start = (currentPage - 1) * productsPerPage;
-        const end = start + productsPerPage;
-        const paginatedItems = filteredProducts.slice(start, end);
+    function updateUrlParams() {
+        const selectedCats = Array.from(document.querySelectorAll('.category-accordion input[type="checkbox"]:checked')).map(el => el.dataset.slug);
+        const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(el => el.dataset.slug);
+        
+        let filterParts = [];
+        
+        if (selectedCats.length > 0) filterParts.push(`category:${selectedCats.join('+')}`);
+        if (selectedBrands.length > 0) filterParts.push(`brand:${selectedBrands.join('+')}`);
+        if (priceRange.value != 500) filterParts.push(`max_price:${priceRange.value}`);
+        if (sortSelect.value !== 'newest') filterParts.push(`sort:${sortSelect.value}`);
+        if (currentPage > 1) filterParts.push(`page:${currentPage}`);
+        if (perPageSelect.value != 12) filterParts.push(`per_page:${perPageSelect.value}`);
 
-        productGrid.innerHTML = '';
+        // Construct Path-based URL (No ? and No %2C)
+        let baseUrl = window.location.pathname.split('/filters/')[0];
+        let newUrl = baseUrl;
+        
+        if (filterParts.length > 0) {
+            newUrl += `/filters/${filterParts.join('/')}`;
+        }
 
-        if (paginatedItems.length === 0) {
-            productGrid.innerHTML = '<div class="no-products">No products found matching your criteria.</div>';
-            pagination.innerHTML = '';
+        window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+
+    function parseUrlParams() {
+        // Handle Path-based parameters
+        const path = window.location.pathname;
+        if (!path.includes('/filters/')) {
+            // Also check query params for backward compatibility
+            parseQueryString();
             return;
         }
 
-        paginatedItems.forEach(product => {
-            const card = `
-                <div class="product-card" data-id="${product.id}">
-                    <div class="product-img-wrapper">
-                        ${product.badge ? `<span class="badge ${product.badge.toLowerCase()}">${product.badge}</span>` : ''}
-                        <img src="${product.image}" alt="${product.name}" loading="lazy">
-                        <div class="product-actions">
-                            <button class="action-btn" title="Add to Wishlist"><i data-lucide="heart"></i></button>
-                            <a href="product-detail.php" class="action-btn" title="Quick View"><i data-lucide="eye"></i></a>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name"><a href="product-detail.php">${product.name}</a></h3>
-                        <div class="product-price-container">
-                            <span class="old-price">£${(product.price + 10).toFixed(2)}</span>
-                            <span class="current-price">£${product.price.toFixed(2)}</span>
-                        </div>
-                        <button class="btn-buy">Add to Cart</button>
-                    </div>
-                </div>
-            `;
-            productGrid.insertAdjacentHTML('beforeend', card);
+        const filterString = path.split('/filters/')[1];
+        const segments = filterString.split('/');
+        
+        segments.forEach(segment => {
+            const [key, value] = segment.split(':');
+            if (!key || !value) return;
+
+            if (key === 'category') {
+                const slugs = value.split('+');
+                document.querySelectorAll('.category-accordion input[type="checkbox"]').forEach(input => {
+                    input.checked = slugs.includes(input.dataset.slug);
+                });
+            } else if (key === 'brand') {
+                const slugs = value.split('+');
+                document.querySelectorAll('input[name="brand"]').forEach(input => {
+                    input.checked = slugs.includes(input.dataset.slug);
+                });
+            } else if (key === 'max_price') {
+                priceRange.value = value;
+                priceValue.textContent = `£0 - £${priceRange.value}`;
+            } else if (key === 'sort') {
+                sortSelect.value = value;
+            } else if (key === 'page') {
+                currentPage = parseInt(value);
+            } else if (key === 'per_page') {
+                perPageSelect.value = value;
+            }
         });
+    }
 
-        lucide.createIcons(); // Re-initialize icons for new cards
+    function parseQueryString() {
+        const params = new URLSearchParams(window.location.search);
+        // ... (existing query param parsing for safety)
+        if (params.has('category')) {
+            const slugs = params.get('category').split(/[,+]/); // Handle both , and +
+            document.querySelectorAll('.category-accordion input[type="checkbox"]').forEach(input => {
+                input.checked = slugs.includes(input.dataset.slug);
+            });
+        }
+        // ... (similar for others if needed, but we prefer path now)
+    }
 
-        renderPagination();
+
+
+    // 4. Fetch Products via AJAX
+    async function fetchProducts(skipPush = false) {
+        // Show loading state
+        const loaderHtml = '<div class="product-loader-overlay"><div class="spinner-custom"></div></div>';
+        if (!productGrid.querySelector('.product-loader-overlay')) {
+            productGrid.insertAdjacentHTML('afterbegin', loaderHtml);
+        }
+        productGrid.classList.add('is-loading');
+
+        if (!skipPush) updateUrlParams();
+
+        // Collect filters for API
+        const selectedCats = Array.from(document.querySelectorAll('.category-accordion input[type="checkbox"]:checked')).map(el => el.value);
+        const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(el => el.value);
+        const maxPrice = priceRange.value;
+        const sort = sortSelect.value;
+        const perPage = perPageSelect ? perPageSelect.value : 12;
+
+        // API URL
+        let url = `${BASE_URL}/api/collection/search?page=${currentPage}&per_page=${perPage}&sort=${sort}&max_price=${maxPrice}&min_price=0`;
+        
+        let catParams = [...selectedCats];
+        if (currentCollectionId && !catParams.includes(currentCollectionId)) {
+            // Include collection scope
+            catParams.unshift(currentCollectionId);
+        }
+
+        if (catParams.length > 0) url += `&category=${catParams.join(',')}`;
+        if (selectedBrands.length > 0) url += `&brand=${selectedBrands.join(',')}`;
+
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Smooth transition
+                productGrid.style.opacity = '0';
+                setTimeout(() => {
+                    productGrid.innerHTML = result.html;
+                    renderPagination(result.pagination);
+                    productGrid.style.opacity = '1';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }, 200);
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            productGrid.innerHTML = '<div class="no-products">Error loading products. Please try again.</div>';
+        } finally {
+            setTimeout(() => {
+                productGrid.classList.remove('is-loading');
+                const overlay = productGrid.querySelector('.product-loader-overlay');
+                if (overlay) overlay.remove();
+            }, 300);
+        }
     }
 
     // 5. Render Pagination
-    function renderPagination() {
-        const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    function renderPagination(data) {
+        const totalPages = data.last_page;
         pagination.innerHTML = '';
 
         if (totalPages <= 1) return;
 
         // Previous Button
-        pagination.insertAdjacentHTML('beforeend', `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">Prev</button>`);
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-xs"></i>';
+        prevBtn.disabled = data.current_page === 1;
+        prevBtn.onclick = () => changePage(data.current_page - 1);
+        pagination.appendChild(prevBtn);
 
-        for (let i = 1; i <= totalPages; i++) {
-            pagination.insertAdjacentHTML('beforeend', `
-                <div class="page-num ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</div>
-            `);
+        // Dynamic page ranges for better scalability
+        let start = Math.max(1, data.current_page - 2);
+        let end = Math.min(totalPages, start + 4);
+        if (end === totalPages) start = Math.max(1, end - 4);
+
+        if (start > 1) {
+            addPageLink(1);
+            if (start > 2) pagination.appendChild(createDots());
+        }
+
+        for (let i = start; i <= end; i++) {
+            addPageLink(i, i === data.current_page);
+        }
+
+        if (end < totalPages) {
+            if (end < totalPages - 1) pagination.appendChild(createDots());
+            addPageLink(totalPages);
         }
 
         // Next Button
-        pagination.insertAdjacentHTML('beforeend', `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">Next</button>`);
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '<i data-lucide="chevron-right" class="icon-xs"></i>';
+        nextBtn.disabled = data.current_page === totalPages;
+        nextBtn.onclick = () => changePage(data.current_page + 1);
+        pagination.appendChild(nextBtn);
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // 6. Global Function for Pagination (exposed to window for onclick)
-    window.changePage = (page) => {
+    function addPageLink(num, active = false) {
+        const pageNum = document.createElement('div');
+        pageNum.className = `page-num ${active ? 'active' : ''}`;
+        pageNum.textContent = num;
+        pageNum.onclick = () => changePage(num);
+        pagination.appendChild(pageNum);
+    }
+
+    function createDots() {
+        const dots = document.createElement('span');
+        dots.className = 'pagination-dots';
+        dots.textContent = '...';
+        return dots;
+    }
+
+    function changePage(page) {
+        if (currentPage === page) return;
         currentPage = page;
-        renderProducts();
+        fetchProducts();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    // 7. Filtering Logic
-    function applyFilters() {
-        const selectedCats = Array.from(document.querySelectorAll('input[name="cat"]:checked')).map(el => el.value);
-        const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(el => el.value);
-        const maxPrice = parseInt(priceRange.value);
-
-        filteredProducts = products.filter(product => {
-            const catMatch = selectedCats.length === 0 || selectedCats.includes(product.category);
-            const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
-            const priceMatch = product.price <= maxPrice;
-            return catMatch && brandMatch && priceMatch;
-        });
-
-        applySorting(); // Sort after filtering
-        currentPage = 1;
-        renderProducts();
     }
 
-    // 8. Sorting Logic
-    function applySorting() {
-        const sortValue = sortSelect.value;
-        if (sortValue === 'price-low') {
-            filteredProducts.sort((a, b) => a.price - b.price);
-        } else if (sortValue === 'price-high') {
-            filteredProducts.sort((a, b) => b.price - a.price);
-        } else if (sortValue === 'newest') {
-            filteredProducts.sort((a, b) => new Date(b.date) - new Date(a.date));
-        } else {
-            // Default sort (ID or something)
-            filteredProducts.sort((a, b) => a.id - b.id);
-        }
-    }
-
-    // 9. Event Listeners
+    // 6. Event Listeners
     function setupEventListeners() {
         // Filter Inputs
-        document.querySelectorAll('input[name="cat"], input[name="brand"]').forEach(input => {
-            input.addEventListener('change', applyFilters);
+        document.querySelectorAll('.filter-checkbox').forEach(input => {
+            input.addEventListener('change', () => {
+                currentPage = 1;
+                fetchProducts();
+            });
+        });
+
+        // Parent-Child Checkbox Sync
+        document.querySelectorAll('.has-children > .accordion-item input[type="checkbox"]').forEach(parentInput => {
+            parentInput.addEventListener('change', (e) => {
+                const subCats = parentInput.closest('.has-children').querySelectorAll('.sub-categories input[type="checkbox"]');
+                subCats.forEach(childInput => {
+                    childInput.checked = parentInput.checked;
+                });
+                // No need to call fetchProducts here, the change listener on .filter-checkbox handles it
+            });
         });
 
         // Price Range
         priceRange.addEventListener('input', (e) => {
-            priceValue.textContent = `$0 - $${e.target.value}`;
-            applyFilters();
+            priceValue.textContent = `£0 - £${e.target.value}`;
+        });
+        
+        priceRange.addEventListener('change', () => {
+            currentPage = 1;
+            fetchProducts();
         });
 
         // Sort Select
         sortSelect.addEventListener('change', () => {
-            applySorting();
-            renderProducts();
+            currentPage = 1;
+            fetchProducts();
         });
 
         // Per Page Select
-        perPageSelect.addEventListener('change', (e) => {
-            productsPerPage = parseInt(e.target.value);
-            currentPage = 1;
-            renderProducts();
-        });
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', () => {
+                currentPage = 1;
+                fetchProducts();
+            });
+        }
 
         // Clear Filters
         clearFiltersBtn.addEventListener('click', () => {
-            document.querySelectorAll('input[type="checkbox"]').forEach(input => input.checked = false);
+            document.querySelectorAll('.filter-checkbox').forEach(input => input.checked = false);
             priceRange.value = 500;
-            priceValue.textContent = "$0 - $500";
-            sortSelect.value = 'default';
-            applyFilters();
+            priceValue.textContent = "£0 - £500";
+            sortSelect.value = 'newest';
+            currentPage = 1;
+            fetchProducts();
         });
 
-        // Main Widget Accordion Toggle
+        // Accordion Toggles
         document.querySelectorAll('.accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 trigger.parentElement.classList.toggle('active');
             });
         });
 
-        // Sub-category Accordion Toggle
         document.querySelectorAll('.accordion-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.closest('label') || e.target.closest('.cat-check-label')) {
+                    return;
+                }
                 item.parentElement.classList.toggle('active');
             });
         });

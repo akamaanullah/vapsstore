@@ -94,13 +94,14 @@ class ProductController extends AdminController {
             $productModel = $this->model('Product');
             
             // Basic Validation
-            if (empty($_POST['name']) || empty($_POST['price'])) {
+            if (empty($_POST['name']) || empty($_POST['base_price'])) {
                 $this->redirect('/admin/products/create?error=Product name and price are required');
             }
 
             $data = [
                 'name' => trim($_POST['name']),
-                'base_price' => (float)$_POST['price'],
+                'base_price' => (float)$_POST['base_price'],
+                'compare_price' => !empty($_POST['compare_price']) ? (float)$_POST['compare_price'] : null,
                 'status' => $_POST['status'] ?? 'draft',
                 'custom_url' => $_POST['custom_url'] ?? null,
                 'short_desc' => $_POST['short_desc'] ?? null,
@@ -157,13 +158,14 @@ class ProductController extends AdminController {
             $productModel = $this->model('Product');
 
             // Basic Validation
-            if (empty($_POST['name']) || empty($_POST['price'])) {
+            if (empty($_POST['name']) || empty($_POST['base_price'])) {
                 $this->redirect('/admin/products/edit/' . $id . '?error=Product name and price are required');
             }
 
             $data = [
                 'name' => trim($_POST['name']),
-                'base_price' => (float)$_POST['price'],
+                'base_price' => (float)$_POST['base_price'],
+                'compare_price' => !empty($_POST['compare_price']) ? (float)$_POST['compare_price'] : null,
                 'status' => $_POST['status'] ?? 'draft',
                 'custom_url' => $_POST['custom_url'] ?? null,
                 'short_desc' => $_POST['short_desc'] ?? null,

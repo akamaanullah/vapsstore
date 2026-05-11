@@ -35,8 +35,9 @@ class Router {
                 // Remove numeric keys from matches to leave only named parameters
                 $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
                 
-                return $this->executeAction($route['action'], $params);
+                return $this->executeAction($route['action'], array_values($params));
             }
+
         }
 
         // ------------------------------------------------------------------
@@ -71,13 +72,16 @@ class Router {
 
     protected function dispatchDynamicSeoRoute($url) {
         $db = Database::getInstance()->getConnection();
-        $cleanUrl = ltrim($url, '/'); // DB stores without leading slash
+        $cleanUrl = ltrim($url, '/');
+        
+        // Pretty URL Optimization: Extract filters if present
+        $filters = null;
+        if (strpos($cleanUrl, '/filters/') !== false) {
+            list($basePath, $filterString) = explode('/filters/', $cleanUrl, 2);
+            $cleanUrl = $basePath;
+            $filters = $filterString;
+        }
 
-        /**
-         * OPTIMIZATION: Unified SEO Lookup
-         * We use UNION ALL to check all potential content tables in a single database trip.
-         * This prevents the "N+1" query problem during routing.
-         */
         $sql = "
             (SELECT 'page' as entity_type, id FROM pages WHERE custom_url_path = ? AND is_active = 1)
             UNION ALL
@@ -94,20 +98,25 @@ class Router {
         $result = $stmt->fetch();
 
         if ($result) {
+            $params = [$cleanUrl];
+            if ($filters) $params[] = $filters;
+
             switch ($result['entity_type']) {
                 case 'page':
-                    return $this->executeAction('Front\PageController@show', ['url' => $cleanUrl]);
+                    return $this->executeAction('Front\PageController@show', $params);
                 case 'collection':
-                    return $this->executeAction('Front\CollectionController@show', ['url' => $cleanUrl]);
+                    return $this->executeAction('Front\CollectionController@show', $params);
                 case 'product':
-                    return $this->executeAction('Front\ProductController@show', ['url' => $cleanUrl]);
+                    return $this->executeAction('Front\ProductController@show', $params);
                 case 'blog':
-                    return $this->executeAction('Front\BlogController@show', ['url' => $cleanUrl]);
+                    return $this->executeAction('Front\BlogController@show', $params);
             }
         }
 
+
         return false;
     }
+
 
     protected function send404() {
         http_response_code(404);

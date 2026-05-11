@@ -10,7 +10,7 @@ class BlogController extends Controller {
         ]);
     }
 
-    public function show($slug = null) {
+    public function show($slug = null, $filters = null) {
         $this->view('front/blog-detail', [
             'pageTitle' => 'Blog Detail | The Perfect Vape'
         ]);

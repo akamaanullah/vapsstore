@@ -16,8 +16,8 @@ class Product extends Model {
     public function createProduct($data) {
         $this->db->beginTransaction();
         try {
-            $sql = "INSERT INTO {$this->table} (brand_id, name, custom_url, short_desc, long_desc, base_price, status, tags, seo_title, seo_description, option_names) 
-                    VALUES (:brand_id, :name, :custom_url, :short_desc, :long_desc, :base_price, :status, :tags, :seo_title, :seo_description, :option_names)";
+            $sql = "INSERT INTO {$this->table} (brand_id, name, custom_url, short_desc, long_desc, base_price, compare_price, status, tags, seo_title, seo_description, option_names) 
+                    VALUES (:brand_id, :name, :custom_url, :short_desc, :long_desc, :base_price, :compare_price, :status, :tags, :seo_title, :seo_description, :option_names)";
             
             $stmt = $this->db->prepare($sql);
             
@@ -31,6 +31,7 @@ class Product extends Model {
                 'short_desc' => $data['short_desc'] ?? null,
                 'long_desc' => $data['long_desc'] ?? null,
                 'base_price' => $data['base_price'],
+                'compare_price' => $data['compare_price'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'tags' => $data['tags'] ?? null,
                 'seo_title' => $data['seo_title'] ?? null,
@@ -96,6 +97,7 @@ class Product extends Model {
                     short_desc = :short_desc, 
                     long_desc = :long_desc, 
                     base_price = :base_price, 
+                    compare_price = :compare_price,
                     status = :status,
                     tags = :tags,
                     seo_title = :seo_title,
@@ -116,6 +118,7 @@ class Product extends Model {
                 'short_desc' => $data['short_desc'] ?? null,
                 'long_desc' => $data['long_desc'] ?? null,
                 'base_price' => $data['base_price'],
+                'compare_price' => $data['compare_price'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'tags' => $data['tags'] ?? null,
                 'seo_title' => $data['seo_title'] ?? null,
@@ -390,15 +393,27 @@ class Product extends Model {
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function getByCollectionId($collectionId) {
-        $sql = "SELECT p.*, 
-                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
-                FROM products p 
-                JOIN product_collections pc ON p.id = pc.product_id 
-                WHERE pc.collection_id = ? AND p.status = 'published' 
-                ORDER BY p.id DESC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$collectionId]);
+    public function getByCollectionId($collectionId = null) {
+        if ($collectionId === null) {
+            $sql = "SELECT p.*, b.name as brand_name,
+                    (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
+                    FROM products p 
+                    LEFT JOIN brands b ON p.brand_id = b.id
+                    WHERE p.status = 'published' 
+                    ORDER BY p.id DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+        } else {
+            $sql = "SELECT p.*, b.name as brand_name,
+                    (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
+                    FROM products p 
+                    LEFT JOIN brands b ON p.brand_id = b.id
+                    JOIN product_collections pc ON p.id = pc.product_id 
+                    WHERE pc.collection_id = ? AND p.status = 'published' 
+                    ORDER BY p.id DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$collectionId]);
+        }
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -437,4 +452,139 @@ class Product extends Model {
 
         return $products;
     }
+
+    /**
+     * Get products based on multiple filters (AJAX)
+     */
+     public function getFiltered($filters = []) {
+        $page = isset($filters['page']) ? (int)$filters['page'] : 1;
+        $perPage = isset($filters['per_page']) ? (int)$filters['per_page'] : 12;
+        $offset = ($page - 1) * $perPage;
+        
+        $where = ["p.status = 'published'"];
+        $params = [];
+        
+        // Category Filter (Handles recursive children and slugs)
+        if (!empty($filters['cat']) || !empty($filters['category'])) {
+            $inputCats = !empty($filters['category']) ? $filters['category'] : $filters['cat'];
+            $cats = is_array($inputCats) ? $inputCats : explode(',', $inputCats);
+            
+            // Resolve Slugs to IDs if necessary
+            $allCategoryIds = [];
+            $collectionModel = new \App\Models\Collection();
+            
+            foreach ($cats as $cat) {
+                if (!is_numeric($cat)) {
+                    $c = $collectionModel->findBySlug($cat);
+                    if ($c) $catId = $c['id'];
+                    else continue;
+                } else {
+                    $catId = $cat;
+                }
+
+                if (!in_array($catId, $allCategoryIds)) {
+                    $allCategoryIds[] = $catId;
+                    $childIds = $collectionModel->getChildIds($catId);
+                    $allCategoryIds = array_unique(array_merge($allCategoryIds, $childIds));
+                }
+            }
+
+            if (!empty($allCategoryIds)) {
+                $placeholders = implode(',', array_fill(0, count($allCategoryIds), '?'));
+                $where[] = "EXISTS (SELECT 1 FROM product_collections pc WHERE pc.product_id = p.id AND pc.collection_id IN ($placeholders))";
+                foreach ($allCategoryIds as $id) {
+                    $params[] = $id;
+                }
+            }
+        }
+        
+        // Brand Filter (Handles slugs)
+        if (!empty($filters['brand'])) {
+            $brands = is_array($filters['brand']) ? $filters['brand'] : explode(',', $filters['brand']);
+            $brandIds = [];
+            $brandModel = new \App\Models\Brand();
+
+            foreach ($brands as $brand) {
+                if (!is_numeric($brand)) {
+                    // Assuming Brand model has findBySlug or similar
+                    $bSql = "SELECT id FROM brands WHERE slug = ? OR name LIKE ?";
+                    $stmt = $this->db->prepare($bSql);
+                    $stmt->execute([$brand, $brand]);
+                    $b = $stmt->fetch();
+                    if ($b) $brandIds[] = $b['id'];
+                } else {
+                    $brandIds[] = $brand;
+                }
+            }
+
+            if (!empty($brandIds)) {
+                $placeholders = implode(',', array_fill(0, count($brandIds), '?'));
+                $where[] = "p.brand_id IN ($placeholders)";
+                foreach ($brandIds as $id) {
+                    $params[] = $id;
+                }
+            }
+        }
+
+        
+        // Price Filter
+        if (isset($filters['price_min']) && $filters['price_min'] !== '') {
+            $where[] = "p.base_price >= ?";
+            $params[] = $filters['price_min'];
+        }
+        if (isset($filters['price_max']) && $filters['price_max'] !== '') {
+            $where[] = "p.base_price <= ?";
+            $params[] = $filters['price_max'];
+        }
+        
+        $whereClause = !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
+        
+        // Sorting
+        $order = "p.id DESC"; // Default: Newest
+        if (!empty($filters['sort'])) {
+            switch ($filters['sort']) {
+                case 'price-low': $order = "p.base_price ASC"; break;
+                case 'price-high': $order = "p.base_price DESC"; break;
+                case 'newest': $order = "p.id DESC"; break;
+                case 'name-az': $order = "p.name ASC"; break;
+            }
+        }
+
+        // 1. Get total for pagination
+        $countSql = "SELECT COUNT(DISTINCT p.id) as total FROM products p " . $whereClause;
+        $countStmt = $this->db->prepare($countSql);
+        $countStmt->execute($params);
+        $total = $countStmt->fetch()['total'];
+
+        // 2. Get actual products
+        $sql = "SELECT p.*, b.name as brand_name,
+                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image
+                FROM products p 
+                LEFT JOIN brands b ON p.brand_id = b.id
+                $whereClause
+                ORDER BY $order
+                LIMIT ? OFFSET ?";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        // Bind all params
+        $pIndex = 1;
+        foreach ($params as $value) {
+            $stmt->bindValue($pIndex++, $value);
+        }
+        $stmt->bindValue($pIndex++, (int)$perPage, \PDO::PARAM_INT);
+        $stmt->bindValue($pIndex++, (int)$offset, \PDO::PARAM_INT);
+        
+        $stmt->execute();
+        $items = $stmt->fetchAll();
+
+        return [
+            'data' => $items,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => ceil($total / $perPage)
+        ];
+    }
+
 }

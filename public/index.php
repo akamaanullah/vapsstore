@@ -52,7 +52,16 @@ $router = new Router();
 
 // 5. Define Static Routes
 $router->get('/', 'Front\HomeController@index');
+
+// Collection Routes (Support both singular and plural)
 $router->get('/collection', 'Front\CollectionController@index');
+$router->get('/collections', 'Front\CollectionController@index');
+$router->get('/collection/filters/{params}', 'Front\CollectionController@index');
+$router->get('/collections/filters/{params}', 'Front\CollectionController@index');
+$router->get('/collection/{slug}', 'Front\CollectionController@show');
+$router->get('/collections/{slug}', 'Front\CollectionController@show');
+
+$router->get('/api/collection/search', 'Front\CollectionController@apiSearch');
 $router->get('/product/{slug}', 'Front\ProductController@show');
 $router->get('/blog', 'Front\BlogController@index');
 $router->get('/contact-us', 'Front\HomeController@contact');

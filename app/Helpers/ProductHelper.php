@@ -29,16 +29,38 @@ class ProductHelper {
             $image = 'https://placehold.co/600x600?text=No+Image';
         }
         
-        // Check for old price (just a mock for now or fetch from variants)
+        // Handle Old Price (Compare Price)
         $oldPrice = ''; 
-        if (!empty($product['old_price'])) {
-            $oldPrice = '<span class="old-price">£' . number_get_formatted($product['old_price']) . '</span>';
+        $comparePrice = $product['compare_price'] ?? 0;
+        if ($comparePrice > 0) {
+            $oldPrice = '<span class="old-price">£' . number_get_formatted($comparePrice) . '</span>';
+        }
+
+        // Automatic "New" Badge Logic (within 30 days)
+        $isNew = false;
+        if (!empty($product['created_at'])) {
+            $createdAt = strtotime($product['created_at']);
+            $thirtyDaysAgo = strtotime('-30 days');
+            if ($createdAt >= $thirtyDaysAgo) {
+                $isNew = true;
+            }
+        }
+        
+        // Manual override if "new" is in tags
+        $tags = $product['tags'] ?? '';
+        if (!$isNew && !empty($tags) && stripos($tags, 'new') !== false) {
+            $isNew = true;
         }
 
         ob_start();
         ?>
         <div class="product-card" data-id="<?= $product['id'] ?>">
             <div class="product-img-wrapper">
+                <?php if ($comparePrice > 0): ?>
+                    <span class="badge sale">Sale</span>
+                <?php elseif ($isNew): ?>
+                    <span class="badge new">New</span>
+                <?php endif; ?>
                 <img src="<?= $image ?>" alt="<?= $name ?>" loading="lazy">
                 <div class="product-actions">
                     <button class="action-btn" title="Add to Wishlist"><i data-lucide="heart"></i></button>

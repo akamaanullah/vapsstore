@@ -35,6 +35,10 @@ $img = function($key, $default) use ($settings) {
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/style.css">
+    
+    <script>
+        const BASE_URL = "<?= BASE_URL ?>";
+    </script>
 </head>
 
 <body>

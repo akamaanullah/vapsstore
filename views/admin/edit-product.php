@@ -90,12 +90,23 @@ include __DIR__ . '/partials/header.php';
         <!-- Pricing -->
         <div class="card">
             <h3 class="card-title-sm mb-15">Pricing</h3>
-            <div class="form-group mb-0">
-                <div class="input-prefix-container">
-                    <span class="prefix">$</span>
-                    <input type="number" name="price" class="modal-field-input" value="<?= htmlspecialchars($product['base_price']) ?>" placeholder="0.00" step="0.01" required>
+            <div class="info-grid-2">
+                <div class="form-group mb-0">
+                    <label>Price</label>
+                    <div class="input-prefix-container">
+                        <span class="prefix">£</span>
+                        <input type="number" name="base_price" class="modal-field-input" value="<?= htmlspecialchars($product['base_price']) ?>" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group mb-0">
+                    <label>Compare at price</label>
+                    <div class="input-prefix-container">
+                        <span class="prefix">£</span>
+                        <input type="number" name="compare_price" class="modal-field-input" value="<?= htmlspecialchars($product['compare_price'] ?? '') ?>" placeholder="0.00" step="0.01">
+                    </div>
                 </div>
             </div>
+            <p class="text-muted-sm mt-10">To show a reduced price, move the product’s original price into Compare at price. Enter a lower value into Price.</p>
         </div>
 
         <!-- Inventory (For simple product) -->

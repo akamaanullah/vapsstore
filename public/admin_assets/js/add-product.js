@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </thead>
                 <tbody>`;
 
-        const basePrice = document.querySelector('input[name="price"]')?.value || '0.00';
+        const basePrice = document.querySelector('input[name="base_price"]')?.value || '0.00';
         const baseStock = document.querySelector('input[name="stock"]')?.value || '0';
         let globalVariantIndex = 0;
 
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </td>
                             <td>
                                 <div class="input-prefix-container">
-                                    <span class="prefix">$</span>
+                                    <span class="prefix">£</span>
                                     <input type="number" name="variants[${globalVariantIndex}][price]" class="modal-field-input input-sm" value="${price}" step="0.01">
                                 </div>
                             </td>

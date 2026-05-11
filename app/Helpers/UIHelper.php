@@ -10,13 +10,25 @@ class UIHelper {
      * Get all active UI sections for a specific entity (e.g. global_home)
      * Organized by section type for O(1) access in views
      */
-    public static function getSections($entityType = 'global_home') {
+    public static function getSections($entityType = 'global_home', $entityId = null) {
         $db = Database::getInstance()->getConnection();
         
         try {
             // 1. Fetch all active sections for this entity
-            $stmt = $db->prepare("SELECT * FROM ui_sections WHERE entity_type = ? AND is_active = 1 ORDER BY sort_order ASC");
-            $stmt->execute([$entityType]);
+            $query = "SELECT * FROM ui_sections WHERE entity_type = ? AND is_active = 1 ";
+            $params = [$entityType];
+            
+            if ($entityId !== null) {
+                $query .= " AND entity_id = ? ";
+                $params[] = $entityId;
+            } else {
+                $query .= " AND entity_id IS NULL ";
+            }
+            
+            $query .= " ORDER BY sort_order ASC";
+            
+            $stmt = $db->prepare($query);
+            $stmt->execute($params);
             $sections = [];
             $sectionIds = [];
             
@@ -49,18 +61,14 @@ class UIHelper {
                 $sections[$item['section_id']]['items'][] = $item;
             }
             
-            // 3. Re-group by section type for the view
+            // 3. Re-group by section type for the view (Always as an array of sections)
             $result = [];
             foreach ($sections as $section) {
                 $type = $section['type'];
                 if (!isset($result[$type])) {
-                    $result[$type] = $section;
-                } else {
-                    if (!isset($result[$type][0])) {
-                        $result[$type] = [$result[$type]];
-                    }
-                    $result[$type][] = $section;
+                    $result[$type] = [];
                 }
+                $result[$type][] = $section;
             }
             
             return $result;

@@ -22,7 +22,7 @@ class Collection extends Model {
                 VALUES (:parent_id, :name, :custom_url_path, :header_image_url, :short_description, :meta_title, :meta_desc, :is_active)";
         
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
+        if ($stmt->execute([
             'parent_id' => !empty($data['parent_id']) ? $data['parent_id'] : null,
             'name' => $data['name'],
             'custom_url_path' => !empty($data['custom_url_path']) ? $data['custom_url_path'] : $this->generateSlug($data['name']),
@@ -31,7 +31,10 @@ class Collection extends Model {
             'meta_title' => $data['meta_title'] ?? null,
             'meta_desc' => $data['meta_desc'] ?? null,
             'is_active' => $data['is_active'] ?? 1
-        ]);
+        ])) {
+            return $this->db->lastInsertId();
+        }
+        return false;
     }
 
     public function updateCollection($id, $data) {
@@ -67,6 +70,11 @@ class Collection extends Model {
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
+    public function findByCustomPath($path) {
+        return $this->findBySlug($path);
+    }
+
+
     public function search($query) {
         if ($query === 'all') {
             $stmt = $this->db->prepare("SELECT * FROM {$this->table} LIMIT 50");
@@ -77,6 +85,52 @@ class Collection extends Model {
         $stmt->execute(["%$query%"]);
         return $stmt->fetchAll();
     }
+
+    /**
+     * Get all child category IDs recursively
+     */
+    public function getChildIds($parentId) {
+        $ids = [];
+        $stmt = $this->db->prepare("SELECT id FROM collections WHERE parent_id = ? AND is_active = 1");
+        $stmt->execute([$parentId]);
+        $children = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        
+        foreach ($children as $id) {
+            $ids[] = $id;
+            $ids = array_merge($ids, $this->getChildIds($id));
+        }
+        return $ids;
+    }
+
+    /**
+     * Centralized logic to determine which collections to show in the sidebar
+     */
+    public function getSidebarData($currentCollection, $allCollections) {
+        $displayCollections = [];
+        $sidebarTitle = "Categories";
+        
+        if ($currentCollection) {
+            $children = array_filter($allCollections, fn($c) => $c['parent_id'] == $currentCollection['id']);
+            if (!empty($children)) {
+                $displayCollections = $children;
+                $sidebarTitle = htmlspecialchars($currentCollection['name']) . " Types";
+            } else if ($currentCollection['parent_id']) {
+                $displayCollections = array_filter($allCollections, fn($c) => $c['parent_id'] == $currentCollection['parent_id']);
+                $parent = array_values(array_filter($allCollections, fn($c) => $c['id'] == $currentCollection['parent_id']))[0] ?? null;
+                $sidebarTitle = $parent ? htmlspecialchars($parent['name']) : "Related Categories";
+            } else {
+                $displayCollections = array_filter($allCollections, fn($c) => empty($c['parent_id']));
+            }
+        } else {
+            $displayCollections = array_filter($allCollections, fn($c) => empty($c['parent_id']));
+        }
+
+        return [
+            'items' => $displayCollections,
+            'title' => $sidebarTitle
+        ];
+    }
+
 
     // generateSlug() is provided by the Sluggable trait
 }
