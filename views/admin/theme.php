@@ -11,12 +11,44 @@ include __DIR__ . '/partials/header.php';
         <h1 class="page-title">Homepage Settings</h1>
         <p class="text-muted-sm">Manage the content and images of your homepage sections.</p>
     </div>
-    <div class="header-actions" style="display: flex; gap: 12px;">
-        <button class="btn btn-outline" onclick="addNewCollectionSection()">
-            <i data-lucide="plus"></i>
-            <span>Add Collection Showcase</span>
+    <div class="header-actions" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="hero_slider" onclick="addNewSection('hero_slider')" title="Add Slider">
+            <i data-lucide="image"></i>
+            <span>+ Slider</span>
         </button>
-        <button id="saveAllChanges" class="btn btn-primary">
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="promo_grid" onclick="addNewSection('promo_grid')" title="Add Banners">
+            <i data-lucide="layout"></i>
+            <span>+ Banners</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="feature_highlight" onclick="addNewSection('feature_highlight')" title="Add Highlight">
+            <i data-lucide="star"></i>
+            <span>+ Highlight</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="brand_story" onclick="addNewSection('brand_story')" title="Add Story">
+            <i data-lucide="book-open"></i>
+            <span>+ Story</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="collection_grid" onclick="addNewSection('collection_grid')" title="Add Collection">
+            <i data-lucide="layers"></i>
+            <span>+ Collection</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="faq" onclick="addNewSection('faq')" title="Add FAQ">
+            <i data-lucide="help-circle"></i>
+            <span>+ FAQ</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="brands_swiper" onclick="addNewSection('brands_swiper')" title="Add Brands">
+            <i data-lucide="briefcase"></i>
+            <span>+ Brands</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="testimonials" onclick="addNewSection('testimonials')" title="Add Testimonials">
+            <i data-lucide="quote"></i>
+            <span>+ Testimonials</span>
+        </button>
+        <button class="btn btn-outline btn-sm add-section-btn" data-section-type="categories_grid" onclick="addNewSection('categories_grid')" title="Add Categories">
+            <i data-lucide="grid"></i>
+            <span>+ Categories</span>
+        </button>
+        <button id="saveAllChanges" class="btn btn-primary btn-sm">
             <i data-lucide="save"></i>
             <span>Save All Changes</span>
         </button>
@@ -30,14 +62,22 @@ include __DIR__ . '/partials/header.php';
         'promo_grid' => 'layout',
         'feature_highlight' => 'star',
         'brand_story' => 'book-open',
-        'collection_grid' => 'layers'
+        'collection_grid' => 'layers',
+        'faq' => 'help-circle',
+        'brands_swiper' => 'briefcase',
+        'testimonials' => 'quote',
+        'categories_grid' => 'grid'
     ];
     $sectionNames = [
         'hero_slider' => 'Hero Slider',
         'promo_grid' => 'Promo Banners',
         'feature_highlight' => 'Feature Highlight',
         'brand_story' => 'Brand Story',
-        'collection_grid' => 'Collection Showcase'
+        'collection_grid' => 'Collection Showcase',
+        'faq' => 'FAQ Section',
+        'brands_swiper' => 'Brands Showcase',
+        'testimonials' => 'Testimonials',
+        'categories_grid' => 'Categories Grid'
     ];
 
     foreach ($sections as $section): 
@@ -54,8 +94,6 @@ include __DIR__ . '/partials/header.php';
                 <span class="badge badge-outline"><?php echo count($section['items']); ?> Items</span>
             </div>
             <div class="section-card-controls">
-                <button class="control-btn" onclick="moveSection(<?php echo $section['id']; ?>, 'up')" title="Move Up"><i data-lucide="chevron-up"></i></button>
-                <button class="control-btn" onclick="moveSection(<?php echo $section['id']; ?>, 'down')" title="Move Down"><i data-lucide="chevron-down"></i></button>
                 <button class="control-btn delete" onclick="deleteSection(<?php echo $section['id']; ?>)" title="Delete Section"><i data-lucide="trash-2"></i></button>
             </div>
         </div>

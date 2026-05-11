@@ -1,6 +1,16 @@
 <?php
 use App\Helpers\NavigationHelper;
+use App\Helpers\UIHelper;
+
+$settings = UIHelper::getSettings();
 $menuTree = NavigationHelper::getMenuTree('main_menu');
+
+// Helper for logo/favicon
+$img = function($key, $default) use ($settings) {
+    $val = $settings[$key] ?? '';
+    if (empty($val)) return BASE_URL . '/' . $default;
+    return (strpos($val, 'http') === 0) ? $val : BASE_URL . '/' . $val;
+};
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +18,14 @@ $menuTree = NavigationHelper::getMenuTree('main_menu');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($pageTitle) ? $pageTitle : 'The Perfect Vape | Premium Vape Store'; ?></title>
+    <title><?php echo isset($pageTitle) ? $pageTitle : ($settings['seo_home_title'] ?? 'The Perfect Vape | Premium Vape Store'); ?></title>
+    <meta name="description" content="<?php echo isset($metaDescription) ? $metaDescription : ($settings['seo_home_desc'] ?? 'Find the best vapes, e-liquids, and accessories at The Perfect Vape.'); ?>">
+    <?php 
+    $faviconUrl = $img('store_favicon', 'favicon.ico');
+    $ext = pathinfo($faviconUrl, PATHINFO_EXTENSION);
+    $type = ($ext === 'png') ? 'image/png' : (($ext === 'svg') ? 'image/svg+xml' : 'image/x-icon');
+    ?>
+    <link rel="icon" type="<?= $type ?>" href="<?= $faviconUrl ?>">
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -26,7 +43,7 @@ $menuTree = NavigationHelper::getMenuTree('main_menu');
         <div class="container">
             <div class="nav-top">
                 <a href="<?= BASE_URL ?>/" class="logo">
-                    <img src="<?= BASE_URL ?>/assets/image/theperfectvape.png" alt="The Perfect Vape" class="logo-img">
+                    <img src="<?= $img('store_logo', 'assets/image/theperfectvape.png') ?>" alt="<?= htmlspecialchars($settings['store_name'] ?? 'The Perfect Vape') ?>" class="logo-img">
                 </a>
 
                 <div class="search-bar">
@@ -86,7 +103,7 @@ $menuTree = NavigationHelper::getMenuTree('main_menu');
             <nav class="nav-bottom">
                 <div class="mobile-menu-header">
                     <a href="<?= BASE_URL ?>/" class="logo">
-                        <img src="<?= BASE_URL ?>/assets/image/theperfectvape.png" alt="The Perfect Vape" class="logo-img">
+                        <img src="<?= $img('store_logo', 'assets/image/theperfectvape.png') ?>" alt="<?= htmlspecialchars($settings['store_name'] ?? 'The Perfect Vape') ?>" class="logo-img">
                     </a>
                     <button class="mobile-close-btn" id="mobileMenuClose">
                         <i data-lucide="x"></i>

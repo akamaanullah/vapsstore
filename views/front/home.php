@@ -14,32 +14,12 @@ require VIEW_DIR . '/front/partials/header.php';
     ?>
 
     <!-- Categories Grid -->
-    <section class="categories-section">
-        <div class="container">
-            <div class="categories-grid">
-                <div class="category-card-v2">
-                    <img src="<?= BASE_URL ?>/assets/image/1.jpg" alt="Accessories" loading="lazy">
-                    <h4>Accessories</h4>
-                    <p>Browse the best brands <br>and flavours</p>
-                </div>
-                <div class="category-card-v2">
-                    <img src="<?= BASE_URL ?>/assets/image/2.jpg" alt="Shop Coils" loading="lazy">
-                    <h4>Shop Coils</h4>
-                    <p>Browse the best brands <br>and flavours</p>
-                </div>
-                <div class="category-card-v2">
-                    <img src="<?= BASE_URL ?>/assets/image/3.jpg" alt="Shop E-Liquids" loading="lazy">
-                    <h4>Shop E-Liquids</h4>
-                    <p>Browse the best brands <br>and flavours</p>
-                </div>
-                <div class="category-card-v2">
-                    <img src="<?= BASE_URL ?>/assets/image/4.jpg" alt="Shop Tanks" loading="lazy">
-                    <h4>Shop Tanks</h4>
-                    <p>Browse the best brands <br>and flavours</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    <?php 
+    if (isset($sections['categories_grid'])) {
+        $section = $sections['categories_grid'];
+        include VIEW_DIR . '/front/partials/sections/categories_grid.php';
+    }
+    ?>
 
     <!-- Promo Banners Section -->
     <?php 
@@ -213,76 +193,20 @@ require VIEW_DIR . '/front/partials/header.php';
     </section>
 
     <!-- FAQ Section -->
-    <section class="faq-section">
-        <div class="container">
-            <div class="section-header-center">
-                <h2>Frequently Asked Questions</h2>
-            </div>
-            <div class="faq-container-single">
-                <!-- FAQ Item 1 -->
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>What is the minimum age to purchase?</h3>
-                        <div class="faq-toggle"></div>
-                    </div>
-                    <div class="faq-answer">
-                        <p>You must be at least 18 years old to purchase any vaping products from our store. We perform
-                            age verification on all orders to ensure compliance with local laws.</p>
-                    </div>
-                </div>
-                <!-- FAQ Item 2 -->
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>How do I track my order?</h3>
-                        <div class="faq-toggle"></div>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Once your order is shipped, you will receive an email with a tracking number and a link to
-                            the courier's website to monitor your delivery progress.</p>
-                    </div>
-                </div>
-                <!-- FAQ Item 6 -->
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>How often should I change my coil?</h3>
-                        <div class="faq-toggle"></div>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Generally, a coil lasts between 1-2 weeks depending on how frequently you vape and the type
-                            of e-liquid you use (sweet liquids tend to burn coils faster).</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <?php 
+    if (isset($sections['faq'])) {
+        $section = $sections['faq'];
+        include VIEW_DIR . '/front/partials/sections/faq.php';
+    }
+    ?>
 
     <!-- Brands Showcase Section -->
-    <section class="brands-section">
-        <div class="container">
-            <div class="swiper brands-swiper">
-                <div class="swiper-wrapper">
-                    <div class="swiper-slide brand-item">
-                        <img src="<?= BASE_URL ?>/assets/image/slideshow-1.png" alt="Brand 1">
-                    </div>
-                    <div class="swiper-slide brand-item">
-                        <img src="<?= BASE_URL ?>/assets/image/slideshow-2.png" alt="Brand 2">
-                    </div>
-                    <div class="swiper-slide brand-item">
-                        <img src="<?= BASE_URL ?>/assets/image/slideshow-3.png" alt="Brand 3">
-                    </div>
-                    <div class="swiper-slide brand-item">
-                        <img src="<?= BASE_URL ?>/assets/image/slideshow-4.png" alt="Brand 4">
-                    </div>
-                    <div class="swiper-slide brand-item">
-                        <img src="<?= BASE_URL ?>/assets/image/slideshow-5.png" alt="Brand 5">
-                    </div>
-                    <div class="swiper-slide brand-item">
-                        <img src="<?= BASE_URL ?>/assets/image/slideshow-6.png" alt="Brand 6">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <?php 
+    if (isset($sections['brands_swiper'])) {
+        $section = $sections['brands_swiper'];
+        include VIEW_DIR . '/front/partials/sections/brands_swiper.php';
+    }
+    ?>
 
     <!-- New Starter CTA Section -->
     <section class="starter-cta-section">
@@ -313,126 +237,12 @@ require VIEW_DIR . '/front/partials/header.php';
     </section>
 
     <!-- Testimonials Section -->
-    <section class="testimonials-section">
-        <div class="container">
-            <div class="section-header-center">
-                <h2>What Our Customers Say</h2>
-            </div>
-            <div class="swiper testimonials-swiper">
-                <div class="swiper-wrapper">
-                    <!-- Testimonial 1 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"The quality of the e-liquids here is unmatched. I've tried many
-                                stores, but the flavor profiles and smooth delivery from The Perfect Vape are on another
-                                level."</p>
-                            <div class="testimonial-author">
-                                <img src="<?= BASE_URL ?>/assets/image/testimonial-1.jpg" alt="James Wilson">
-                                <div class="author-info">
-                                    <h4>James Wilson</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 2 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"Fast shipping and incredible customer support. They helped me
-                                pick the right coil for my device and it's been working perfectly ever since. Highly
-                                recommend!"</p>
-                            <div class="testimonial-author">
-                                <img src="<?= BASE_URL ?>/assets/image/testimonial-2.jpg" alt="Sarah Jenkins">
-                                <div class="author-info">
-                                    <h4>Sarah Jenkins</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 3 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"As a wholesale partner, I couldn't be happier. The consistent
-                                quality and professional communication make them the best supplier in the industry."</p>
-                            <div class="testimonial-author">
-                                <img src="<?= BASE_URL ?>/assets/image/testimonial-3.jpg" alt="Michael Chen">
-                                <div class="author-info">
-                                    <h4>Michael Chen</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 4 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"The flavor variety is mind-blowing. I particularly love the ice
-                                range, it's so refreshing and stays consistent until the last drop."</p>
-                            <div class="testimonial-author">
-                                <img src="<?= BASE_URL ?>/assets/image/testimonial-4.jpg" alt="Emily Davis">
-                                <div class="author-info">
-                                    <h4>Emily Davis</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Testimonial 5 -->
-                    <div class="swiper-slide">
-                        <div class="testimonial-card">
-                            <div class="quote-icon"><i data-lucide="quote"></i></div>
-                            <p class="testimonial-text">"Finally found a shop that stocks everything I need. From pods
-                                to high-end mods, their inventory is always up to date with the latest tech."</p>
-                            <div class="testimonial-author">
-                                <img src="<?= BASE_URL ?>/assets/image/testimonial-5.jpg" alt="Robert Taylor">
-                                <div class="author-info">
-                                    <h4>Robert Taylor</h4>
-                                    <div class="stars">
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                        <i data-lucide="star" class="fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Slider Pagination -->
-                <div class="swiper-pagination"></div>
-            </div>
-        </div>
-    </section>
+    <?php 
+    if (isset($sections['testimonials'])) {
+        $section = $sections['testimonials'];
+        include VIEW_DIR . '/front/partials/sections/testimonials.php';
+    }
+    ?>
 
 </main>
 

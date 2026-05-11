@@ -36,6 +36,24 @@
         });
     }
 
+    function updateButtonVisibility() {
+        const existingTypes = window.homepageSections.map(s => s.type);
+        const singletonTypes = [
+            'hero_slider', 'promo_grid', 'feature_highlight', 
+            'brand_story', 'faq', 'brands_swiper', 
+            'testimonials', 'categories_grid'
+        ];
+        
+        document.querySelectorAll('.add-section-btn').forEach(btn => {
+            const type = btn.dataset.sectionType;
+            if (singletonTypes.includes(type) && existingTypes.includes(type)) {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'inline-flex';
+            }
+        });
+    }
+
     function createItemRow(type, item, index) {
         const div = document.createElement('div');
         div.className = 'section-item-row';
@@ -67,33 +85,70 @@
                 </div>
             `;
         } else {
+            // Define Labels based on type
+            let titleLabel = 'Title';
+            let contentLabel = 'Content';
+            let showImage = true;
+            let showUrl = true;
+            let showBtnText = ['hero_slider', 'feature_highlight'].includes(type);
+
+            if (type === 'faq') {
+                titleLabel = 'Question';
+                contentLabel = 'Answer';
+                showImage = false;
+                showUrl = false;
+            } else if (type === 'testimonials') {
+                titleLabel = 'Author Name';
+                contentLabel = 'Testimonial Quote';
+                showBtnText = true; // Use this for Rating/Stars
+                let btnTextLabel = 'Rating (1-5 Stars)';
+            } else if (type === 'brands_swiper') {
+                titleLabel = 'Brand Name';
+                showImage = true;
+                showUrl = true;
+                contentLabel = 'Short Note (Optional)';
+            }
+
             fields += `
                 <div class="form-group mb-10">
-                    <label>Title</label>
+                    <label>${titleLabel}</label>
                     <input type="text" class="modal-field-input item-title" value="${item.title || ''}">
                 </div>
                 <div class="form-group mb-10">
-                    <label>Content</label>
+                    <label>${contentLabel}</label>
                     <textarea class="modal-field-input item-content" style="height: 80px;">${item.content || ''}</textarea>
                 </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label>Image URL</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <img src="${item.image_url || ''}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; background: #eee; border: 1px solid #ddd;" onerror="this.src='https://placehold.co/40x40?text=No+Img'">
-                            <input type="text" class="modal-field-input item-image" value="${item.image_url || ''}" oninput="this.previousElementSibling.src=this.value || 'https://placehold.co/40x40?text=No+Img'">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Link/URL</label>
-                        <input type="text" class="modal-field-input item-url" value="${item.button_url || ''}">
-                    </div>
-                </div>
             `;
-            if (['hero_slider', 'feature_highlight'].includes(type)) {
+
+            if (showImage || showUrl) {
+                fields += `<div class="form-group-row">`;
+                if (showImage) {
+                    fields += `
+                        <div class="form-group">
+                            <label>Image/Logo</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <img src="${item.image_url || ''}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; background: #eee; border: 1px solid #ddd;" onerror="this.src='https://placehold.co/40x40?text=No+Img'">
+                                <input type="text" class="modal-field-input item-image" value="${item.image_url || ''}" oninput="this.previousElementSibling.src=this.value || 'https://placehold.co/40x40?text=No+Img'">
+                            </div>
+                        </div>
+                    `;
+                }
+                if (showUrl) {
+                    fields += `
+                        <div class="form-group">
+                            <label>Link/URL</label>
+                            <input type="text" class="modal-field-input item-url" value="${item.button_url || ''}">
+                        </div>
+                    `;
+                }
+                fields += `</div>`;
+            }
+
+            if (showBtnText) {
+                let btnLabel = (type === 'testimonials') ? 'Rating (e.g. 5 Stars)' : 'Button Text';
                 fields += `
                     <div class="form-group mb-10">
-                        <label>Button Text</label>
+                        <label>${btnLabel}</label>
                         <input type="text" class="modal-field-input item-btn-text" value="${item.button_text || ''}">
                     </div>
                 `;
@@ -219,9 +274,9 @@
         const titleGroup = document.getElementById('sectionTitleGroup');
         const buttonGroup = document.getElementById('sectionButtonGroup');
         
-        // Brand Story and Feature Highlight use item titles, so global heading is confusing
-        const needsGlobalHeading = ['collection_grid', 'promo_grid'].includes(section.type);
-        const needsGlobalButtons = ['collection_grid'].includes(section.type);
+        // Determine what global section settings to show
+        const needsGlobalHeading = ['collection_grid', 'promo_grid', 'faq', 'testimonials', 'categories_grid', 'brands_swiper'].includes(section.type);
+        const needsGlobalButtons = ['collection_grid', 'categories_grid'].includes(section.type);
         
         if (titleGroup) titleGroup.style.display = needsGlobalHeading ? 'block' : 'none';
         if (buttonGroup) buttonGroup.style.display = needsGlobalButtons ? 'flex' : 'none';
@@ -300,6 +355,7 @@
                     window.homepageSections.splice(idx, 1);
                     const card = document.querySelector(`.section-card[data-id="${id}"]`);
                     if (card) card.remove();
+                    updateButtonVisibility();
                     
                     window.Swal.fire({
                         title: 'Removed!',
@@ -341,14 +397,22 @@
                 'promo_grid': 'layout',
                 'feature_highlight': 'star',
                 'brand_story': 'book-open',
-                'collection_grid': 'layers'
+                'collection_grid': 'layers',
+                'faq': 'help-circle',
+                'brands_swiper': 'briefcase',
+                'testimonials': 'quote',
+                'categories_grid': 'grid'
             };
             const sectionNames = {
                 'hero_slider': 'Hero Slider',
                 'promo_grid': 'Promo Banners',
                 'feature_highlight': 'Feature Highlight',
                 'brand_story': 'Brand Story',
-                'collection_grid': 'Collection Showcase'
+                'collection_grid': 'Collection Showcase',
+                'faq': 'FAQ Section',
+                'brands_swiper': 'Brands Showcase',
+                'testimonials': 'Testimonials',
+                'categories_grid': 'Categories Grid'
             };
 
             const icon = sectionIcons[section.type] || 'box';
@@ -367,8 +431,6 @@
                         <span class="badge badge-outline">${section.items.length} Items</span>
                     </div>
                     <div class="section-card-controls">
-                        <button class="control-btn" onclick="moveSection(${section.id}, 'up')" title="Move Up"><i data-lucide="chevron-up"></i></button>
-                        <button class="control-btn" onclick="moveSection(${section.id}, 'down')" title="Move Down"><i data-lucide="chevron-down"></i></button>
                         <button class="control-btn delete" onclick="deleteSection(${section.id})" title="Delete Section"><i data-lucide="trash-2"></i></button>
                     </div>
                 </div>
@@ -381,20 +443,22 @@
             `;
             grid.appendChild(card);
         });
+        updateButtonVisibility();
         if (window.lucide) window.lucide.createIcons();
     }
 
-    window.addNewCollectionSection = function() {
+    window.addNewSection = function(type = 'collection_grid') {
         const tempId = -Math.floor(Math.random() * 100000);
         const newSection = {
             id: tempId,
-            type: 'collection_grid',
+            type: type,
             entity_type: 'global_home',
             sort_order: window.homepageSections.length,
             items: []
         };
         window.homepageSections.push(newSection);
         renderSectionsGrid();
+        updateButtonVisibility();
         window.editSection(tempId);
     };
 
@@ -470,7 +534,11 @@
                             'promo_grid': 'Promo Banners',
                             'feature_highlight': 'Feature Highlight',
                             'brand_story': 'Brand Story',
-                            'collection_grid': 'Collection Showcase'
+                            'collection_grid': 'Collection Showcase',
+                            'faq': 'FAQ Section',
+                            'brands_swiper': 'Brands Showcase',
+                            'testimonials': 'Testimonials',
+                            'categories_grid': 'Categories Grid'
                         };
                         titleH3.innerText = section.title || sectionNames[section.type] || section.type;
                     }
@@ -509,6 +577,8 @@
                 }
             };
         }
+        
+        updateButtonVisibility();
     };
 
     if (document.readyState === 'loading') {

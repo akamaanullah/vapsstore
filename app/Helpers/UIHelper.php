@@ -14,50 +14,77 @@ class UIHelper {
         $db = Database::getInstance()->getConnection();
         
         try {
+            // 1. Fetch all active sections for this entity
             $stmt = $db->prepare("SELECT * FROM ui_sections WHERE entity_type = ? AND is_active = 1 ORDER BY sort_order ASC");
             $stmt->execute([$entityType]);
-            $rawSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
             $sections = [];
+            $sectionIds = [];
             
-            foreach ($rawSections as $section) {
-                $stmtItems = $db->prepare("SELECT * FROM ui_section_items WHERE section_id = ? ORDER BY sort_order ASC");
-                $stmtItems->execute([$section['id']]);
-                $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-                
-                // Enrich items if they are products
-                foreach ($items as &$item) {
-                    if ($item['entity_type'] === 'product') {
-                        $stmtP = $db->prepare("SELECT name, base_price, 
-                                               (SELECT image_url FROM product_images WHERE product_id = products.id ORDER BY sort_order ASC LIMIT 1) as featured_image 
-                                               FROM products WHERE id = ?");
-                        $stmtP->execute([$item['entity_id']]);
-                        $prod = $stmtP->fetch(PDO::FETCH_ASSOC);
-                        if ($prod) {
-                            $item['title'] = !empty($item['title']) ? $item['title'] : $prod['name'];
-                            $item['image_url'] = !empty($item['image_url']) ? $item['image_url'] : $prod['featured_image'];
-                            $item['price'] = $prod['base_price'];
-                            $item['current_price'] = $prod['base_price']; // Fallback
-                        }
-                    }
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $section) {
+                $section['items'] = [];
+                $sections[$section['id']] = $section;
+                $sectionIds[] = $section['id'];
+            }
+            
+            if (empty($sectionIds)) return [];
+
+            // 2. Optimized: Fetch ALL items for all sections in ONE query
+            $idsPlaceholders = implode(',', array_fill(0, count($sectionIds), '?'));
+            $sqlItems = "SELECT i.*, p.name as prod_name, p.base_price, 
+                        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as prod_image
+                        FROM ui_section_items i
+                        LEFT JOIN products p ON i.entity_id = p.id AND i.entity_type = 'product'
+                        WHERE i.section_id IN ($idsPlaceholders)
+                        ORDER BY i.sort_order ASC";
+            
+            $stmtItems = $db->prepare($sqlItems);
+            $stmtItems->execute($sectionIds);
+            
+            foreach ($stmtItems->fetchAll(PDO::FETCH_ASSOC) as $item) {
+                if ($item['entity_type'] === 'product') {
+                    $item['title'] = !empty($item['title']) ? $item['title'] : $item['prod_name'];
+                    $item['image_url'] = !empty($item['image_url']) ? $item['image_url'] : $item['prod_image'];
+                    $item['price'] = $item['base_price'];
                 }
-                $section['items'] = $items;
-                
-                // Key by type for easy access, but support multiple sections of same type if needed
-                if (!isset($sections[$section['type']])) {
-                    $sections[$section['type']] = $section;
+                $sections[$item['section_id']]['items'][] = $item;
+            }
+            
+            // 3. Re-group by section type for the view
+            $result = [];
+            foreach ($sections as $section) {
+                $type = $section['type'];
+                if (!isset($result[$type])) {
+                    $result[$type] = $section;
                 } else {
-                    // If multiple sections of same type exist, make it an array of sections
-                    if (!isset($sections[$section['type']][0])) {
-                        $sections[$section['type']] = [$sections[$section['type']]];
+                    if (!isset($result[$type][0])) {
+                        $result[$type] = [$result[$type]];
                     }
-                    $sections[$section['type']][] = $section;
+                    $result[$type][] = $section;
                 }
             }
             
-            return $sections;
+            return $result;
         } catch (\Exception $e) {
             error_log("UIHelper Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get all global settings
+     */
+    public static function getSettings() {
+        $db = Database::getInstance()->getConnection();
+        try {
+            $stmt = $db->query("SELECT * FROM settings");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $settings = [];
+            foreach ($rows as $row) {
+                $settings[$row['key']] = $row['value'];
+            }
+            return $settings;
+        } catch (\Exception $e) {
+            error_log("UIHelper Settings Error: " . $e->getMessage());
             return [];
         }
     }

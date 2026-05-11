@@ -1,66 +1,98 @@
+<?php 
+use App\Helpers\UIHelper;
+use App\Helpers\NavigationHelper;
+
+$settings = UIHelper::getSettings();
+$footerMenu = NavigationHelper::getMenuTree('footer_menu');
+
+// Helper to get setting value safely with fallback
+$s = function($key, $default = '') use ($settings) {
+    return !empty($settings[$key]) ? htmlspecialchars($settings[$key]) : $default;
+};
+?>
 <footer class="footer">
     <div class="container">
         <div class="footer-main-grid">
             <!-- Left Content -->
             <div class="footer-content-left">
-                <div class="footer-warning-section mb-40">
-                    <h1 class="footer-large-title mb-20">You Have To Be Over 18 <br>To Purchase</h1>
-                    <p class="footer-description text-14 text-muted">
-                        Vape kits might contain nicotine, which is addictive. These vaping devices are designed for
-                        individuals aged 18 or above. They are unsuitable for people who are allergic/sensitive to
-                        nicotine, pregnant or breastfeeding women, those with unstable heart conditions, and individuals
-                        who should avoid nicotine for medical reasons, as they could pose health risks. Make sure to
-                        keep vape kits or disposable vapes out of the reach of children.
-                    </p>
-                </div>
-
-                <div class="footer-links-grid mb-40">
+                <?php if (!empty($footerMenu)): ?>
                     <?php 
-                    use App\Helpers\NavigationHelper;
-                    NavigationHelper::renderFooterColumn('footer_menu', 'Quick Links'); 
-                    ?>
-                    <div class="link-col">
-                        <h4>Policies</h4>
-                        <ul>
-                            <li><a href="<?= BASE_URL ?>/shipping-policy">Shipping Policy</a></li>
-                            <li><a href="<?= BASE_URL ?>/refund-policy">Refund Policy</a></li>
-                            <li><a href="<?= BASE_URL ?>/return-policy">Return Policy</a></li>
-                            <li><a href="<?= BASE_URL ?>/privacy-policy">Privacy Policy</a></li>
-                            <li><a href="<?= BASE_URL ?>/fda-disclaimer">FDA Disclaimer</a></li>
-                            <li><a href="<?= BASE_URL ?>/terms-and-conditions">Terms & Conditions</a></li>
-                        </ul>
+                    $hasLinks = false;
+                    foreach ($footerMenu as $item) {
+                        if ($item['link_type'] === 'text_block') {
+                            // Warning Section
+                            echo '<div class="footer-warning-section mb-40">';
+                            echo '    <h1 class="footer-large-title mb-20">' . $item['title'] . '</h1>';
+                            echo '    <div class="footer-description text-14 text-muted">' . $item['link_value'] . '</div>';
+                            echo '</div>';
+                        } elseif ($item['link_type'] !== 'promo_banner') {
+                            $hasLinks = true;
+                        }
+                    }
+                    
+                    if ($hasLinks): ?>
+                    <div class="footer-links-grid mb-40">
+                        <?php 
+                        foreach ($footerMenu as $item) {
+                            if ($item['link_type'] !== 'text_block' && $item['link_type'] !== 'promo_banner') {
+                                if (!empty($item['children'])) {
+                                    echo '<div class="link-col">';
+                                    echo '    <h4>' . htmlspecialchars($item['title']) . '</h4>';
+                                    echo '    <ul>';
+                                    foreach ($item['children'] as $child) {
+                                        $url = !empty($child['link_value']) ? (strpos($child['link_value'], 'http') === 0 ? $child['link_value'] : BASE_URL . $child['link_value']) : '#';
+                                        echo '<li><a href="' . $url . '">' . htmlspecialchars($child['title']) . '</a></li>';
+                                    }
+                                    echo '    </ul>';
+                                    echo '</div>';
+                                } else {
+                                    // Single column item without children
+                                    echo '<div class="link-col">';
+                                    if ($item['link_type'] !== 'no_link') {
+                                        $url = !empty($item['link_value']) ? (strpos($item['link_value'], 'http') === 0 ? $item['link_value'] : BASE_URL . $item['link_value']) : '#';
+                                        echo '    <h4><a href="' . $url . '">' . htmlspecialchars($item['title']) . '</a></h4>';
+                                    } else {
+                                        echo '    <h4>' . htmlspecialchars($item['title']) . '</h4>';
+                                    }
+                                    if ($item['link_type'] === 'html') echo $item['link_value'];
+                                    echo '</div>';
+                                }
+                            }
+                        }
+                        ?>
                     </div>
-                    <div class="link-col">
-                        <h4>Contact Us</h4>
-                        <ul>
-                            <li><a href="mailto:info@theperfectvape.com">info@theperfectvape.com</a></li>
-                            <li><a href="tel:+442071234567">+44 20 7123 4567</a></li>
-                            <li>15 St Oswald's Street, Liverpool, L13 5SA</li>
-                        </ul>
-                    </div>
-                </div>
+                    <?php endif; ?>
+                <?php endif; ?>
 
                 <div class="footer-bottom-bar">
-                    <p class="text-12 text-muted mb-15">© 2025 The Perfect Vape. All Rights Reserved. | Designed,
-                        Developed & Managed By Antigravity</p>
+                    <p class="text-12 text-muted mb-15"><?= $s('footer_copyright', '© 2025 The Perfect Vape. All Rights Reserved. | Designed, Developed & Managed By Antigravity') ?></p>
                     <div class="payment-methods">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-01.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-02.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-03.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-04.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-05.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-07.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-08.png" alt="Payment">
-                        <img src="<?= BASE_URL ?>/assets/footer/Logos-10.png" alt="Payment">
+                        <?php 
+                        for($i=1; $i<=8; $i++) {
+                            $key = "payment_logo_$i";
+                            $val = $settings[$key] ?? '';
+                            if (empty($val)) continue;
+                            
+                            $imgSrc = (strpos($val, 'http') === 0) ? $val : BASE_URL . '/' . $val;
+                            echo '<img src="' . $imgSrc . '" alt="Payment">';
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
 
             <!-- Right Branding Image -->
             <div class="footer-content-right">
-                <div class="footer-branding-card">
-                    <img src="<?= BASE_URL ?>/assets/footer/branding.jpg" alt="Branding" class="footer-brand-img">
-                </div>
+                <?php 
+                foreach ($footerMenu as $item) {
+                    if ($item['link_type'] === 'promo_banner') {
+                        $imgSrc = (strpos($item['image_url'], 'http') === 0) ? $item['image_url'] : BASE_URL . '/' . $item['image_url'];
+                        echo '<div class="footer-branding-card">';
+                        echo '    <img src="' . $imgSrc . '" alt="' . htmlspecialchars($item['title']) . '" class="footer-brand-img">';
+                        echo '</div>';
+                    }
+                }
+                ?>
             </div>
         </div>
     </div>

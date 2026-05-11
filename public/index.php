@@ -172,6 +172,7 @@ $router->post('/admin/coupons/update/{id}', 'Admin\CouponController@update');
 $router->post('/admin/coupons/delete/{id}', 'Admin\CouponController@delete');
 $router->get('/admin/reviews', 'Admin\ReviewController@index');
 $router->get('/admin/settings', 'Admin\SettingController@index');
+$router->post('/admin/settings/update', 'Admin\SettingController@update');
 
 // 6. Dispatch the Request
 // The router will determine the URL and call the appropriate Controller method

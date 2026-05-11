@@ -9,7 +9,6 @@ class HomeController extends Controller {
         $sections = \App\Helpers\UIHelper::getSections('global_home');
         
         $this->view('front/home', [
-            'pageTitle' => 'Home | The Perfect Vape Premium Store',
             'sections' => $sections
         ]);
     }

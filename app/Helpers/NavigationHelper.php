@@ -108,4 +108,52 @@ class NavigationHelper {
         echo '    </ul>';
         echo '</div>';
     }
+
+    /**
+     * Render the entire footer dynamically from a menu structure
+     */
+    public static function renderDynamicFooter($location = 'footer_main') {
+        $menuItems = self::getMenuTree($location);
+        if (empty($menuItems)) return;
+
+        foreach ($menuItems as $item) {
+            $type = $item['link_type'];
+
+            if ($type === 'text_block') {
+                // Render as Warning Section or Info Block
+                echo '<div class="footer-warning-section mb-40">';
+                echo '    <h1 class="footer-large-title mb-20">' . $item['title'] . '</h1>';
+                echo '    <div class="footer-description text-14 text-muted">';
+                echo        $item['link_value']; // This is the HTML content from Quill
+                echo '    </div>';
+                echo '</div>';
+            } 
+            elseif ($type === 'promo_banner') {
+                // Render as Branding Card (Right Side)
+                $imgSrc = (strpos($item['image_url'], 'http') === 0) ? $item['image_url'] : BASE_URL . '/' . $item['image_url'];
+                echo '<div class="footer-branding-card">';
+                echo '    <img src="' . $imgSrc . '" alt="' . htmlspecialchars($item['title']) . '" class="footer-brand-img">';
+                echo '</div>';
+            }
+            elseif (!empty($item['children'])) {
+                // Render as a Navigation Column
+                echo '<div class="link-col">';
+                echo '    <h4>' . htmlspecialchars($item['title']) . '</h4>';
+                echo '    <ul>';
+                foreach ($item['children'] as $child) {
+                    $url = !empty($child['link_value']) ? (strpos($child['link_value'], 'http') === 0 ? $child['link_value'] : BASE_URL . $child['link_value']) : '#';
+                    echo '<li><a href="' . $url . '">' . htmlspecialchars($child['title']) . '</a></li>';
+                }
+                echo '    </ul>';
+                echo '</div>';
+            }
+            elseif ($type === 'html' || $type === 'newsletter') {
+                // Render raw content or custom blocks
+                echo '<div class="link-col">';
+                if (!empty($item['title'])) echo '<h4>' . htmlspecialchars($item['title']) . '</h4>';
+                echo $item['link_value'];
+                echo '</div>';
+            }
+        }
+    }
 }
