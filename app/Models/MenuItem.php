@@ -55,4 +55,41 @@ class MenuItem extends Model {
         }
         return $branch;
     }
+
+    /**
+     * Resolve a dynamic URL from entity_id
+     */
+    public static function resolveUrl($type, $id, $defaultValue) {
+        if (!$id) return $defaultValue;
+
+        $db = \App\Core\Database::getInstance()->getConnection();
+        
+        switch ($type) {
+            case 'page':
+                $stmt = $db->prepare("SELECT custom_url_path FROM pages WHERE id = ?");
+                $stmt->execute([$id]);
+                $slug = $stmt->fetchColumn();
+                return $slug ? '/page/' . ltrim($slug, '/') : $defaultValue;
+            
+            case 'collection':
+                $stmt = $db->prepare("SELECT custom_url_path FROM collections WHERE id = ?");
+                $stmt->execute([$id]);
+                $slug = $stmt->fetchColumn();
+                return $slug ? '/collection/' . ltrim($slug, '/') : $defaultValue;
+
+            case 'brand':
+                $stmt = $db->prepare("SELECT slug FROM brands WHERE id = ?");
+                $stmt->execute([$id]);
+                $slug = $stmt->fetchColumn();
+                return $slug ? '/brands/' . ltrim($slug, '/') : $defaultValue;
+
+            case 'product':
+                $stmt = $db->prepare("SELECT custom_url FROM products WHERE id = ?");
+                $stmt->execute([$id]);
+                $slug = $stmt->fetchColumn();
+                return $slug ? '/products/' . ltrim($slug, '/') : $defaultValue;
+        }
+
+        return $defaultValue;
+    }
 }

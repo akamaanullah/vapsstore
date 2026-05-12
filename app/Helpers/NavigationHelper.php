@@ -6,15 +6,24 @@ use App\Models\MenuItem;
 
 class NavigationHelper {
     
+    private static $menuCache = [];
+
     /**
-     * Get menu tree by location handle
+     * Get menu tree by location handle (Cached per request)
      */
     public static function getMenuTree($location) {
+        if (isset(self::$menuCache[$location])) {
+            return self::$menuCache[$location];
+        }
+
         $menuModel = new Menu();
         $menuItemModel = new MenuItem();
         
         $menu = $menuModel->getByLocation($location);
-        return $menu ? $menuItemModel->getTree($menu['id']) : [];
+        $tree = $menu ? $menuItemModel->getTree($menu['id']) : [];
+        
+        self::$menuCache[$location] = $tree;
+        return $tree;
     }
 
     /**
@@ -34,7 +43,7 @@ class NavigationHelper {
         }
 
         $liClass = 'nav-item' . ($hasChildren ? ($isMega ? ' has-mega' : ' has-dropdown') : '');
-        $linkUrl = !empty($item['link_value']) ? (strpos($item['link_value'], 'http') === 0 ? $item['link_value'] : BASE_URL . $item['link_value']) : '#';
+        $linkUrl = self::getLinkUrl($item);
         
         echo '<li class="' . $liClass . '">';
         echo '    <a href="' . $linkUrl . '" class="nav-link">';
@@ -56,7 +65,7 @@ class NavigationHelper {
                         if (!empty($child['children'])) {
                             echo '<ul>';
                             foreach ($child['children'] as $grandChild) {
-                                $gcUrl = !empty($grandChild['link_value']) ? (strpos($grandChild['link_value'], 'http') === 0 ? $grandChild['link_value'] : BASE_URL . $grandChild['link_value']) : '#';
+                                $gcUrl = self::getLinkUrl($grandChild);
                                 echo '<li><a href="' . $gcUrl . '">' . htmlspecialchars($grandChild['title']) . '</a></li>';
                             }
                             echo '</ul>';
@@ -71,7 +80,7 @@ class NavigationHelper {
                         }
                         echo '        <h5>' . htmlspecialchars($child['title']) . '</h5>';
                         // Use link_value for the button URL instead of showing it as text
-                        $promoUrl = !empty($child['link_value']) ? (strpos($child['link_value'], 'http') === 0 ? $child['link_value'] : BASE_URL . $child['link_value']) : '#';
+                        $promoUrl = self::getLinkUrl($child);
                         echo '        <a href="' . $promoUrl . '" class="btn-mega">Shop Now</a>';
                         echo '    </div>';
                         echo '</div>';
@@ -82,7 +91,7 @@ class NavigationHelper {
             } else {
                 echo '<ul class="dropdown-menu">';
                 foreach ($item['children'] as $child) {
-                    $childUrl = !empty($child['link_value']) ? (strpos($child['link_value'], 'http') === 0 ? $child['link_value'] : BASE_URL . $child['link_value']) : '#';
+                    $childUrl = self::getLinkUrl($child);
                     echo '<li><a href="' . $childUrl . '">' . htmlspecialchars($child['title']) . '</a></li>';
                 }
                 echo '</ul>';
@@ -102,7 +111,7 @@ class NavigationHelper {
         echo '    <h4>' . htmlspecialchars($defaultTitle) . '</h4>';
         echo '    <ul>';
         foreach ($items as $item) {
-            $url = !empty($item['link_value']) ? (strpos($item['link_value'], 'http') === 0 ? $item['link_value'] : BASE_URL . $item['link_value']) : '#';
+            $url = self::getLinkUrl($item);
             echo '<li><a href="' . $url . '">' . htmlspecialchars($item['title']) . '</a></li>';
         }
         echo '    </ul>';
@@ -141,7 +150,7 @@ class NavigationHelper {
                 echo '    <h4>' . htmlspecialchars($item['title']) . '</h4>';
                 echo '    <ul>';
                 foreach ($item['children'] as $child) {
-                    $url = !empty($child['link_value']) ? (strpos($child['link_value'], 'http') === 0 ? $child['link_value'] : BASE_URL . $child['link_value']) : '#';
+                    $url = self::getLinkUrl($child);
                     echo '<li><a href="' . $url . '">' . htmlspecialchars($child['title']) . '</a></li>';
                 }
                 echo '    </ul>';
@@ -155,5 +164,22 @@ class NavigationHelper {
                 echo '</div>';
             }
         }
+    }
+
+    /**
+     * Resolve URL helper
+     */
+    private static function getLinkUrl($item) {
+        $val = $item['link_value'] ?? '';
+        
+        // Resolve dynamic URL if entity_id is present
+        if (!empty($item['entity_id'])) {
+            $val = MenuItem::resolveUrl($item['link_type'], $item['entity_id'], $val);
+        }
+
+        if (empty($val) || $val === '#') return '#';
+        if (strpos($val, 'http') === 0) return $val;
+        
+        return BASE_URL . $val;
     }
 }

@@ -184,14 +184,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const variantSelect = document.getElementById('variantSelect');
+    const optionSelects = document.querySelectorAll('.variant-option-select');
     const displayPrice = document.getElementById('displayPrice');
     const comparePriceContainer = document.getElementById('comparePriceContainer');
     const displayComparePrice = document.getElementById('displayComparePrice');
     const displaySalePercentage = document.getElementById('displaySalePercentage');
 
+    function updateVariantFromOptions() {
+        if (!optionSelects.length || !variantSelect) return;
+
+        // 1. Construct the combined name string: "val1 / val2 / val3"
+        const selectedValues = Array.from(optionSelects)
+            .sort((a, b) => a.dataset.optionIndex - b.dataset.optionIndex)
+            .map(select => select.value);
+        
+        const targetName = selectedValues.join(' / ');
+
+        // 2. Find the hidden option that matches this name
+        const options = Array.from(variantSelect.options);
+        const matchingOption = options.find(opt => opt.dataset.name === targetName);
+
+        if (matchingOption) {
+            variantSelect.value = matchingOption.value;
+            // Manually trigger change to update prices
+            variantSelect.dispatchEvent(new Event('change'));
+        }
+    }
+
+    if (optionSelects.length > 0) {
+        optionSelects.forEach(select => {
+            select.addEventListener('change', updateVariantFromOptions);
+        });
+        // Initial sync
+        updateVariantFromOptions();
+    }
+
     if (variantSelect && displayPrice) {
         variantSelect.addEventListener('change', (e) => {
             const selectedOption = e.target.options[e.target.selectedIndex];
+            if (!selectedOption) return;
+
             const price = parseFloat(selectedOption.getAttribute('data-price'));
             const comparePrice = parseFloat(selectedOption.getAttribute('data-compare-price'));
 

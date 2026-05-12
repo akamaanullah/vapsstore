@@ -1,5 +1,6 @@
 <?php
 $pageTitle = "Checkout | The Perfect Vape";
+$noIndex = true;
 require 'partials/header.php';
 ?>
 
@@ -179,6 +180,7 @@ require 'partials/header.php';
                     </div>
                     <div class="item-details">
                         <h4 class="item-name">${item.name}</h4>
+                        ${item.variant_name ? `<span class="item-variant" style="font-size: 12px; color: #64748b;">${item.variant_name}</span>` : ''}
                     </div>
                     <div class="item-price">£${(item.price * item.quantity).toFixed(2)}</div>
                 </div>

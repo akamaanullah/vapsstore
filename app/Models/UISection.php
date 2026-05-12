@@ -49,7 +49,10 @@ class UISection extends Model {
     public function getSectionItems($sectionId) {
         $sql = "SELECT i.*, 
                 p.name as live_product_name,
+                p.short_desc as live_product_desc,
                 p.base_price as live_product_price,
+                p.custom_url as live_product_slug,
+                p.option_names as live_product_options,
                 (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as live_product_image
                 FROM ui_section_items i
                 LEFT JOIN products p ON (i.entity_type = 'product' AND i.entity_id = p.id)
@@ -65,6 +68,14 @@ class UISection extends Model {
                 $item['title'] = $item['live_product_name'];
                 $item['image_url'] = $item['live_product_image'];
                 $item['price'] = $item['live_product_price'];
+                $item['product_slug'] = $item['live_product_slug'];
+                $item['short_desc'] = $item['live_product_desc'];
+                $item['option_names'] = json_decode($item['live_product_options'], true);
+                
+                // Fetch Variants
+                $vStmt = $this->db->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY id ASC");
+                $vStmt->execute([$item['entity_id']]);
+                $item['variants'] = $vStmt->fetchAll(PDO::FETCH_ASSOC);
             }
         }
         

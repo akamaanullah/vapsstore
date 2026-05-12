@@ -23,8 +23,8 @@ class Model {
     /**
      * Get all records from the table
      */
-    public function all() {
-        $stmt = $this->db->query("SELECT * FROM {$this->table}");
+    public function all($limit = 1000) {
+        $stmt = $this->db->query("SELECT * FROM {$this->table} LIMIT " . (int)$limit);
         return $stmt->fetchAll();
     }
 

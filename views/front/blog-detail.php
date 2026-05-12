@@ -1,6 +1,11 @@
-<?php
-$pageTitle = "Blog Detail | The Perfect Vape";
-require 'partials/header.php';
+<?php require VIEW_DIR . '/front/partials/header.php'; 
+
+// Helper for blog images
+function getBlogImageUrl($url) {
+    if (empty($url)) return BASE_URL . '/assets/product/product-1.jpg';
+    if (strpos($url, 'http') === 0) return $url;
+    return BASE_URL . '/' . $url;
+}
 ?>
 
 <main class="blog-detail-page">
@@ -8,165 +13,173 @@ require 'partials/header.php';
     <section class="blog-hero">
         <div class="container">
             <nav class="breadcrumb">
-                <a href="index.php">Home</a> / <a href="blog.php">Blog</a> / <span>The Ultimate Guide to Choosing Your First Pod Kit</span>
+                <a href="<?= BASE_URL ?>">Home</a> / <a href="<?= BASE_URL ?>/blog">Blog</a> / <span><?= htmlspecialchars($post['title']) ?></span>
             </nav>
             
             <div class="blog-meta-top">
-                <span class="blog-category">Guides & Tips</span>
-                <span class="blog-date">April 25, 2024</span>
+                <?php if (!empty($post['category_name'])): ?>
+                    <span class="blog-category"><?= htmlspecialchars($post['category_name']) ?></span>
+                <?php endif; ?>
+                <?php if (!empty($post['published_at'])): ?>
+                    <span class="blog-date"><?= date('F d, Y', strtotime($post['published_at'])) ?></span>
+                <?php endif; ?>
             </div>
             
-            <h1 class="blog-main-title">The Ultimate Guide to Choosing Your First Pod Kit in 2024</h1>
-            
-
+            <h1 class="blog-main-title"><?= htmlspecialchars($post['title']) ?></h1>
         </div>
     </section>
 
+    <?php if (!empty($post['featured_image_url'])): ?>
     <div class="blog-featured-img-container">
         <div class="container">
-            <img src="assets/image/carousel-2.jpg" alt="Blog Featured Image" class="blog-featured-img">
+            <img src="<?= getBlogImageUrl($post['featured_image_url']) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="blog-featured-img">
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Blog Content & Sidebar Grid -->
     <div class="blog-content-layout container">
         <div class="blog-main-content">
             <div class="content-body">
-                <p class="lead-text">Transitioning from traditional smoking to vaping can be overwhelming with so many options available. This guide simplifies the process and helps you find the perfect device for your journey.</p>
+                <!-- Excerpt is removed from detail page as it's usually just a summary for the list view -->
                 
-                <h2>Why Choose a Pod Kit?</h2>
-                <p>Pod kits have revolutionized the vaping industry. They are compact, easy to use, and provide a satisfying experience that closely mimics the sensation of smoking. For beginners, they offer the perfect balance between performance and simplicity.</p>
-                
-                <blockquote>
-                    "The best device is the one that keeps you away from cigarettes. For most people, that's a reliable pod system."
-                </blockquote>
-
-                <h3>1. Portability and Convenience</h3>
-                <p>Unlike larger box mods, pod kits fit easily in your pocket or bag. They are designed for on-the-go use, making them ideal for busy lifestyles. Most modern pod systems also feature fast USB-C charging, ensuring you're never without your device for long.</p>
-                
-                <img src="assets/product/product-5.jpg" alt="Compact Pod Kit" class="content-inline-img">
-
-                <h3>2. Nicotine Satisfaction</h3>
-                <p>Pod systems are specifically optimized for nicotine salts. This type of e-liquid provides a smoother throat hit at higher nicotine strengths, which is crucial for those who are just making the switch from smoking.</p>
-
-                <h2>Our Top Recommendations</h2>
-                <p>Based on performance, battery life, and flavor production, here are our top picks for early 2024:</p>
-                <ul>
-                    <li><strong>Valiburn G3:</strong> The gold standard for flavor.</li>
-                    <li><strong>XROS 4:</strong> Unbeatable leak-proof technology.</li>
-                    <li><strong>Caliburn Explorer:</strong> Innovative dual-flavor pod system.</li>
-                </ul>
-
-
+                <!-- If the content was in a body column, it would go here. 
+                     Since the schema only had 'excerpt', we'll use that as the primary text for now.
+                     In a real app, you'd have a 'content' or 'body' column. -->
+                <!-- Main Blog Content Column -->
+                <div class="main-content">
+                    <?php if (!empty($sections)): ?>
+                        <?php foreach ($sections as $section): ?>
+                            <?php
+                                $sectionType = $section['type'] ?? 'rich_text';
+                                $partialPath = VIEW_DIR . '/front/partials/sections/' . $sectionType . '.php';
+                                
+                                if (file_exists($partialPath)) {
+                                    include $partialPath;
+                                    echo '<div class="clearfix"></div>'; // Ensure sections don't bleed into each other
+                                } else {
+                                    // Generic section rendering
+                                    if (!empty($section['items'])):
+                            ?>
+                                <section class="blog-content-section">
+                                    <?php if (!empty($section['title'])): ?>
+                                        <h3><?= htmlspecialchars($section['title']) ?></h3>
+                                    <?php endif; ?>
+                                    <?php foreach ($section['items'] as $item): ?>
+                                        <div class="content-block">
+                                            <?php if ($sectionType === 'product_embed' && !empty($item['entity_id'])): ?>
+                                                <!-- Special handling for product embeds if partial not found -->
+                                                <div class="product-embed-placeholder">
+                                                    <a href="<?= BASE_URL ?>/product/<?= $item['entity_id'] ?>">View Product #<?= $item['entity_id'] ?></a>
+                                                </div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (!empty($item['image_url'])): ?>
+                                                <img src="<?= BASE_URL ?>/<?= htmlspecialchars($item['image_url']) ?>" alt="<?= htmlspecialchars($item['title'] ?? '') ?>" class="content-inline-img">
+                                            <?php endif; ?>
+                                            
+                                            <?php if (!empty($item['title'])): ?>
+                                                <h4><?= htmlspecialchars($item['title']) ?></h4>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (!empty($item['content'])): ?>
+                                                <div class="content-text"><?= $item['content'] ?></div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </section>
+                            <?php 
+                                    endif;
+                                }
+                            ?>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <?= $post['content'] ?? '<p>No content available for this post.</p>' ?>
+                    <?php endif; ?>
+                </div>
             </div>
-
-
         </div>
 
         <!-- Sidebar -->
         <aside class="blog-sidebar">
             <div class="sidebar-widget">
                 <h3 class="widget-title">Search Blog</h3>
-                <div class="search-box">
-                    <input type="text" placeholder="Search...">
-                    <button><i data-lucide="search"></i></button>
-                </div>
+                <form action="<?= BASE_URL ?>/blog" method="GET" class="search-box">
+                    <input type="text" name="search" placeholder="Search...">
+                    <button type="submit"><i data-lucide="search"></i></button>
+                </form>
             </div>
 
+            <?php if (!empty($categories)): ?>
             <div class="sidebar-widget">
                 <h3 class="widget-title">Popular Categories</h3>
                 <ul class="category-list">
-                    <li><a href="#">New Arrivals <span>12</span></a></li>
-                    <li><a href="#">Guides & Tips <span>8</span></a></li>
-                    <li><a href="#">Vape Reviews <span>15</span></a></li>
-                    <li><a href="#">Industry News <span>5</span></a></li>
+                    <?php foreach ($categories as $cat): ?>
+                        <li>
+                            <a href="<?= BASE_URL ?>/blog?category=<?= htmlspecialchars($cat['slug']) ?>">
+                                <?= htmlspecialchars($cat['name']) ?> <span><?= $cat['post_count'] ?></span>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
                 </ul>
             </div>
+            <?php endif; ?>
 
+            <?php if (!empty($recentPosts)): ?>
             <div class="sidebar-widget">
                 <h3 class="widget-title">Recent Posts</h3>
                 <div class="recent-posts">
+                    <?php foreach ($recentPosts as $recent): ?>
                     <div class="recent-post-item">
-                        <img src="assets/product/product-9.jpg" alt="Post">
+                        <img src="<?= getBlogImageUrl($recent['featured_image_url']) ?>" alt="<?= htmlspecialchars($recent['title']) ?>">
                         <div class="post-info">
-                            <a href="#">Top 5 E-Liquids for Summer</a>
-                            <span>April 10, 2024</span>
+                            <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($recent['custom_url_path']) ?>"><?= htmlspecialchars($recent['title']) ?></a>
+                            <span><?= date('M d, Y', strtotime($recent['published_at'])) ?></span>
                         </div>
                     </div>
-                    <div class="recent-post-item">
-                        <img src="assets/product/product-8.jpg" alt="Post">
-                        <div class="post-info">
-                            <a href="#">How to Clean Your Vape Tank</a>
-                            <span>March 28, 2024</span>
-                        </div>
-                    </div>
-                    <div class="recent-post-item">
-                        <img src="assets/product/product-7.jpg" alt="Post">
-                        <div class="post-info">
-                            <a href="#">How to Switch to Pod Kits</a>
-                            <span>March 28, 2026</span>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
+            <?php endif; ?>
         </aside>
-        
     </div>
 
     <!-- Related Articles -->
+    <?php if (!empty($relatedPosts)): ?>
     <section class="blog-section">
         <div class="container">
             <div class="section-header">
                 <h2>Related Articles</h2>
-                <a href="#" class="view-all">Explore All Blogs</a>
+                <a href="<?= BASE_URL ?>/blog" class="view-all">Explore All Blogs</a>
             </div>
             <div class="blog-grid">
-                <!-- Blog 1 -->
+                <?php foreach ($relatedPosts as $rel): ?>
                 <article class="blog-card">
                     <div class="blog-img-wrapper">
-                        <img src="assets/product/product-1.jpg" alt="Vape Guide" loading="lazy">
-                        <span class="blog-category">Guides & Tips</span>
+                        <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($rel['custom_url_path']) ?>">
+                            <img src="<?= getBlogImageUrl($rel['featured_image_url']) ?>" alt="<?= htmlspecialchars($rel['title']) ?>" loading="lazy">
+                        </a>
+                        <?php if (!empty($rel['category_name'])): ?>
+                            <span class="blog-category"><?= htmlspecialchars($rel['category_name']) ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="blog-info">
-                        <span class="blog-date">April 20, 2026</span>
-                        <h3 class="blog-title">How to Choose the Perfect Mod for Your Style</h3>
-                        <p class="blog-excerpt">Finding the right device can be overwhelming. We break down the top
-                            features to look for this season...</p>
-                        <a href="#" class="read-more">Read More</a>
+                        <span class="blog-date"><?= date('F d, Y', strtotime($rel['published_at'])) ?></span>
+                        <h3 class="blog-title">
+                            <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($rel['custom_url_path']) ?>">
+                                <?= htmlspecialchars($rel['title']) ?>
+                            </a>
+                        </h3>
+                        <p class="blog-excerpt"><?= htmlspecialchars(substr($rel['excerpt'] ?? '', 0, 100)) ?>...</p>
+                        <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($rel['custom_url_path']) ?>" class="read-more">Read More</a>
                     </div>
                 </article>
-                <!-- Blog 2 -->
-                <article class="blog-card">
-                    <div class="blog-img-wrapper">
-                        <img src="assets/product/product-2.jpg" alt="E-Liquid Trends" loading="lazy">
-                        <span class="blog-category">Guides & Tips</span>
-                    </div>
-                    <div class="blog-info">
-                        <span class="blog-date">April 18, 2026</span>
-                        <h3 class="blog-title">Top 5 Fruit Flavours That Are Trending Right Now</h3>
-                        <p class="blog-excerpt">From icy mango to sweet strawberry, discover the blends that our
-                            community is raving about...</p>
-                        <a href="#" class="read-more">Read More</a>
-                    </div>
-                </article>
-                <!-- Blog 3 -->
-                <article class="blog-card">
-                    <div class="blog-img-wrapper">
-                        <img src="assets/product/product-3.jpg" alt="Vape Maintenance" loading="lazy">
-                        <span class="blog-category">Guides & Tips</span>
-                    </div>
-                    <div class="blog-info">
-                        <span class="blog-date">April 15, 2026</span>
-                        <h3 class="blog-title">Coil Care: How to Make Your Coils Last Longer</h3>
-                        <p class="blog-excerpt">Tired of burnt hits? Follow our essential maintenance tips to extend the
-                            life of your hardware...</p>
-                        <a href="#" class="read-more">Read More</a>
-                    </div>
-                </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
 </main>
 
-<?php require 'partials/footer.php'; ?>
+<?php require VIEW_DIR . '/front/partials/footer.php'; ?>

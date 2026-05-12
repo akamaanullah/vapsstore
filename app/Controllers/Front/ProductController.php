@@ -37,30 +37,60 @@ class ProductController extends Controller {
             $avgRating = array_sum(array_column($reviews, 'rating')) / count($reviews);
         }
         
+        // Get UI Sections
+        $uiModel = $this->model('UISection');
+        $sections = $uiModel->getSections('product', $prod['id']);
+        
         $this->view('front/product-detail', [
             'pageTitle' => ($product['seo_title'] ?: $product['name']) . ' | The Perfect Vape',
             'product' => $product,
             'relatedProducts' => $relatedProducts,
             'reviews' => $reviews,
-            'avgRating' => round($avgRating, 1)
+            'avgRating' => round($avgRating, 1),
+            'sections' => $sections
         ]);
     }
 
     public function submitReview() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
-            return;
+        $this->validateCsrf();
+
+        // Honeypot check (website_url should be empty)
+        if (!empty($_POST['website_url'])) {
+            // Silently fail for bots
+            $this->jsonResponse(['success' => true, 'message' => 'Thank you! Your review has been submitted for approval.']);
         }
 
-        $data = $_POST;
-        $data['rating'] = (int)($data['rating'] ?? 5);
+        // Input Validation
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $rating = (int)($_POST['rating'] ?? 0);
+        $customerName = trim($_POST['customer_name'] ?? '');
+        $comment = trim($_POST['comment'] ?? '');
+
+        if ($productId <= 0 || $rating < 1 || $rating > 5 || empty($customerName) || empty($comment)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Please provide all required fields correctly.'], 400);
+        }
+
+        if (strlen($customerName) > 255 || strlen($comment) > 2000) {
+            $this->jsonResponse(['success' => false, 'message' => 'Input exceeds allowed character limits.'], 400);
+        }
 
         $productModel = $this->model('Product');
-        $success = $productModel->saveReview($data);
+        
+        // Verify product exists and is published
+        $product = $productModel->find($productId);
+        if (!$product || $product['status'] !== 'published') {
+            $this->jsonResponse(['success' => false, 'message' => 'Product not found.'], 404);
+        }
 
-        header('Content-Type: application/json');
-        echo json_encode([
+        $success = $productModel->saveReview([
+            'product_id' => $productId,
+            'customer_name' => $customerName,
+            'rating' => $rating,
+            'title' => trim($_POST['title'] ?? ''),
+            'comment' => $comment
+        ]);
+
+        $this->jsonResponse([
             'success' => $success,
             'message' => $success ? 'Thank you! Your review has been submitted for approval.' : 'Failed to save review.'
         ]);

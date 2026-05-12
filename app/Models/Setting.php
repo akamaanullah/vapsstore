@@ -7,7 +7,7 @@ use PDO;
 class Setting extends Model {
     protected $table = 'settings';
 
-    public function all() {
+    public function all($limit = 1000) {
         $stmt = $this->db->query("SELECT * FROM settings");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $settings = [];

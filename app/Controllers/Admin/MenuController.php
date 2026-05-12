@@ -76,6 +76,7 @@ class MenuController extends AdminController {
                 'title' => $item['title'],
                 'link_type' => $item['link_type'],
                 'link_value' => $item['link_value'],
+                'entity_id' => !empty($item['entity_id']) ? (int)$item['entity_id'] : null,
                 'image_url' => !empty($item['image_url']) ? $item['image_url'] : null,
                 'sort_order' => (int)$index
             ];
@@ -104,14 +105,19 @@ class MenuController extends AdminController {
             return;
         }
 
+        // Cleanup query: if they pasted a full internal URL, strip the prefix
+        $query = str_replace([BASE_URL, '/collections/', '/collection/', '/brands/', '/brand/', '/pages/', '/page/'], '', $query);
+        $query = ltrim($query, '/');
+
         switch ($type) {
             case 'collection':
                 $model = new \App\Models\Collection();
                 $items = $model->search($query);
                 foreach ($items as $item) {
                     $results[] = [
+                        'id' => $item['id'],
                         'title' => $item['name'],
-                        'url' => '/collections/' . ($item['custom_url_path'] ?? '')
+                        'url' => '/collection/' . ltrim($item['custom_url_path'] ?? '', '/')
                     ];
                 }
                 if ($query === 'all' || strpos(strtolower('all collections'), strtolower($query)) !== false) {
@@ -123,12 +129,13 @@ class MenuController extends AdminController {
                 $items = $model->search($query);
                 foreach ($items as $item) {
                     $results[] = [
+                        'id' => $item['id'],
                         'title' => $item['name'],
-                        'url' => '/brands/' . ($item['slug'] ?? '')
+                        'url' => '/brands/' . ltrim($item['slug'] ?? '', '/')
                     ];
                 }
                 if ($query === 'all' || strpos(strtolower('all brands'), strtolower($query)) !== false) {
-                    array_unshift($results, ['title' => 'All Brands', 'url' => '/brands']);
+                    array_unshift($results, ['title' => 'All Brands', 'url' => '/brand']);
                 }
                 break;
             case 'page':
@@ -136,8 +143,9 @@ class MenuController extends AdminController {
                 $items = $model->search($query);
                 foreach ($items as $item) {
                     $results[] = [
+                        'id' => $item['id'],
                         'title' => $item['title'],
-                        'url' => '/pages/' . ($item['custom_url_path'] ?? '')
+                        'url' => '/page/' . ltrim($item['custom_url_path'] ?? '', '/')
                     ];
                 }
                 break;
@@ -149,7 +157,7 @@ class MenuController extends AdminController {
                         'id' => $item['id'],
                         'title' => $item['name'],
                         'price' => $item['base_price'],
-                        'url' => '/products/' . ($item['custom_url'] ?? ''),
+                        'url' => '/products/' . ltrim($item['custom_url'] ?? '', '/'),
                         'featured_image' => $item['featured_image']
                     ];
                 }

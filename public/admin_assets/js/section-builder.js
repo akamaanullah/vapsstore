@@ -39,12 +39,16 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Select Section Type',
             input: 'select',
             inputOptions: {
+                'rich_text': 'Rich Text Editor',
+                'hero_slider': 'Hero Slider (Swiper)',
+                'collection_grid': 'Product Grid / Slider',
                 'bento_grid': 'Bento Grid (Masonry)',
                 'smoke_section': 'Smoke Section (Expandable Story)',
                 'faq': 'FAQ Section',
                 'offer_section': 'What We Offer (Icon Cards)',
-                'rich_text': 'Rich Text Editor',
-                'product_embed': 'Product Embed (Add to Cart Card)'
+                'testimonials': 'Testimonials Slider',
+                'brands_swiper': 'Brands Swiper',
+                'product_embed': 'Product Embed (Single Card)'
             },
             inputPlaceholder: 'Choose a section type',
             showCancelButton: true,
@@ -125,9 +129,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <textarea name="sections[${sectionId}][items][0][content]" class="modal-field-input" rows="5" placeholder="Detailed story content...">${data ? (data.items[0]?.content || '') : ''}</textarea>
                 </div>
             `;
-        } else if (type === 'bento_grid' || type === 'faq' || type === 'offer_section') {
-            const itemLabel = type === 'faq' ? 'FAQ Item' : 'Grid Item';
+        } else if (['bento_grid', 'faq', 'offer_section', 'hero_slider', 'testimonials', 'brands_swiper'].includes(type)) {
+            const itemLabel = type === 'faq' ? 'FAQ Item' : (type === 'hero_slider' ? 'Slide' : 'Item');
             content = `
+                <div class="form-group mb-10">
+                    <label class="fs-12 fw-600">Section Title (Optional)</label>
+                    <input type="text" name="sections[${sectionId}][title]" class="modal-field-input" value="${data ? (data.title || '') : ''}" placeholder="Section Title">
+                </div>
                 <div class="items-list-container" id="itemsList_${sectionId}">
                 </div>
                 <button type="button" class="btn btn-outline btn-sm mt-10 add-sub-item-btn">
@@ -160,10 +168,38 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button type="button" data-command="formatBlock" data-value="h3" title="Heading 3"><i data-lucide="heading-3"></i></button>
                         <button type="button" data-command="removeFormat" title="Clear Formatting"><i data-lucide="remove-formatting"></i></button>
                     </div>
-                    <div class="rte-editor-content modal-field-input" id="rte_${sectionId}" contenteditable="true" style="min-height: 200px; padding: 15px; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;">${richContent}</div>
-                    <input type="hidden" name="sections[${sectionId}][items][0][content]" id="rte_input_${sectionId}" value='${richContent}'>
+                    <div class="rte-editor-content modal-field-input" id="rte_${sectionId}" contenteditable="true" style="min-height: 200px; padding: 15px; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;"></div>
+                    <input type="hidden" name="sections[${sectionId}][items][0][content]" id="rte_input_${sectionId}">
                 </div>
             `;
+            
+            // Set content after rendering to avoid quote breaking
+            setTimeout(() => {
+                const editor = document.getElementById(`rte_${sectionId}`);
+                const hiddenInput = document.getElementById(`rte_input_${sectionId}`);
+                if (editor) editor.innerHTML = richContent;
+                if (hiddenInput) hiddenInput.value = richContent;
+            }, 0);
+        } else if (type === 'collection_grid') {
+            content = `
+                <div class="form-group mb-10">
+                    <label class="fs-12 fw-600">Section Title</label>
+                    <input type="text" name="sections[${sectionId}][title]" class="modal-field-input" value="${data ? (data.title || '') : ''}" placeholder="e.g. Featured Products">
+                </div>
+                <div class="form-group mb-10">
+                    <label class="fs-12 fw-600">"View All" Link (Optional)</label>
+                    <input type="text" name="sections[${sectionId}][button_url]" class="modal-field-input" value="${data ? (data.button_url || '') : ''}" placeholder="/collection/all">
+                </div>
+                <div class="items-list-container" id="itemsList_${sectionId}"></div>
+                <button type="button" class="btn btn-outline btn-sm mt-10 add-sub-item-btn">
+                    <i data-lucide="plus" class="icon-xs"></i> Add Product
+                </button>
+            `;
+            if (data && data.items) {
+                setTimeout(() => {
+                    data.items.forEach(item => addSectionItem(type, sectionId, item));
+                }, 0);
+            }
         } else if (type === 'product_embed') {
             const item = data?.items?.[0];
             const productTitle = item?.title || '';
@@ -404,6 +440,58 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="form-group mb-0">
                         <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input mb-10 fw-600" value="${data ? data.title : ''}" placeholder="Question">
                         <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input" rows="2" placeholder="Answer...">${data ? data.content : ''}</textarea>
+                    </div>
+                    <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
+                </div>
+            `;
+        } else if (type === 'hero_slider' || type === 'testimonials') {
+             itemHtml = `
+                <div class="sub-item-row">
+                    <input type="hidden" name="sections[${sectionId}][items][${itemId}][id]" value="${data ? data.id : ''}">
+                    <div class="grid-item-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group mb-10" style="grid-column: span 2;">
+                            <label class="fs-12 fw-600">Title</label>
+                            <input type="text" name="sections[${sectionId}][items][${itemId}][title]" class="modal-field-input" value="${data ? data.title : ''}" placeholder="Slide Title">
+                        </div>
+                        <div class="form-group mb-10">
+                            <label class="fs-12 fw-600">Image URL</label>
+                            <input type="text" name="sections[${sectionId}][items][${itemId}][image_url]" class="modal-field-input" value="${data ? data.image_url : ''}" placeholder="URL">
+                        </div>
+                        <div class="form-group mb-10">
+                            <label class="fs-12 fw-600">Button Text</label>
+                            <input type="text" name="sections[${sectionId}][items][${itemId}][button_text]" class="modal-field-input" value="${data ? data.button_text : ''}" placeholder="Shop Now">
+                        </div>
+                        <div class="form-group mb-10" style="grid-column: span 2;">
+                            <label class="fs-12 fw-600">Button URL</label>
+                            <input type="text" name="sections[${sectionId}][items][${itemId}][button_url]" class="modal-field-input" value="${data ? data.button_url : ''}" placeholder="/collection/vapes">
+                        </div>
+                        <div class="form-group mb-0" style="grid-column: span 2;">
+                            <label class="fs-12 fw-600">Description</label>
+                            <textarea name="sections[${sectionId}][items][${itemId}][content]" class="modal-field-input" rows="2" placeholder="Slide content...">${data ? data.content : ''}</textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
+                </div>
+            `;
+        } else if (type === 'collection_grid') {
+             itemHtml = `
+                <div class="sub-item-row">
+                    <input type="hidden" name="sections[${sectionId}][items][${itemId}][id]" value="${data ? data.id : ''}">
+                    <div class="form-group mb-0">
+                        <label class="fs-12 fw-600">Product ID</label>
+                        <input type="text" name="sections[${sectionId}][items][${itemId}][entity_id]" class="modal-field-input mb-10" value="${data ? data.entity_id : ''}" placeholder="e.g. 101">
+                        <input type="hidden" name="sections[${sectionId}][items][${itemId}][entity_type]" value="product">
+                    </div>
+                    <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
+                </div>
+            `;
+        } else if (type === 'brands_swiper') {
+            itemHtml = `
+                <div class="sub-item-row">
+                    <input type="hidden" name="sections[${sectionId}][items][${itemId}][id]" value="${data ? data.id : ''}">
+                    <div class="form-group mb-0">
+                        <label class="fs-12 fw-600">Brand Logo URL</label>
+                        <input type="text" name="sections[${sectionId}][items][${itemId}][image_url]" class="modal-field-input mb-10" value="${data ? data.image_url : ''}" placeholder="assets/img/brand.png">
                     </div>
                     <button type="button" class="btn-remove-subitem" title="Remove Item"><i data-lucide="x"></i></button>
                 </div>

@@ -35,7 +35,10 @@ include __DIR__ . '/partials/header.php';
             <p class="text-muted-sm">Build your page layout using dynamic sections.</p>
             
             <div id="sectionsContainer" class="sections-builder-container">
-                <!-- Sections will be rendered here by section-builder.js -->
+                <div class="empty-sections-placeholder">
+                    <i data-lucide="layout" class="icon-lg text-muted opacity-2"></i>
+                    <p>No sections added yet. Click "Add Section" to start building.</p>
+                </div>
             </div>
         </div>
 
@@ -59,7 +62,7 @@ include __DIR__ . '/partials/header.php';
             <div class="form-group mb-20">
                 <label>URL handle</label>
                 <div class="input-prefix-container">
-                    <span class="prefix">/pages/</span>
+                    <span class="prefix">/page/</span>
                     <input type="text" name="custom_url_path" id="slugInput" class="modal-field-input" value="<?= htmlspecialchars($page['custom_url_path']) ?>" placeholder="about-us">
                 </div>
             </div>
@@ -69,7 +72,7 @@ include __DIR__ . '/partials/header.php';
                     <i data-lucide="globe" class="seo-preview-icon"></i>
                     <span class="seo-preview-site">The Perfect Vape</span>
                 </div>
-                <div class="seo-preview-url"><?= BASE_URL ?>/pages/<span id="previewSlug"><?= htmlspecialchars($page['custom_url_path']) ?></span></div>
+                <div class="seo-preview-url"><?= BASE_URL ?>/page/<span id="previewSlug"><?= htmlspecialchars($page['custom_url_path']) ?></span></div>
                 <div class="seo-preview-title" id="previewTitle"><?= $page['meta_title'] ?: $page['title'] ?></div>
                 <div class="seo-preview-desc" id="previewDesc"><?= $page['meta_desc'] ?: 'Add a description to see how this page might appear in a search engine listing...' ?></div>
             </div>

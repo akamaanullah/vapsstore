@@ -63,10 +63,10 @@ class Router {
                 call_user_func_array([$controller, $methodName], $params);
                 return true;
             } else {
-                die("Method {$methodName} not found in controller {$controllerClass}");
+                throw new \Exception("Method {$methodName} not found in controller {$controllerClass}");
             }
         } else {
-            die("Controller class {$controllerClass} not found");
+            throw new \Exception("Controller class {$controllerClass} not found");
         }
     }
 
@@ -82,14 +82,23 @@ class Router {
             $filters = $filterString;
         }
 
+        // Strip common prefixes to match root-level slugs in DB
+        $prefixes = ['collection/', 'collections/', 'page/', 'pages/', 'brand/', 'brands/', 'products/', 'product/'];
+        foreach ($prefixes as $prefix) {
+            if (strpos($cleanUrl, $prefix) === 0) {
+                $cleanUrl = substr($cleanUrl, strlen($prefix));
+                break;
+            }
+        }
+
         $sql = "
-            (SELECT 'page' as entity_type, id FROM pages WHERE custom_url_path = ? AND is_active = 1)
+            (SELECT 'blog' as entity_type, id FROM blog_posts WHERE custom_url_path = ? AND is_active = 1)
             UNION ALL
             (SELECT 'collection' as entity_type, id FROM collections WHERE custom_url_path = ? AND is_active = 1)
             UNION ALL
             (SELECT 'product' as entity_type, id FROM products WHERE custom_url = ? AND status = 'published')
             UNION ALL
-            (SELECT 'blog' as entity_type, id FROM blog_posts WHERE custom_url_path = ? AND is_active = 1)
+            (SELECT 'page' as entity_type, id FROM pages WHERE custom_url_path = ? AND is_active = 1)
             LIMIT 1
         ";
 
@@ -98,10 +107,32 @@ class Router {
         $result = $stmt->fetch();
 
         if ($result) {
+            $entityType = $result['entity_type'];
+            $expectedPrefix = '';
+            
+            switch ($entityType) {
+                case 'collection': $expectedPrefix = 'collection/'; break;
+                case 'page':       $expectedPrefix = 'page/'; break;
+                case 'product':    $expectedPrefix = 'products/'; break;
+                case 'brand':      $expectedPrefix = 'brands/'; break;
+                case 'blog':       $expectedPrefix = 'blog/'; break;
+            }
+
+            // SEO: 301 Redirect to canonical URL if prefix is missing
+            $currentUrl = ltrim($url, '/');
+            if ($expectedPrefix && strpos($currentUrl, $expectedPrefix) !== 0) {
+                $canonicalUrl = BASE_URL . '/' . $expectedPrefix . $cleanUrl;
+                if ($filters) $canonicalUrl .= '/filters/' . $filters;
+                
+                header("HTTP/1.1 301 Moved Permanently");
+                header("Location: " . $canonicalUrl);
+                exit;
+            }
+
             $params = [$cleanUrl];
             if ($filters) $params[] = $filters;
 
-            switch ($result['entity_type']) {
+            switch ($entityType) {
                 case 'page':
                     return $this->executeAction('Front\PageController@show', $params);
                 case 'collection':
@@ -120,8 +151,20 @@ class Router {
 
     protected function send404() {
         http_response_code(404);
-        // In a real app, render a beautiful 404 view here
-        echo "<h1>404 - Page Not Found</h1>";
-        echo "<p>The requested URL was not found on this server.</p>";
+        $code = 404;
+        $message = "The requested URL was not found on this server.";
+        
+        // Use the global settings for the header/footer
+        $settings = \App\Helpers\UIHelper::getSettings();
+        
+        // Image helper for previews (from settings.php logic)
+        $img = function($key, $default) use ($settings) {
+            $val = $settings[$key] ?? '';
+            if (empty($val)) return BASE_URL . '/' . $default;
+            return (strpos($val, 'http') === 0) ? $val : BASE_URL . '/' . $val;
+        };
+
+        require dirname(__DIR__, 2) . "/views/front/error.php";
+        exit;
     }
 }

@@ -14,6 +14,9 @@ class CouponController extends AdminController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!\App\Core\Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/coupons/create?error=Invalid CSRF token');
+            }
             $model = new \App\Models\Coupon();
             if ($model->create($_POST)) {
                 $this->redirect('/admin/coupons?success=Coupon created');
@@ -33,6 +36,9 @@ class CouponController extends AdminController {
 
     public function update($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!\App\Core\Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/coupons/edit/' . $id . '?error=Invalid CSRF token');
+            }
             $model = new \App\Models\Coupon();
             if ($model->update($id, $_POST)) {
                 $this->redirect('/admin/coupons?success=Coupon updated');
@@ -43,6 +49,9 @@ class CouponController extends AdminController {
 
     public function delete($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!\App\Core\Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/coupons?error=Invalid CSRF token');
+            }
             $model = new \App\Models\Coupon();
             if ($model->delete($id)) {
                 $this->redirect('/admin/coupons?success=Coupon deleted');

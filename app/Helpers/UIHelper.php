@@ -78,18 +78,25 @@ class UIHelper {
         }
     }
 
+    private static $settingsCache = null;
+
     /**
-     * Get all global settings
+     * Get all global settings (Cached per request)
      */
     public static function getSettings() {
+        if (self::$settingsCache !== null) {
+            return self::$settingsCache;
+        }
+
         $db = Database::getInstance()->getConnection();
         try {
-            $stmt = $db->query("SELECT * FROM settings");
+            $stmt = $db->query("SELECT `key`, `value` FROM settings");
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $settings = [];
             foreach ($rows as $row) {
                 $settings[$row['key']] = $row['value'];
             }
+            self::$settingsCache = $settings;
             return $settings;
         } catch (\Exception $e) {
             error_log("UIHelper Settings Error: " . $e->getMessage());

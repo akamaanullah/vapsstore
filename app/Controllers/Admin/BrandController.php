@@ -16,7 +16,9 @@ class BrandController extends AdminController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Session::validateCsrfToken($_POST['csrf_token'] ?? '');
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/brands/create?error=Invalid CSRF token');
+            }
 
             $brandModel = $this->model('Brand');
             $data = [
@@ -49,7 +51,9 @@ class BrandController extends AdminController {
 
     public function update($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Session::validateCsrfToken($_POST['csrf_token'] ?? '');
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/brands/edit/' . $id . '?error=Invalid CSRF token');
+            }
 
             $brandModel = $this->model('Brand');
             $brand = $brandModel->getBrandById($id);

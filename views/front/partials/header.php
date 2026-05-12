@@ -26,6 +26,9 @@ $img = function($key, $default) use ($settings) {
     $type = ($ext === 'png') ? 'image/png' : (($ext === 'svg') ? 'image/svg+xml' : 'image/x-icon');
     ?>
     <link rel="icon" type="<?= $type ?>" href="<?= $faviconUrl ?>">
+    <?php if (isset($noIndex) && $noIndex): ?>
+    <meta name="robots" content="noindex, nofollow">
+    <?php endif; ?>
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>

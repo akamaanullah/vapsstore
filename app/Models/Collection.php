@@ -86,18 +86,27 @@ class Collection extends Model {
         return $stmt->fetchAll();
     }
 
+    private static $allCollectionsCache = null;
+
     /**
-     * Get all child category IDs recursively
+     * Get all child category IDs recursively (Optimized: Single query for all requests)
      */
     public function getChildIds($parentId) {
-        $ids = [];
-        $stmt = $this->db->prepare("SELECT id FROM collections WHERE parent_id = ? AND is_active = 1");
-        $stmt->execute([$parentId]);
-        $children = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        if (self::$allCollectionsCache === null) {
+            $stmt = $this->db->query("SELECT id, parent_id FROM collections WHERE is_active = 1");
+            self::$allCollectionsCache = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
         
-        foreach ($children as $id) {
-            $ids[] = $id;
-            $ids = array_merge($ids, $this->getChildIds($id));
+        return $this->resolveChildIds($parentId, self::$allCollectionsCache);
+    }
+
+    private function resolveChildIds($parentId, $all) {
+        $ids = [];
+        foreach ($all as $item) {
+            if ($item['parent_id'] == $parentId) {
+                $ids[] = $item['id'];
+                $ids = array_merge($ids, $this->resolveChildIds($item['id'], $all));
+            }
         }
         return $ids;
     }

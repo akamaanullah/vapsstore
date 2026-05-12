@@ -192,6 +192,7 @@ include __DIR__ . '/partials/header.php';
 <script>
     // Robustly determine the base URL for AJAX calls
     window.adminBaseUrl = window.location.origin + window.location.pathname.split('/admin')[0];
+    window.csrfToken = '<?= \App\Core\Session::getCsrfToken() ?>';
     window.homepageSections = <?php echo json_encode($sections); ?>;
 </script>
 

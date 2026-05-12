@@ -47,7 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (quill) quill.root.innerHTML = content;
             document.getElementById('item_link_value').value = '';
         } else {
-            document.getElementById('item_link_value').value = data ? data.link_value : '';
+            const linkInput = document.getElementById('item_link_value');
+            linkInput.value = data ? data.link_value : '';
+            linkInput.dataset.entityId = data ? (data.entity_id || '') : '';
             document.getElementById('item_content_value').value = '';
             if (quill) quill.root.innerHTML = '';
         }
@@ -98,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Only clear previous values if it's a manual change, not on modal open
         if (!isInitial) {
             linkInput.value = '';
+            linkInput.dataset.entityId = '';
             contentInput.value = '';
             if (quill) quill.root.innerHTML = '';
             resultsBox.style.display = 'none';
@@ -185,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.length > 0) {
                     resultsBox.innerHTML = data.map(item => `
-                        <div class="search-result-item" data-url="${item.url}" data-title="${item.title}">
+                        <div class="search-result-item" data-url="${item.url}" data-title="${item.title}" data-id="${item.id || ''}">
                             <i data-lucide="${type === 'collection' ? 'layers' : (type === 'brand' ? 'tag' : 'file-text')}" class="icon-xs"></i>
                             <span>${item.title}</span>
                         </div>
@@ -197,6 +200,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultsBox.querySelectorAll('.search-result-item').forEach(item => {
                         item.onclick = function() {
                             searchInput.value = this.dataset.url;
+                            searchInput.dataset.entityId = this.dataset.id; // Store ID on input
+                            
                             // Optionally update title if empty
                             const titleInput = document.getElementById('item_title');
                             if (!titleInput.value) {
@@ -216,12 +221,18 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const type = document.getElementById('item_link_type').value;
         let linkValue = document.getElementById('item_link_value').value.trim();
+        let entityId = document.getElementById('item_link_value').dataset.entityId || null;
         
         // Use textarea/quill value for content types
         if (type === 'text_block') {
             linkValue = quill.root.innerHTML;
         } else if (type === 'html') {
             linkValue = document.getElementById('item_content_value').value.trim();
+        }
+
+        // Reset entityId if custom_url or no_link
+        if (!['collection', 'brand', 'page', 'product'].includes(type)) {
+            entityId = null;
         }
 
         // Validation: For Collection, Brand, Page - must be a valid link (starts with / or is full URL)
@@ -241,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
             title: document.getElementById('item_title').value,
             link_type: type,
             link_value: type === 'no_link' ? '#' : linkValue,
+            entity_id: entityId,
             image_url: document.getElementById('item_image_url').value,
             children: editMode ? findItem(menuItems, editingId).children || [] : []
         };

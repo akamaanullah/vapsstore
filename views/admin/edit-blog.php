@@ -9,6 +9,7 @@ include __DIR__ . '/partials/header.php';
 </script>
 
 <form action="<?= BASE_URL ?>/admin/blogs/update/<?= $post['id'] ?>" method="POST">
+<?= $this->csrf_field() ?>
 <div class="page-header-container page-header-between">
     <div class="header-title-group">
         <a href="<?= BASE_URL ?>/admin/blogs" class="btn-action-icon icon-action-btn">
@@ -85,8 +86,18 @@ include __DIR__ . '/partials/header.php';
             <div class="image-upload-box" id="imageUploadBox">
                 <input type="hidden" name="featured_image_url" id="featuredImageUrlInput" value="<?= htmlspecialchars($post['featured_image_url'] ?? '') ?>">
                 
-                <div id="imagePreviewContainer" style="<?= $post['featured_image_url'] ? 'display: block;' : 'display: none;' ?>">
-                    <img id="imagePreview" src="<?= $post['featured_image_url'] ? BASE_URL . '/' . $post['featured_image_url'] : '' ?>" alt="Preview" style="width: 100%; border-radius: 8px; margin-bottom: 10px;">
+                <div id="imagePreviewContainer" style="<?= !empty($post['featured_image_url']) ? 'display: block;' : 'display: none;' ?>">
+                    <?php 
+                        $previewUrl = '';
+                        if (!empty($post['featured_image_url'])) {
+                            if (strpos($post['featured_image_url'], 'http') === 0) {
+                                $previewUrl = $post['featured_image_url'];
+                            } else {
+                                $previewUrl = BASE_URL . '/' . ltrim($post['featured_image_url'], '/');
+                            }
+                        }
+                    ?>
+                    <img id="imagePreview" src="<?= $previewUrl ?>" alt="Preview" style="width: 100%; border-radius: 8px; margin-bottom: 10px; display: block;">
                     <button type="button" class="btn btn-outline btn-sm btn-full text-error" onclick="removeFeaturedImage()">Remove Image</button>
                 </div>
                 

@@ -560,7 +560,10 @@
                     const response = await fetch(window.adminBaseUrl + '/admin/theme/update', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sections: window.homepageSections })
+                        body: JSON.stringify({ 
+                            sections: window.homepageSections,
+                            csrf_token: window.csrfToken
+                        })
                     });
                     const result = await response.json();
                     if (result.success) {

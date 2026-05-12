@@ -16,9 +16,9 @@ class Controller {
         $viewFile = dirname(__DIR__, 2) . '/views/' . $view . '.php';
         
         if (file_exists($viewFile)) {
-            require_once $viewFile;
+            require $viewFile;
         } else {
-            die("View does not exist: " . $viewFile);
+            throw new \Exception("View does not exist: " . $view);
         }
     }
 
@@ -33,7 +33,7 @@ class Controller {
         if (class_exists($modelClass)) {
             return new $modelClass();
         } else {
-            die("Model does not exist: " . $modelClass);
+            throw new \Exception("Model does not exist: " . $modelClass);
         }
     }
 
@@ -46,10 +46,20 @@ class Controller {
     }
 
     /**
+     * Send a JSON response
+     */
+    protected function jsonResponse($data, $status = 200) {
+        header('Content-Type: application/json');
+        http_response_code($status);
+        echo json_encode($data);
+        exit;
+    }
+
+    /**
      * Generate a CSRF hidden input field for forms
      */
     protected function csrf_field() {
-        $token = Session::getCsrfToken();
+        $token = \App\Core\Session::getCsrfToken();
         return '<input type="hidden" name="csrf_token" value="' . $token . '">';
     }
 
@@ -66,9 +76,9 @@ class Controller {
                 $token = $headers['X-CSRF-TOKEN'] ?? $headers['x-csrf-token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
             }
 
-            if (!Session::validateCsrfToken($token)) {
+            if (!\App\Core\Session::validateCsrfToken($token)) {
                 http_response_code(403);
-                die("CSRF token validation failed. Possible request forgery detected.");
+                $this->jsonResponse(['status' => 'error', 'message' => 'CSRF token validation failed.'], 403);
             }
         }
     }

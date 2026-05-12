@@ -8,8 +8,21 @@ class HomeController extends Controller {
     public function index() {
         $sections = \App\Helpers\UIHelper::getSections('global_home');
         
+        // Fetch latest 3 blog posts for the home page
+        $db = \App\Core\Database::getInstance()->getConnection();
+        $stmt = $db->query("
+            SELECT b.*, c.name as category_name 
+            FROM blog_posts b 
+            LEFT JOIN blog_categories c ON b.category_id = c.id 
+            WHERE b.is_active = 1 
+            ORDER BY b.published_at DESC 
+            LIMIT 3
+        ");
+        $latestPosts = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
         $this->view('front/home', [
-            'sections' => $sections
+            'sections' => $sections,
+            'latestPosts' => $latestPosts
         ]);
     }
 

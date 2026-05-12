@@ -8,32 +8,36 @@ require VIEW_DIR . '/front/partials/header.php';
     <!-- Hero Slider -->
     <?php 
     if (isset($sections['hero_slider'])) {
-        $section = $sections['hero_slider'];
-        include VIEW_DIR . '/front/partials/sections/hero_slider.php';
+        foreach ($sections['hero_slider'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/hero_slider.php';
+        }
     }
     ?>
 
     <!-- Categories Grid -->
     <?php 
     if (isset($sections['categories_grid'])) {
-        $section = $sections['categories_grid'];
-        include VIEW_DIR . '/front/partials/sections/categories_grid.php';
+        foreach ($sections['categories_grid'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/categories_grid.php';
+        }
     }
     ?>
 
     <!-- Promo Banners Section -->
     <?php 
     if (isset($sections['promo_grid'])) {
-        $section = $sections['promo_grid'];
-        include VIEW_DIR . '/front/partials/sections/promo_grid.php';
+        foreach ($sections['promo_grid'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/promo_grid.php';
+        }
     }
     ?>
 
     <!-- Feature Highlight Section -->
     <?php 
     if (isset($sections['feature_highlight'])) {
-        $section = $sections['feature_highlight'];
-        include VIEW_DIR . '/front/partials/sections/feature_highlight.php';
+        foreach ($sections['feature_highlight'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/feature_highlight.php';
+        }
     }
     ?>
 
@@ -139,6 +143,7 @@ require VIEW_DIR . '/front/partials/header.php';
     ?>
 
     <!-- Blog Section -->
+    <?php if (!empty($latestPosts)): ?>
     <section class="blog-section">
         <div class="container">
             <div class="section-header">
@@ -146,65 +151,48 @@ require VIEW_DIR . '/front/partials/header.php';
                 <a href="<?= BASE_URL ?>/blog" class="view-all">Explore All Blogs</a>
             </div>
             <div class="blog-grid">
-                <!-- Blog 1 -->
+                <?php foreach ($latestPosts as $post): ?>
                 <article class="blog-card">
                     <div class="blog-img-wrapper">
-                        <img src="<?= BASE_URL ?>/assets/product/product-1.jpg" alt="Vape Guide" loading="lazy">
-                        <span class="blog-category">Guides</span>
+                        <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($post['custom_url_path']) ?>">
+                            <img src="<?= !empty($post['featured_image_url']) ? BASE_URL . '/' . htmlspecialchars($post['featured_image_url']) : BASE_URL . '/assets/product/product-1.jpg' ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
+                        </a>
+                        <?php if (!empty($post['category_name'])): ?>
+                            <span class="blog-category"><?= htmlspecialchars($post['category_name']) ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="blog-info">
-                        <span class="blog-date">April 20, 2026</span>
-                        <h3 class="blog-title">How to Choose the Perfect Mod for Your Style</h3>
-                        <p class="blog-excerpt">Finding the right device can be overwhelming. We break down the top
-                            features to look for this season...</p>
-                        <a href="<?= BASE_URL ?>/blog" class="read-more">Read More</a>
+                        <span class="blog-date"><?= date('F d, Y', strtotime($post['published_at'])) ?></span>
+                        <h3 class="blog-title">
+                            <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($post['custom_url_path']) ?>">
+                                <?= htmlspecialchars($post['title']) ?>
+                            </a>
+                        </h3>
+                        <p class="blog-excerpt"><?= htmlspecialchars(substr($post['excerpt'] ?? '', 0, 100)) ?>...</p>
+                        <a href="<?= BASE_URL ?>/blog/<?= htmlspecialchars($post['custom_url_path']) ?>" class="read-more">Read More</a>
                     </div>
                 </article>
-                <!-- Blog 2 -->
-                <article class="blog-card">
-                    <div class="blog-img-wrapper">
-                        <img src="<?= BASE_URL ?>/assets/product/product-2.jpg" alt="E-Liquid Trends" loading="lazy">
-                        <span class="blog-category">Trends</span>
-                    </div>
-                    <div class="blog-info">
-                        <span class="blog-date">April 18, 2026</span>
-                        <h3 class="blog-title">Top 5 Fruit Flavours That Are Trending Right Now</h3>
-                        <p class="blog-excerpt">From icy mango to sweet strawberry, discover the blends that our
-                            community is raving about...</p>
-                        <a href="<?= BASE_URL ?>/blog" class="read-more">Read More</a>
-                    </div>
-                </article>
-                <!-- Blog 3 -->
-                <article class="blog-card">
-                    <div class="blog-img-wrapper">
-                        <img src="<?= BASE_URL ?>/assets/product/product-3.jpg" alt="Vape Maintenance" loading="lazy">
-                        <span class="blog-category">Maintenance</span>
-                    </div>
-                    <div class="blog-info">
-                        <span class="blog-date">April 15, 2026</span>
-                        <h3 class="blog-title">Coil Care: How to Make Your Coils Last Longer</h3>
-                        <p class="blog-excerpt">Tired of burnt hits? Follow our essential maintenance tips to extend the
-                            life of your hardware...</p>
-                        <a href="<?= BASE_URL ?>/blog" class="read-more">Read More</a>
-                    </div>
-                </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- FAQ Section -->
     <?php 
     if (isset($sections['faq'])) {
-        $section = $sections['faq'];
-        include VIEW_DIR . '/front/partials/sections/faq.php';
+        foreach ($sections['faq'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/faq.php';
+        }
     }
     ?>
 
     <!-- Brands Showcase Section -->
     <?php 
     if (isset($sections['brands_swiper'])) {
-        $section = $sections['brands_swiper'];
-        include VIEW_DIR . '/front/partials/sections/brands_swiper.php';
+        foreach ($sections['brands_swiper'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/brands_swiper.php';
+        }
     }
     ?>
 
@@ -239,8 +227,9 @@ require VIEW_DIR . '/front/partials/header.php';
     <!-- Testimonials Section -->
     <?php 
     if (isset($sections['testimonials'])) {
-        $section = $sections['testimonials'];
-        include VIEW_DIR . '/front/partials/sections/testimonials.php';
+        foreach ($sections['testimonials'] as $section) {
+            include VIEW_DIR . '/front/partials/sections/testimonials.php';
+        }
     }
     ?>
 

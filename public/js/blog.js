@@ -110,6 +110,23 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', filterBlogs);
     }
 
+    // Handle initial search from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialSearch = urlParams.get('search');
+    const initialCategory = urlParams.get('category');
+
+    if (initialSearch && searchInput) {
+        searchInput.value = initialSearch;
+    }
+
+    if (initialCategory && categoryLinks) {
+        document.querySelectorAll('#blogCategoryList li').forEach(li => li.classList.remove('active'));
+        const targetLink = Array.from(categoryLinks).find(link => link.getAttribute('data-filter') === initialCategory);
+        if (targetLink) {
+            targetLink.parentElement.classList.add('active');
+        }
+    }
+
     // Initial Render
     filterBlogs();
 });

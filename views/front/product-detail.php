@@ -68,6 +68,17 @@ function getImageUrl($url) {
             <div class="product-info-side">
                 <h1 class="product-title"><?= $name ?></h1>
 
+                <?php if (!empty($reviews)): ?>
+                <div class="product-rating-summary">
+                    <div class="stars">
+                        <?php for($i=1; $i<=5; $i++): ?>
+                            <i data-lucide="star" class="<?= $i <= round($avgRating) ? 'fill' : '' ?>"></i>
+                        <?php endfor; ?>
+                    </div>
+                    <span class="review-count">(<?= count($reviews) ?> <?= count($reviews) === 1 ? 'Review' : 'Reviews' ?>)</span>
+                </div>
+                <?php endif; ?>
+
                 <div class="price-area">
                     <span class="detail-current-price" id="displayPrice">£<?= number_format($basePrice, 2) ?></span>
                     <span id="comparePriceContainer" style="<?= $comparePrice > 0 ? 'display: inline-flex; align-items: center; gap: 10px;' : 'display: none;' ?>">
@@ -83,20 +94,29 @@ function getImageUrl($url) {
                 </a>
 
                 <div class="product-selection">
-                    <?php if (!empty($product['variants']) && count($product['variants']) > 1): ?>
-                    <div class="selection-group">
-                        <label>Select Option</label>
-                        <select class="custom-select" id="variantSelect">
+                    <?php if (!empty($product['options']) && count($product['variants']) > 1): ?>
+                        <?php foreach ($product['options'] as $index => $option): ?>
+                            <div class="selection-group">
+                                <label><?= htmlspecialchars($option['name']) ?></label>
+                                <select class="custom-select variant-option-select" data-option-index="<?= $index ?>">
+                                    <?php foreach ($option['values'] as $value): ?>
+                                        <option value="<?= htmlspecialchars($value) ?>"><?= htmlspecialchars($value) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        <?php endforeach; ?>
+                        <!-- Hidden select for actual variant ID submission -->
+                        <select id="variantSelect" style="display: none;">
                             <?php foreach ($product['variants'] as $v): ?>
                                 <option value="<?= $v['id'] ?>" 
+                                        data-name="<?= htmlspecialchars($v['variant_name']) ?>"
                                         data-price="<?= $v['price'] ?>" 
                                         data-compare-price="<?= $v['compare_price'] ?? 0 ?>"
                                         data-stock="<?= $v['stock_quantity'] ?>">
-                                    <?= htmlspecialchars($v['variant_name'] ?: 'Standard') ?>
+                                    <?= htmlspecialchars($v['variant_name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
                     <?php endif; ?>
 
                     <div class="product-actions-btns">
@@ -152,7 +172,7 @@ function getImageUrl($url) {
                                         <i data-lucide="star" class="<?= $i <= round($avgRating) ? 'fill' : '' ?>"></i>
                                     <?php endfor; ?>
                                 </div>
-                                <p>Based on <?= count($reviews) ?> Reviews</p>
+                                <p>Based on <?= count($reviews) ?> <?= count($reviews) === 1 ? 'Review' : 'Reviews' ?></p>
                             </div>
                         <?php else: ?>
                             <div class="overall-rating">
@@ -169,7 +189,12 @@ function getImageUrl($url) {
                                 <p>Share your experience with other customers</p>
                             </div>
                             <form id="submitReviewForm" class="review-form">
+                                <?= $this->csrf_field() ?>
                                 <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                                <!-- Honeypot to prevent bot spam -->
+                                <div style="display:none;">
+                                    <input type="text" name="website_url" value="">
+                                </div>
                                 <div class="form-row">
                                     <div class="form-group flex-1">
                                         <label>Name</label>
@@ -229,6 +254,31 @@ function getImageUrl($url) {
                 </div>
             </div>
         </div>
+        
+        <!-- Dynamic UI Sections -->
+        <?php if (!empty($sections)): ?>
+            <div class="product-extra-sections">
+                <?php foreach ($sections as $section): 
+                    $sectionType = $section['type'];
+                    $partialPath = VIEW_DIR . '/front/partials/sections/' . $sectionType . '.php';
+                    
+                    if (file_exists($partialPath)) {
+                        include $partialPath;
+                    } else {
+                        // Fallback generic renderer
+                        echo '<section class="generic-section">';
+                        echo '<div class="container">';
+                        if (!empty($section['title'])) echo '<h2>' . htmlspecialchars($section['title']) . '</h2>';
+                        foreach ($section['items'] as $item) {
+                            if (!empty($item['title'])) echo '<h3>' . htmlspecialchars($item['title']) . '</h3>';
+                            if (!empty($item['content'])) echo '<div>' . $item['content'] . '</div>';
+                        }
+                        echo '</div>';
+                        echo '</section>';
+                    }
+                endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <!-- Related Products -->
         <?php if (!empty($relatedProducts)): ?>

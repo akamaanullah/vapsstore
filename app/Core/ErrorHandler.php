@@ -31,7 +31,7 @@ class ErrorHandler {
     }
 
     private static function logError(Throwable $exception) {
-        $logFile = dirname(__DIR__, 2) . '/scratch/logs/error.log';
+        $logFile = dirname(__DIR__, 2) . '/storage/logs/error.log';
         if (!is_dir(dirname($logFile))) {
             mkdir(dirname($logFile), 0777, true);
         }
@@ -61,31 +61,14 @@ class ErrorHandler {
             return;
         }
 
-        ?>
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Error <?= $code ?></title>
-            <style>
-                body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; color: #333; }
-                .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                h1 { color: #e74c3c; }
-                pre { text-align: left; background: #eee; padding: 15px; overflow: auto; border-radius: 4px; font-size: 13px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Oops! Something went wrong.</h1>
-                <p>Error Code: <?= $code ?></p>
-                <p><?= $debug ? htmlspecialchars($message) : "A server error occurred. Please try again later." ?></p>
-                <?php if ($debug && $exception): ?>
-                    <pre><?= htmlspecialchars($exception->getTraceAsString()) ?></pre>
-                <?php endif; ?>
-                <a href="/">Go to Home</a>
-            </div>
-        </body>
-        </html>
-        <?php
+        $settings = \App\Helpers\UIHelper::getSettings();
+        $img = function($key, $default) use ($settings) {
+            $val = $settings[$key] ?? '';
+            if (empty($val)) return BASE_URL . '/' . $default;
+            return (strpos($val, 'http') === 0) ? $val : BASE_URL . '/' . $val;
+        };
+
+        require dirname(__DIR__, 2) . "/views/front/error.php";
         exit;
     }
 }

@@ -63,7 +63,7 @@ include __DIR__ . '/partials/header.php';
             <div class="form-group mb-20">
                 <label>URL handle</label>
                 <div class="input-prefix-container">
-                    <span class="prefix">/pages/</span>
+                    <span class="prefix">/page/</span>
                     <input type="text" name="custom_url_path" id="slugInput" class="modal-field-input" placeholder="about-us">
                 </div>
             </div>
@@ -73,7 +73,7 @@ include __DIR__ . '/partials/header.php';
                     <i data-lucide="globe" class="seo-preview-icon"></i>
                     <span class="seo-preview-site">The Perfect Vape</span>
                 </div>
-                <div class="seo-preview-url"><?= BASE_URL ?>/pages/<span id="previewSlug">about-us</span></div>
+                <div class="seo-preview-url"><?= BASE_URL ?>/page/<span id="previewSlug">about-us</span></div>
                 <div class="seo-preview-title" id="previewTitle">Page Title</div>
                 <div class="seo-preview-desc" id="previewDesc">Add a description to see how this page might appear in a search engine listing...</div>
             </div>

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const openCart = () => {
         cartSidebar.classList.add('open');
         cartOverlay.classList.add('show');
-        document.body.style.overflow = 'hidden'; // Prevent scroll
+        document.body.style.overflow = 'hidden';
     };
 
     const closeCart = () => {
@@ -42,6 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Helper: Generate a unique cart key for an item (variant-aware)
+    const getCartKey = (item) => {
+        return item.variant_id ? `${item.id}-${item.variant_id}` : String(item.id);
+    };
+
     // 5. Render Cart Items
     const renderCart = () => {
         if (cart.length === 0) {
@@ -49,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="empty-cart-msg">
                     <i data-lucide="shopping-cart"></i>
                     <p>Your cart is empty</p>
-                    <a href="collection.php" class="btn-shop-now">Shop Our Collection</a>
+                    <a href="${BASE_URL}/collection" class="btn-shop-now">Shop Our Collection</a>
                 </div>
             `;
             cartFooter.style.display = 'none';
@@ -64,14 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cart.forEach(item => {
             subtotal += item.price * item.quantity;
+            const cartKey = getCartKey(item);
             const itemHTML = `
-                <div class="cart-item" data-id="${item.id}">
+                <div class="cart-item" data-cart-key="${cartKey}">
                     <div class="cart-item-img">
                         <img src="${item.image}" alt="${item.name}">
                     </div>
                     <div class="cart-item-info">
-                        <a href="product-detail.php" class="cart-item-name">${item.name}</a>
+                        <a href="${BASE_URL}/product/${item.url || item.id}" class="cart-item-name">${item.name}</a>
                         <span class="cart-item-price">£${item.price.toFixed(2)}</span>
+                        ${item.variant_name ? `<span class="cart-item-variant">${item.variant_name}</span>` : ''}
                         <div class="cart-item-controls">
                             <div class="cart-qty-toggle">
                                 <button class="cart-qty-btn minus">-</button>
@@ -90,9 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     };
 
-    // 6. Add to Cart Logic
+    // 6. Add to Cart Logic (Variant-Aware)
     const addToCart = (product) => {
-        const existingItem = cart.find(item => item.id === product.id);
+        const cartKey = getCartKey(product);
+
+        const existingItem = cart.find(item => getCartKey(item) === cartKey);
         if (existingItem) {
             existingItem.quantity += product.quantity || 1;
         } else {
@@ -104,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCart();
         renderCart();
         updateCartBadge();
+        openCart();
     };
 
     const saveCart = () => {
@@ -114,8 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cartItemsList.addEventListener('click', (e) => {
         const itemRow = e.target.closest('.cart-item');
         if (!itemRow) return;
-        const id = itemRow.dataset.id;
-        const itemIndex = cart.findIndex(item => item.id === id);
+        const cartKey = itemRow.dataset.cartKey;
+        const itemIndex = cart.findIndex(item => getCartKey(item) === cartKey);
+        if (itemIndex === -1) return;
 
         if (e.target.classList.contains('plus')) {
             cart[itemIndex].quantity++;
@@ -140,11 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addBtn) {
             e.preventDefault();
 
-            // Determine source (Card or Detail Page)
             const card = addBtn.closest('.product-card');
+            const slimCard = addBtn.closest('.product-embed-slim');
+            const detailPage = document.querySelector('.product-detail-page');
             let product = {};
 
             if (card) {
+                // Product Card (Collection/Home page)
                 const nameEl = card.querySelector('.product-name a') || card.querySelector('.product-name') || card.querySelector('h3');
                 const priceEl = card.querySelector('.current-price') || card.querySelector('.product-price');
                 const imgEl = card.querySelector('.product-img-wrapper img') || card.querySelector('img');
@@ -155,27 +168,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 product = {
-                    id: card.dataset.id || nameEl.textContent.trim().toLowerCase().replace(/\s+/g, '-'),
+                    id: card.dataset.id,
                     name: nameEl.textContent.trim(),
                     price: parseFloat(priceEl.textContent.replace(/[^\d.]/g, '')),
                     image: imgEl ? imgEl.src : 'assets/image/placeholder.jpg',
+                    url: nameEl.getAttribute('href')?.split('/').pop() || card.dataset.id,
                     quantity: 1
                 };
-            } else if (document.querySelector('.product-detail-page')) {
-                // Detail Page
+            } else if (slimCard) {
+                // Slim Product Embed (Blog/Page)
+                const titleEl = slimCard.querySelector('.slim-title a');
+                const priceEl = slimCard.querySelector('.slim-price');
+                const imgEl = slimCard.querySelector('.slim-img img');
+                const qtyInput = slimCard.querySelector('.qty-input');
+                const variantSelect = slimCard.querySelector('.slim-variant-select');
+
+                let variantId = null;
+                let variantName = null;
+
+                if (variantSelect) {
+                    variantId = variantSelect.value;
+                    variantName = variantSelect.options[variantSelect.selectedIndex].text;
+                }
+
+                product = {
+                    id: slimCard.dataset.productId,
+                    name: titleEl.textContent.trim(),
+                    price: parseFloat(priceEl.textContent.replace(/[^\d.]/g, '')),
+                    image: imgEl ? imgEl.src : 'assets/image/placeholder.jpg',
+                    url: titleEl.getAttribute('href')?.split('/').pop() || slimCard.dataset.productId,
+                    quantity: qtyInput ? parseInt(qtyInput.value) : 1,
+                    variant_id: variantId,
+                    variant_name: variantName
+                };
+            } else if (detailPage) {
+                // Product Detail Page
                 const qtyInput = document.getElementById('qtyInput');
                 const titleEl = document.querySelector('.product-title');
                 const priceEl = document.querySelector('.detail-current-price');
                 const imgEl = document.querySelector('#mainProductImage');
+                const variantSelect = document.getElementById('variantSelect');
 
                 if (!titleEl || !priceEl) return;
 
+                let variantId = null;
+                let variantName = null;
+
+                if (variantSelect) {
+                    variantId = variantSelect.value;
+                    variantName = variantSelect.options[variantSelect.selectedIndex].text;
+                }
+
                 product = {
-                    id: "main-prod-1",
+                    id: detailPage.dataset.productId,
                     name: titleEl.textContent.trim(),
                     price: parseFloat(priceEl.textContent.replace(/[^\d.]/g, '')),
                     image: imgEl ? imgEl.src : 'assets/image/placeholder.jpg',
-                    quantity: qtyInput ? parseInt(qtyInput.value) : 1
+                    url: window.location.pathname.split('/').pop(),
+                    quantity: qtyInput ? parseInt(qtyInput.value) : 1,
+                    variant_id: variantId,
+                    variant_name: variantName
                 };
             } else {
                 return;
@@ -185,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Redirect if it was a Buy It Now button
             if (addBtn.classList.contains('btn-buy-now') || addBtn.id === 'buyNowDetail') {
-                window.location.href = 'checkout.php';
+                window.location.href = `${BASE_URL}/checkout`;
             }
         }
     });

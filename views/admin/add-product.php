@@ -1,6 +1,6 @@
 <?php 
 $pageTitle = "Add Product | Vape Store Admin";
-$pageScript = "add-product.js";
+$pageScript = ["add-product.js", "section-builder.js"];
 include __DIR__ . '/partials/header.php'; 
 ?>
 
@@ -131,6 +131,24 @@ include __DIR__ . '/partials/header.php';
             </div>
             <div id="variantsTableContainer">
                 <!-- Table of combinations will be generated here -->
+            </div>
+        </div>
+
+        <!-- Product Extra Sections -->
+        <div class="card mt-20">
+            <div class="card-header-flex">
+                <h3 class="card-title-sm">Product Page Sections</h3>
+                <button type="button" class="btn btn-outline btn-sm" id="addSectionBtn">
+                    <i data-lucide="plus" class="icon-xs"></i> Add Section
+                </button>
+            </div>
+            <p class="text-muted-sm">Add dynamic sections like FAQs, Bento Grids, or Story sections to this product page.</p>
+            
+            <div id="sectionsContainer" class="sections-builder-container">
+                <div class="empty-sections-placeholder">
+                    <i data-lucide="layout" class="icon-lg text-muted opacity-2"></i>
+                    <p>No extra sections added yet. Click "Add Section" to start building.</p>
+                </div>
             </div>
         </div>
 

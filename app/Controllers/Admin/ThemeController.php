@@ -29,6 +29,11 @@ class ThemeController extends AdminController {
                 throw new \Exception("Invalid data received.");
             }
 
+            // CSRF Validation
+            if (!\App\Core\Session::validateCsrfToken($data['csrf_token'] ?? '')) {
+                throw new \Exception("Invalid CSRF token.");
+            }
+
             $uiModel = new UISection();
             $success = $uiModel->syncSections('global_home', null, $data['sections']);
 

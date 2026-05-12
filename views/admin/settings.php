@@ -52,7 +52,7 @@ $img = function($key, $default) use ($settings) {
             </div>
             <div class="form-group mb-0">
                 <label>Copyright Text (Footer)</label>
-                <input type="text" data-key="footer_copyright" class="modal-field-input setting-input" value="<?= $get('footer_copyright') ?: '© 2025 The Perfect Vape. All Rights Reserved. | Designed, Developed & Managed By Antigravity' ?>">
+                <input type="text" data-key="footer_copyright" class="modal-field-input setting-input" value="<?= $get('footer_copyright') ?: '© 2026 The Perfect Vape. All Rights Reserved. | Designed, Developed & Managed By <a href=\'https://amaanullah.com\' target=\'_blank\'>Amaan Ullah</a>' ?>">
             </div>
         </div>
 
@@ -148,7 +148,9 @@ $img = function($key, $default) use ($settings) {
         btn.innerHTML = '<i data-lucide="loader" class="spin"></i> <span>Saving...</span>';
         if (window.lucide) window.lucide.createIcons();
 
-        const data = {};
+        const data = {
+            csrf_token: '<?= \App\Core\Session::getCsrfToken() ?>'
+        };
         document.querySelectorAll('.setting-input').forEach(input => {
             data[input.dataset.key] = input.value;
         });

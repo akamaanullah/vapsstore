@@ -16,7 +16,9 @@ class PageController extends AdminController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Session::validateCsrfToken($_POST['csrf_token'] ?? '');
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect($_SERVER['HTTP_REFERER'] ?? '/admin');
+            }
 
             $pageModel = $this->model('Page');
             $data = [
@@ -60,7 +62,9 @@ class PageController extends AdminController {
 
     public function update($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Session::validateCsrfToken($_POST['csrf_token'] ?? '');
+            if (!Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect($_SERVER['HTTP_REFERER'] ?? '/admin');
+            }
 
             $pageModel = $this->model('Page');
             $data = [

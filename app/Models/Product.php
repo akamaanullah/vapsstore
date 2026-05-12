@@ -424,10 +424,11 @@ class Product extends Model {
         $sql = "SELECT p.id, p.name, p.base_price, p.custom_url, pi.image_url as featured_image
                 FROM products p 
                 LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-                WHERE p.name LIKE ? 
+                WHERE MATCH(p.name, p.short_desc, p.tags) AGAINST (? IN NATURAL LANGUAGE MODE)
+                AND p.status = 'published'
                 LIMIT " . (int)$limit;
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['%' . $query . '%']);
+        $stmt->execute([$query]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -467,6 +468,13 @@ class Product extends Model {
         $where = ["p.status = 'published'"];
         $params = [];
         
+        // Search Filter (FULLTEXT)
+        if (!empty($filters['q']) || !empty($filters['search'])) {
+            $searchQuery = !empty($filters['q']) ? $filters['q'] : $filters['search'];
+            $where[] = "MATCH(p.name, p.short_desc, p.tags) AGAINST (? IN NATURAL LANGUAGE MODE)";
+            $params[] = $searchQuery;
+        }
+
         // Category Filter (Handles recursive children and slugs)
         if (!empty($filters['cat']) || !empty($filters['category'])) {
             $inputCats = !empty($filters['category']) ? $filters['category'] : $filters['cat'];

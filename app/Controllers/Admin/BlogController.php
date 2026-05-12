@@ -32,6 +32,9 @@ class BlogController extends AdminController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!\App\Core\Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/blogs/create?error=Invalid CSRF token');
+            }
             $blogModel = new \App\Models\BlogPost();
             
             $data = [
@@ -80,6 +83,9 @@ class BlogController extends AdminController {
 
     public function update($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!\App\Core\Session::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->redirect('/admin/blogs/edit/' . $id . '?error=Invalid CSRF token');
+            }
             $blogModel = new \App\Models\BlogPost();
             
             $data = [

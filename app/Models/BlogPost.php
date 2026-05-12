@@ -11,7 +11,7 @@ class BlogPost {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function all() {
+    public function all($limit = 1000) {
         $stmt = $this->db->query("
             SELECT b.*, c.name as category_name 
             FROM blog_posts b 

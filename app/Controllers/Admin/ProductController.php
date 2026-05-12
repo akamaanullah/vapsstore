@@ -123,6 +123,10 @@ class ProductController extends AdminController {
                 $allImages = $_POST['product_images'] ?? [];
                 $productModel->syncAllImages($productId, $allImages);
 
+                // Sync UI Sections
+                $uiModel = $this->model('UISection');
+                $uiModel->syncSections('product', $productId, $_POST['sections'] ?? []);
+
                 $this->redirect('/admin/products?success=Product created successfully');
             } else {
                 $this->redirect('/admin/products/create?error=Failed to create product');
@@ -141,10 +145,14 @@ class ProductController extends AdminController {
         $brandModel = $this->model('Brand');
         $collectionModel = $this->model('Collection');
 
+        $uiModel = $this->model('UISection');
+        $sections = $uiModel->getSections('product', $id);
+
         $this->view('admin/edit-product', [
             'product' => $product,
             'brands' => $brandModel->all(),
-            'collections' => $collectionModel->all()
+            'collections' => $collectionModel->all(),
+            'sections' => $sections
         ]);
     }
 
@@ -183,6 +191,10 @@ class ProductController extends AdminController {
                 // Unified Image Sync (Preserving order from DOM)
                 $allImages = $_POST['product_images'] ?? [];
                 $productModel->syncAllImages($id, $allImages);
+
+                // Sync UI Sections
+                $uiModel = $this->model('UISection');
+                $uiModel->syncSections('product', $id, $_POST['sections'] ?? []);
 
                 $this->redirect('/admin/products?success=Product updated successfully');
             } else {

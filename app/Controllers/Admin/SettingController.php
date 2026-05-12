@@ -19,6 +19,11 @@ class SettingController extends AdminController {
                 throw new \Exception("Invalid data received.");
             }
 
+            // CSRF Validation
+            if (!\App\Core\Session::validateCsrfToken($data['csrf_token'] ?? '')) {
+                throw new \Exception("Invalid CSRF token.");
+            }
+
             $settingModel = new Setting();
             $success = $settingModel->updateMultiple($data);
 

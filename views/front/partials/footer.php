@@ -65,7 +65,7 @@ $s = function($key, $default = '') use ($settings) {
                 <?php endif; ?>
 
                 <div class="footer-bottom-bar">
-                    <p class="text-12 text-muted mb-15"><?= $s('footer_copyright', '© 2025 The Perfect Vape. All Rights Reserved. | Designed, Developed & Managed By Antigravity') ?></p>
+                    <p class="text-12 text-muted mb-15"><?= $s('footer_copyright', '© 2026 The Perfect Vape. All Rights Reserved. | Designed, Developed & Managed By <a href="https://amaanullah.com" target="_blank">Amaan Ullah</a>') ?></p>
                     <div class="payment-methods">
                         <?php 
                         for($i=1; $i<=8; $i++) {
@@ -100,7 +100,6 @@ $s = function($key, $default = '') use ($settings) {
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
 <script src="<?= BASE_URL ?>/js/cart.js"></script>
 <script src="<?= BASE_URL ?>/js/main.js"></script>
 </body>

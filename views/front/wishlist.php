@@ -1,5 +1,6 @@
 <?php
 $pageTitle = "My Wishlist | The Perfect Vape";
+$noIndex = true;
 require 'partials/header.php';
 ?>
 

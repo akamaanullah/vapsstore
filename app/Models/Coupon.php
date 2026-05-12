@@ -7,7 +7,7 @@ use PDO;
 class Coupon extends Model {
     protected $table = 'coupons';
 
-    public function all() {
+    public function all($limit = 1000) {
         $stmt = $this->db->query("SELECT * FROM {$this->table} ORDER BY id DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
