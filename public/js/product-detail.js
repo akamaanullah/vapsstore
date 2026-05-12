@@ -145,26 +145,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Review Form Submission
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', (e) => {
+    const submitReviewForm = document.getElementById('submitReviewForm');
+    if (submitReviewForm) {
+        submitReviewForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            if (!ratingInput.value) {
-                alert('Please select a rating!');
-                return;
-            }
-
-            // AJAX Submission Placeholder
-            const formData = new FormData(reviewForm);
-            console.log('Review Submitted:', Object.fromEntries(formData));
-
-            alert('Thank you! Your review has been submitted for approval.');
-
-            reviewForm.reset();
-            ratingInput.value = '';
-            highlightStars(0);
-            reviewFormContainer.style.display = 'none';
+            // AJAX Submission
+            const formData = new FormData(submitReviewForm);
+            
+            fetch(BASE_URL + '/api/review/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message in UI
+                    const formWrapper = submitReviewForm.closest('.form-wrapper');
+                    if (formWrapper) {
+                        formWrapper.innerHTML = `
+                            <div class="review-success-msg" style="text-align:center; padding: 40px 0;">
+                                <i data-lucide="check-circle" style="width: 60px; height: 60px; color: #28a745; margin-bottom: 20px;"></i>
+                                <h3 class="fs-24 mb-10">Thank You!</h3>
+                                <p class="color-gray">${data.message}</p>
+                            </div>
+                        `;
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                } else {
+                    alert(data.message || 'Something went wrong. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
         });
     }
+
+    const variantSelect = document.getElementById('variantSelect');
+    const displayPrice = document.getElementById('displayPrice');
+    const comparePriceContainer = document.getElementById('comparePriceContainer');
+    const displayComparePrice = document.getElementById('displayComparePrice');
+    const displaySalePercentage = document.getElementById('displaySalePercentage');
+
+    if (variantSelect && displayPrice) {
+        variantSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const price = parseFloat(selectedOption.getAttribute('data-price'));
+            const comparePrice = parseFloat(selectedOption.getAttribute('data-compare-price'));
+
+            if (!isNaN(price)) {
+                displayPrice.textContent = `£${price.toFixed(2)}`;
+            }
+
+            if (comparePriceContainer && displayComparePrice) {
+                if (!isNaN(comparePrice) && comparePrice > price) {
+                    displayComparePrice.textContent = `£${comparePrice.toFixed(2)}`;
+                    comparePriceContainer.style.display = 'inline-flex';
+                    
+                    if (displaySalePercentage) {
+                        const percent = Math.round(((comparePrice - price) / comparePrice) * 100);
+                        displaySalePercentage.textContent = `Save ${percent}%`;
+                    }
+                } else {
+                    comparePriceContainer.style.display = 'none';
+                }
+            }
+        });
+    }
+
 
 });

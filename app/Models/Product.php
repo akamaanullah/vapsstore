@@ -55,12 +55,13 @@ class Product extends Model {
                 $this->updateVariants($productId, $data['variants']);
             } else {
                 // Create default variant for stock management
-                $variantSql = "INSERT INTO product_variants (product_id, sku, price, stock_quantity, is_default) 
-                               VALUES (?, ?, ?, ?, 1)";
+                $variantSql = "INSERT INTO product_variants (product_id, sku, price, compare_price, stock_quantity, is_default) 
+                               VALUES (?, ?, ?, ?, ?, 1)";
                 $this->db->prepare($variantSql)->execute([
                     $productId,
                     $data['sku'] ?? 'SKU-' . $productId,
                     $data['base_price'],
+                    $data['compare_price'] ?? null,
                     $data['stock'] ?? 0
                 ]);
 
@@ -160,10 +161,10 @@ class Product extends Model {
         $receivedIds = [];
 
         // 2. Prepare statements
-        $updateSql = "UPDATE product_variants SET price = ?, stock_quantity = ?, variant_name = ? WHERE id = ? AND product_id = ?";
+        $updateSql = "UPDATE product_variants SET price = ?, compare_price = ?, stock_quantity = ?, variant_name = ? WHERE id = ? AND product_id = ?";
         $updateStmt = $this->db->prepare($updateSql);
 
-        $insertSql = "INSERT INTO product_variants (product_id, sku, price, stock_quantity, is_default, variant_name) VALUES (?, ?, ?, ?, 0, ?)";
+        $insertSql = "INSERT INTO product_variants (product_id, sku, price, compare_price, stock_quantity, is_default, variant_name) VALUES (?, ?, ?, ?, ?, 0, ?)";
         $insertStmt = $this->db->prepare($insertSql);
 
         $logSql = "INSERT INTO inventory_logs (variant_id, change_amount, reason) VALUES (?, ?, ?)";
@@ -178,6 +179,7 @@ class Product extends Model {
                 // Existing variant - Update it
                 $updateStmt->execute([
                     $v['price'],
+                    !empty($v['compare_price']) ? $v['compare_price'] : null,
                     $newStock,
                     $v['name'],
                     $v['id'],
@@ -195,6 +197,7 @@ class Product extends Model {
                     $productId,
                     $sku,
                     $v['price'],
+                    !empty($v['compare_price']) ? $v['compare_price'] : null,
                     $v['stock'],
                     $v['name']
                 ]);
@@ -536,6 +539,16 @@ class Product extends Model {
             $where[] = "p.base_price <= ?";
             $params[] = $filters['price_max'];
         }
+
+        // Exclude Filter
+        if (!empty($filters['exclude'])) {
+            $excludeIds = is_array($filters['exclude']) ? $filters['exclude'] : [$filters['exclude']];
+            $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+            $where[] = "p.id NOT IN ($placeholders)";
+            foreach ($excludeIds as $id) {
+                $params[] = $id;
+            }
+        }
         
         $whereClause = !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
         
@@ -585,6 +598,32 @@ class Product extends Model {
             'current_page' => $page,
             'last_page' => ceil($total / $perPage)
         ];
+    }
+
+    /**
+     * Get approved reviews for a product
+     */
+    public function getReviews($productId) {
+        $sql = "SELECT * FROM product_reviews WHERE product_id = ? AND status = 'approved' ORDER BY created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Save a new review
+     */
+    public function saveReview($data) {
+        $sql = "INSERT INTO product_reviews (product_id, customer_name, rating, title, comment, status) 
+                VALUES (?, ?, ?, ?, ?, 'pending')";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            $data['product_id'],
+            $data['customer_name'],
+            $data['rating'],
+            $data['title'] ?? null,
+            $data['comment']
+        ]);
     }
 
 }

@@ -1274,6 +1274,33 @@ body.no-scroll {
     color: #fff;
 }
 
+/* Detail Page Badges */
+.detail-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.detail-badge.new {
+    background: #bd0028;
+    color: #fff;
+}
+
+.detail-badge.sale {
+    background: #000;
+    color: #fff;
+}
+
+
 .product-actions {
     position: absolute;
     top: 15px;
@@ -2064,8 +2091,8 @@ body.no-scroll {
     height: 14px;
 }
 
-.stars i.fill {
-    fill: #ffcc00;
+.stars i.fill svg, .stars i.fill svg * {
+    fill: #ffcc00 !important;
 }
 
 @media (max-width: 768px) {
@@ -2907,9 +2934,9 @@ body.no-scroll {
     color: #ddd;
 }
 
-.stars i.fill {
-    color: #ffb800;
-    fill: #ffb800;
+.stars i.fill svg, .stars i.fill svg * {
+    color: #ffb800 !important;
+    fill: #ffb800 !important;
 }
 
 .btn-write-review {
@@ -2975,16 +3002,17 @@ body.no-scroll {
     display: flex;
     gap: 4px;
     justify-content: flex-start;
-    color: #ffcc00;
 }
 
 .review-rating i {
+    color: #ddd;
     width: 14px;
     height: 14px;
 }
 
-.review-rating i.fill {
-    fill: #ffcc00;
+.review-rating i.fill svg, .review-rating i.fill svg * {
+    color: #ffcc00 !important;
+    fill: #ffcc00 !important;
 }
 
 .review-text {
@@ -5702,8 +5730,10 @@ input[type="checkbox"]:checked + .cat-check-label::after {
 .filter-checkbox { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
 .cat-check-label { position: relative; height: 20px; width: 20px; background-color: #fff; border: 2px solid #ddd; border-radius: 4px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; display: inline-block; }
 .filter-checkbox:checked ~ .cat-check-label { background-color: #bd0028; border-color: #bd0028; }
-.cat-check-label:after { content: " \; position: absolute; display: none; left: 6px; top: 2px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.cat-check-label:after { content: ""; position: absolute; display: none; left: 6px; top: 2px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .filter-checkbox:checked ~ .cat-check-label:after { display: block; }
 .cat-filter-group:hover .cat-check-label { border-color: #bd0028; }
 .cat-name, .cat-name-toggle { font-size: 14px; font-weight: 500; color: #444; transition: 0.3s; }
 .filter-checkbox:checked ~ .cat-name, .filter-checkbox:checked ~ .cat-name-toggle { color: #000; font-weight: 600; }
+
+.sale-percentage { background: #fdf2f2; color: #bd0028; padding: 3px 10px; font-size: 13px; font-weight: 700; border-radius: 4px; border: 1px solid rgba(189, 0, 40, 0.1); }

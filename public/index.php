@@ -66,6 +66,7 @@ $router->get('/product/{slug}', 'Front\ProductController@show');
 $router->get('/blog', 'Front\BlogController@index');
 $router->get('/contact-us', 'Front\HomeController@contact');
 $router->get('/wishlist', 'Front\HomeController@wishlist');
+$router->post('/api/review/submit', 'Front\ProductController@submitReview');
 $router->get('/checkout', 'Front\HomeController@checkout');
 
 // Policy Routes

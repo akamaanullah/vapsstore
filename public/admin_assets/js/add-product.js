@@ -158,9 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (nameInput) {
                 const name = nameInput.value;
                 const price = tr.querySelector('input[name*="[price]"]')?.value;
+                const compare_price = tr.querySelector('input[name*="[compare_price]"]')?.value;
                 const stock = tr.querySelector('input[name*="[stock]"]')?.value;
                 const id = tr.querySelector('input[name*="[id]"]')?.value;
-                currentData[name] = { price, stock, id };
+                currentData[name] = { price, compare_price, stock, id };
             }
         });
 
@@ -168,7 +169,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const dbData = JSON.parse(document.getElementById('existingVariantsData')?.textContent || '[]');
         dbData.forEach(v => {
             if (!currentData[v.variant_name]) {
-                currentData[v.variant_name] = { price: v.price, stock: v.stock_quantity, id: v.id };
+                currentData[v.variant_name] = { 
+                    price: v.price, 
+                    compare_price: v.compare_price, 
+                    stock: v.stock_quantity, 
+                    id: v.id 
+                };
             }
         });
 
@@ -185,13 +191,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     <tr>
                         <th style="width: 40px;"><input type="checkbox" id="selectAllVariants"></th>
                         <th>Variant</th>
-                        <th style="width: 150px;">Price</th>
-                        <th style="width: 120px;">Available</th>
+                        <th style="width: 130px;">Price</th>
+                        <th style="width: 130px;">Compare Price</th>
+                        <th style="width: 100px;">Available</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
         const basePrice = document.querySelector('input[name="base_price"]')?.value || '0.00';
+        const baseComparePrice = document.querySelector('input[name="compare_price"]')?.value || '';
         const baseStock = document.querySelector('input[name="stock"]')?.value || '0';
         let globalVariantIndex = 0;
 
@@ -210,12 +218,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                         <td><span class="text-muted-sm fw-500">Multiple</span></td>
                         <td><span class="text-muted-sm fw-500">Multiple</span></td>
+                        <td><span class="text-muted-sm fw-500">Multiple</span></td>
                     </tr>`;
 
                 subVariants.forEach(combo => {
                     const name = combo.join(' / ');
                     const preserved = currentData[name] || {};
                     const price = preserved.price || basePrice;
+                    const compare_price = preserved.compare_price || baseComparePrice;
                     const stock = preserved.stock !== undefined ? preserved.stock : baseStock;
                     const id = preserved.id || '';
 
@@ -233,6 +243,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input type="number" name="variants[${globalVariantIndex}][price]" class="modal-field-input input-sm" value="${price}" step="0.01">
                                 </div>
                             </td>
+                            <td>
+                                <div class="input-prefix-container">
+                                    <span class="prefix">£</span>
+                                    <input type="number" name="variants[${globalVariantIndex}][compare_price]" class="modal-field-input input-sm" value="${compare_price}" step="0.01">
+                                </div>
+                            </td>
                             <td><input type="number" name="variants[${globalVariantIndex}][stock]" class="modal-field-input input-sm" value="${stock}"></td>
                         </tr>`;
                     globalVariantIndex++;
@@ -242,6 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const name = parentValue;
                 const preserved = currentData[name] || {};
                 const price = preserved.price || basePrice;
+                const compare_price = preserved.compare_price || baseComparePrice;
                 const stock = preserved.stock !== undefined ? preserved.stock : baseStock;
                 const id = preserved.id || '';
 
@@ -255,8 +272,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                         <td>
                             <div class="input-prefix-container">
-                                <span class="prefix">$</span>
+                                <span class="prefix">£</span>
                                 <input type="number" name="variants[${globalVariantIndex}][price]" class="modal-field-input input-sm" value="${price}" step="0.01">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-prefix-container">
+                                <span class="prefix">£</span>
+                                <input type="number" name="variants[${globalVariantIndex}][compare_price]" class="modal-field-input input-sm" value="${compare_price}" step="0.01">
                             </div>
                         </td>
                         <td><input type="number" name="variants[${globalVariantIndex}][stock]" class="modal-field-input input-sm" value="${stock}"></td>
@@ -289,6 +312,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="dropdown-menu-custom" id="bulkDropdown">
                             <div class="dropdown-item-custom" data-action="price">
                                 <i data-lucide="dollar-sign" class="icon-xxs"></i> Edit prices
+                            </div>
+                            <div class="dropdown-item-custom" data-action="compare_price">
+                                <i data-lucide="tag" class="icon-xxs"></i> Edit compare prices
                             </div>
                             <div class="dropdown-item-custom" data-action="stock">
                                 <i data-lucide="layers" class="icon-xxs"></i> Edit quantities
@@ -337,6 +363,14 @@ document.addEventListener('DOMContentLoaded', function() {
             input.step = '0.01';
             input.placeholder = '0.00';
             input.value = '';
+        } else if (action === 'compare_price') {
+            title.textContent = 'Edit compare prices';
+            desc.textContent = 'Apply a compare price to all selected variants';
+            prefix.style.display = 'flex';
+            input.type = 'number';
+            input.step = '0.01';
+            input.placeholder = '0.00';
+            input.value = '';
         } else {
             title.textContent = 'Edit quantities';
             desc.textContent = 'Apply a quantity to all selected variants';
@@ -368,6 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (action === 'price') {
                     const priceInput = row.querySelector('input[name*="[price]"]');
                     if (priceInput) priceInput.value = val;
+                } else if (action === 'compare_price') {
+                    const compareInput = row.querySelector('input[name*="[compare_price]"]');
+                    if (compareInput) compareInput.value = val;
                 } else {
                     const stockInput = row.querySelector('input[name*="[stock]"]');
                     if (stockInput) stockInput.value = val;
