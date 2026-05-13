@@ -59,64 +59,92 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.getElementById('signupForm');
 
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Handle login logic here
-            console.log('Login submitted');
             
-            // Show a simple visual feedback
             const btn = loginForm.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Logging in...';
-            if(typeof lucide !== 'undefined') lucide.createIcons();
+            if (typeof UI !== 'undefined') UI.setLoading(btn, true);
             
-            setTimeout(() => {
-                btn.innerHTML = 'Success!';
-                btn.style.backgroundColor = '#28a745'; // success green
-                btn.style.color = '#fff';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style = ''; // reset
-                    window.location.href = 'index.php'; // redirect to home
-                }, 1000);
-            }, 1500);
+            const formData = new FormData(loginForm);
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (typeof UI !== 'undefined') UI.setLoading(btn, false);
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Welcome Back!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    setTimeout(() => {
+                        window.location.href = data.redirect || `${BASE_URL}/`;
+                    }, 1500);
+                } else {
+                    Swal.fire('Login Failed', data.message, 'error');
+                }
+            } catch (error) {
+                if (typeof UI !== 'undefined') UI.setLoading(btn, false);
+                Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+                console.error('Login Error:', error);
+            }
         });
     }
 
     if (signupForm) {
-        signupForm.addEventListener('submit', (e) => {
+        signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const password = document.getElementById('signupPassword').value;
-            const confirm = document.getElementById('signupConfirmPassword').value;
+            const btn = signupForm.querySelector('button[type="submit"]');
+            const password = signupForm.querySelector('[name="password"]').value;
+            const confirm = signupForm.querySelector('[name="confirm_password"]').value;
             
             if(password !== confirm) {
-                alert("Passwords do not match!");
+                Swal.fire('Error', "Passwords do not match!", 'error');
                 return;
             }
             
-            // Handle signup logic here
-            console.log('Sign up submitted');
+            if (typeof UI !== 'undefined') UI.setLoading(btn, true);
             
-            const btn = signupForm.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Creating Account...';
-            if(typeof lucide !== 'undefined') lucide.createIcons();
-            
-            setTimeout(() => {
-                btn.innerHTML = 'Account Created!';
-                btn.style.backgroundColor = '#28a745'; // success green
-                btn.style.color = '#fff';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style = ''; // reset
-                    
-                    // Switch back to login
-                    const loginTab = document.querySelector('.auth-tab[data-target="login"]');
-                    if (loginTab) loginTab.click();
-                    
-                }, 1000);
-            }, 1500);
+            const formData = new FormData(signupForm);
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/signup`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (typeof UI !== 'undefined') UI.setLoading(btn, false);
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Account Created!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    setTimeout(() => {
+                        window.location.href = data.redirect || `${BASE_URL}/`;
+                    }, 2000);
+                } else {
+                    Swal.fire('Registration Failed', data.message, 'error');
+                }
+            } catch (error) {
+                if (typeof UI !== 'undefined') UI.setLoading(btn, false);
+                Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+                console.error('Signup Error:', error);
+            }
         });
     }
 

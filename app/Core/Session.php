@@ -4,6 +4,10 @@ namespace App\Core;
 class Session {
     public static function init() {
         if (session_status() == PHP_SESSION_NONE) {
+            // Use Database Session Handler (Phase 3.2)
+            $handler = new DatabaseSessionHandler();
+            session_set_save_handler($handler, true);
+
             // Set secure session parameters
             ini_set('session.use_only_cookies', 1);
             ini_set('session.use_strict_mode', 1);
@@ -40,19 +44,40 @@ class Session {
     
     // Flash messages (exist only for the next request)
     public static function setFlash($type, $message) {
-        $_SESSION['flash'] = [
+        self::setFlashData('flash', [
             'type' => $type, // 'success', 'error', 'warning'
             'message' => $message
-        ];
+        ]);
     }
     
     public static function getFlash() {
-        if (isset($_SESSION['flash'])) {
-            $flash = $_SESSION['flash'];
-            unset($_SESSION['flash']); // clear after reading
-            return $flash;
+        return self::getFlashData('flash');
+    }
+
+    /**
+     * Set arbitrary data that will only be available for the next request.
+     */
+    public static function setFlashData($key, $value) {
+        $_SESSION['flash_data'][$key] = $value;
+    }
+
+    /**
+     * Get flash data and remove it so it's only read once.
+     */
+    public static function getFlashData($key) {
+        if (isset($_SESSION['flash_data'][$key])) {
+            $value = $_SESSION['flash_data'][$key];
+            unset($_SESSION['flash_data'][$key]);
+            return $value;
         }
         return null;
+    }
+
+    /**
+     * Check if flash data exists without removing it.
+     */
+    public static function hasFlashData($key) {
+        return isset($_SESSION['flash_data'][$key]);
     }
 
     // Check if an admin is logged in

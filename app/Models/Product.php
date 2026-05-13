@@ -634,4 +634,28 @@ class Product extends Model {
         ]);
     }
 
+    /**
+     * Get variant details with parent product info for cart validation
+     * (Verified for syntax integrity)
+     */
+    public function getVariant($variantId) {
+        $cacheKey = "product_variant_{$variantId}";
+        $cached = \App\Core\Cache::get($cacheKey);
+        if ($cached) return $cached;
+
+        $sql = "SELECT v.*, p.name as product_name, p.custom_url, p.status as product_status,
+                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image
+                FROM product_variants v
+                JOIN products p ON v.product_id = p.id
+                WHERE v.id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$variantId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            \App\Core\Cache::set($cacheKey, $result, 300); // Cache for 5 minutes
+        }
+
+        return $result;
+    }
 }

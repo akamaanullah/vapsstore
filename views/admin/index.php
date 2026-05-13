@@ -30,7 +30,7 @@ include __DIR__ . '/partials/header.php';
                 </div>
             </div>
             <div class="stat-card-body">
-                <h2 class="stat-value">$172.87</h2>
+                <h2 class="stat-value">£<?= number_format($stats['total_revenue'], 2) ?></h2>
                 <div class="stat-sparkline">
                     <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 30px; width: 100%;">
                         <path d="M0 25 C 20 25, 40 5, 60 15 S 80 5, 100 10" fill="none" stroke="#6f6af8" stroke-width="2" />
@@ -50,7 +50,7 @@ include __DIR__ . '/partials/header.php';
                 </div>
             </div>
             <div class="stat-card-body">
-                <h2 class="stat-value">19</h2>
+                <h2 class="stat-value"><?= $stats['total_orders'] ?></h2>
                 <div class="stat-sparkline">
                     <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 30px; width: 100%;">
                         <path d="M0 20 L 10 15 L 20 25 L 30 10 L 40 20 L 50 5 L 60 15 L 70 10 L 80 25 L 90 15 L 100 5" fill="none" stroke="#0ea5e9" stroke-width="2" />
@@ -70,7 +70,7 @@ include __DIR__ . '/partials/header.php';
                 </div>
             </div>
             <div class="stat-card-body">
-                <h2 class="stat-value">8</h2>
+                <h2 class="stat-value"><?= $stats['total_customers'] ?></h2>
                 <div class="stat-sparkline">
                     <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 30px; width: 100%;">
                         <circle cx="50" cy="15" r="12" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,2" />
@@ -91,7 +91,7 @@ include __DIR__ . '/partials/header.php';
                 </div>
             </div>
             <div class="stat-card-body">
-                <h2 class="stat-value">65</h2>
+                <h2 class="stat-value"><?= $stats['total_products'] ?></h2>
                 <div class="stat-sparkline">
                     <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 30px; width: 100%;">
                         <rect x="10" y="10" width="10" height="10" fill="#10b981" opacity="0.3" />
@@ -164,27 +164,24 @@ include __DIR__ . '/partials/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><span class="fw-600">#ORD-2401</span></td>
-                            <td>Today, 10:45 AM</td>
-                            <td>John Doe</td>
-                            <td>$156.00</td>
-                            <td><span class="badge-active">Paid</span></td>
-                        </tr>
-                        <tr>
-                            <td><span class="fw-600">#ORD-2402</span></td>
-                            <td>Today, 09:12 AM</td>
-                            <td>Sarah Smith</td>
-                            <td>$89.50</td>
-                            <td><span class="badge-draft">Pending</span></td>
-                        </tr>
-                        <tr>
-                            <td><span class="fw-600">#ORD-2399</span></td>
-                            <td>Yesterday</td>
-                            <td>Mike Johnson</td>
-                            <td>$210.00</td>
-                            <td><span class="badge-active">Paid</span></td>
-                        </tr>
+                        <?php if (empty($stats['recent_orders'])): ?>
+                            <tr><td colspan="5" class="text-center py-10">No recent orders.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($stats['recent_orders'] as $order): ?>
+                            <tr>
+                                <td><a href="<?= BASE_URL ?>/admin/orders/detail/<?= $order['order_number'] ?>" class="fw-600">#<?= $order['order_number'] ?></a></td>
+                                <td><?= date('M d, h:i A', strtotime($order['created_at'])) ?></td>
+                                <td><?= htmlspecialchars($order['customer_first_name'] . ' ' . $order['customer_last_name']) ?></td>
+                                <td>£<?= number_format($order['total_amount'], 2) ?></td>
+                                <td>
+                                    <?php 
+                                        $badge = ($order['payment_status'] === 'paid') ? 'badge-active' : 'badge-draft';
+                                    ?>
+                                    <span class="<?= $badge ?>"><?= ucfirst($order['payment_status']) ?></span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

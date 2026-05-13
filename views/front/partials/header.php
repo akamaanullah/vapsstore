@@ -11,6 +11,13 @@ $img = function($key, $default) use ($settings) {
     if (empty($val)) return BASE_URL . '/' . $default;
     return (strpos($val, 'http') === 0) ? $val : BASE_URL . '/' . $val;
 };
+
+// Calculate cart count server-side for zero-latency UI
+$cart = \App\Core\Session::get('cart') ?: [];
+$cartCount = 0;
+foreach ($cart as $item) {
+    $cartCount += $item['quantity'] ?? 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,6 +40,9 @@ $img = function($key, $default) use ($settings) {
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
@@ -41,6 +51,7 @@ $img = function($key, $default) use ($settings) {
     
     <script>
         const BASE_URL = "<?= BASE_URL ?>";
+        const CSRF_TOKEN = "<?= \App\Core\Session::getCsrfToken() ?>";
     </script>
 </head>
 
@@ -65,11 +76,41 @@ $img = function($key, $default) use ($settings) {
                     </a>
                     <button class="header-icon-btn" id="cartToggle">
                         <i data-lucide="shopping-bag"></i>
-                        <span class="icon-badge cart-count" style="display:none;">0</span>
+                        <span class="icon-badge cart-count" <?= $cartCount > 0 ? '' : 'style="display:none;"' ?>><?= $cartCount ?></span>
                     </button>
-                    <a href="<?= BASE_URL ?>/login" class="header-icon-btn">
-                        <i data-lucide="user"></i>
-                    </a>
+                    <?php if (\App\Core\Session::get('user_id')): ?>
+                        <div class="account-dropdown-wrapper">
+                            <button class="header-icon-btn account-toggle">
+                                <i data-lucide="user"></i>
+                                <span class="user-name-text"><?= explode(' ', \App\Core\Session::get('user_name'))[0] ?></span>
+                                <i data-lucide="chevron-down" class="chevron-icon"></i>
+                            </button>
+                            <div class="account-dropdown-menu">
+                                <div class="dropdown-header">
+                                    <p class="welcome-text">Hi, <?= htmlspecialchars(\App\Core\Session::get('user_name')) ?></p>
+                                    <p class="user-email"><?= htmlspecialchars(\App\Core\Session::get('user_email')) ?></p>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a href="<?= BASE_URL ?>/account/orders" class="dropdown-item">
+                                    <i data-lucide="package"></i> My Orders
+                                </a>
+                                <a href="<?= BASE_URL ?>/track-order" class="dropdown-item">
+                                    <i data-lucide="map-pin"></i> Track Order
+                                </a>
+                                <a href="<?= BASE_URL ?>/account/profile" class="dropdown-item">
+                                    <i data-lucide="settings"></i> Profile Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="<?= BASE_URL ?>/logout" class="dropdown-item logout-link">
+                                    <i data-lucide="log-out"></i> Sign Out
+                                </a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <a href="<?= BASE_URL ?>/login" class="header-icon-btn">
+                            <i data-lucide="user"></i>
+                        </a>
+                    <?php endif; ?>
                     <button class="menu-toggle header-icon-btn" id="mobileMenuToggle">
                         <i data-lucide="menu"></i>
                     </button>
@@ -101,7 +142,7 @@ $img = function($key, $default) use ($settings) {
                     </div>
                     <p class="shipping-note">Taxes and shipping calculated at checkout</p>
                     <button class="btn-checkout" onclick="window.location.href='<?= BASE_URL ?>/checkout'">Proceed to Checkout</button>
-                    <button class="btn-view-cart" onclick="window.location.href='<?= BASE_URL ?>/collection'">View Shopping Cart</button>
+                    <button class="btn-view-cart" onclick="window.location.href='<?= BASE_URL ?>/cart'">View Shopping Cart</button>
                 </div>
             </div>
             <!-- Cart Overlay -->

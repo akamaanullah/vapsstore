@@ -7,35 +7,35 @@ include __DIR__ . '/partials/header.php';
 <div class="page-header-container">
     <h1>Orders</h1>
     
-    <div class="header-actions">
+    <form action="" method="GET" class="header-actions">
         <div class="search-container">
-            <input type="text" placeholder="Search orders..." class="search-input">
+            <input type="text" name="search" placeholder="Search orders..." class="search-input" value="<?= htmlspecialchars($filters['search']) ?>">
         </div>
-        <select class="status-dropdown">
-            <option>Payment: All</option>
-            <option>Paid</option>
-            <option>Pending</option>
-            <option>Refunded</option>
-            <option>Voided</option>
+        <select name="payment_status" class="status-dropdown" onchange="this.form.submit()">
+            <option value="all" <?= $filters['payment_status'] === 'all' ? 'selected' : '' ?>>Payment: All</option>
+            <option value="paid" <?= $filters['payment_status'] === 'paid' ? 'selected' : '' ?>>Paid</option>
+            <option value="pending" <?= $filters['payment_status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
+            <option value="refunded" <?= $filters['payment_status'] === 'refunded' ? 'selected' : '' ?>>Refunded</option>
         </select>
-        <select class="status-dropdown">
-            <option>Fulfillment: All</option>
-            <option>Fulfilled</option>
-            <option>Unfulfilled</option>
+        <select name="shipping_status" class="status-dropdown" onchange="this.form.submit()">
+            <option value="all" <?= $filters['shipping_status'] === 'all' ? 'selected' : '' ?>>Fulfillment: All</option>
+            <option value="shipped" <?= $filters['shipping_status'] === 'shipped' ? 'selected' : '' ?>>Shipped</option>
+            <option value="pending" <?= $filters['shipping_status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
+            <option value="delivered" <?= $filters['shipping_status'] === 'delivered' ? 'selected' : '' ?>>Delivered</option>
         </select>
         <div class="per-page-container">
             <span class="text-label">Rows:</span>
-            <select class="per-page-select">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
+            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                <option value="10" <?= $pagination['per_page'] == 10 ? 'selected' : '' ?>>10</option>
+                <option value="25" <?= $pagination['per_page'] == 25 ? 'selected' : '' ?>>25</option>
+                <option value="50" <?= $pagination['per_page'] == 50 ? 'selected' : '' ?>>50</option>
             </select>
         </div>
-        <button class="btn btn-primary btn-add" id="exportBtn">
+        <button type="button" class="btn btn-primary btn-add" id="exportBtn">
             <i data-lucide="download"></i>
             <span>Export CSV</span>
         </button>
-    </div>
+    </form>
 </div>
 
 <div class="card card-no-padding">
@@ -50,77 +50,68 @@ include __DIR__ . '/partials/header.php';
                     <th class="th-default">Payment Status</th>
                     <th class="th-default">Fulfillment Status</th>
                     <th class="th-default">Items</th>
-                    <th class="th-default">Delivery Status</th>
                     <th class="th-default">Delivery Method</th>
                 </tr>
             </thead>
             <tbody>
-                <?php 
-                $sampleOrders = [
-                    ['order' => '#ORD-1052', 'date' => 'Feb 15, 2026', 'customer' => 'Alice Johnson', 'total' => 125.50, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '3 items', 'delivery_status' => 'Delivered', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1053', 'date' => 'Feb 15, 2026', 'customer' => 'Bob Smith', 'total' => 29.89, 'payment' => 'Pending', 'fulfillment' => 'Unfulfilled', 'items' => '1 item', 'delivery_status' => 'Processing', 'delivery_method' => 'Express'],
-                    ['order' => '#ORD-1054', 'date' => 'Feb 14, 2026', 'customer' => 'Charlie Brown', 'total' => 240.00, 'payment' => 'Refunded', 'fulfillment' => 'Unfulfilled', 'items' => '5 items', 'delivery_status' => 'Cancelled', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1055', 'date' => 'Feb 14, 2026', 'customer' => 'Diana Prince', 'total' => 85.90, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '2 items', 'delivery_status' => 'Shipped', 'delivery_method' => 'Express'],
-                    ['order' => '#ORD-1056', 'date' => 'Feb 13, 2026', 'customer' => 'Ethan Hunt', 'total' => 199.99, 'payment' => 'Voided', 'fulfillment' => 'Unfulfilled', 'items' => '4 items', 'delivery_status' => 'Cancelled', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1057', 'date' => 'Feb 13, 2026', 'customer' => 'Fiona Gallagher', 'total' => 15.00, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '1 item', 'delivery_status' => 'Delivered', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1058', 'date' => 'Feb 12, 2026', 'customer' => 'George Costanza', 'total' => 74.25, 'payment' => 'Pending', 'fulfillment' => 'Unfulfilled', 'items' => '3 items', 'delivery_status' => 'Processing', 'delivery_method' => 'Express'],
-                    ['order' => '#ORD-1059', 'date' => 'Feb 12, 2026', 'customer' => 'Hannah Abbott', 'total' => 45.60, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '2 items', 'delivery_status' => 'Delivered', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1060', 'date' => 'Feb 11, 2026', 'customer' => 'Ian Malcolm', 'total' => 310.45, 'payment' => 'Paid', 'fulfillment' => 'Unfulfilled', 'items' => '7 items', 'delivery_status' => 'Processing', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1061', 'date' => 'Feb 11, 2026', 'customer' => 'Julia Roberts', 'total' => 25.00, 'payment' => 'Refunded', 'fulfillment' => 'Unfulfilled', 'items' => '1 item', 'delivery_status' => 'Cancelled', 'delivery_method' => 'Express'],
-                    ['order' => '#ORD-1062', 'date' => 'Feb 10, 2026', 'customer' => 'Kevin Hart', 'total' => 180.20, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '4 items', 'delivery_status' => 'Shipped', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1063', 'date' => 'Feb 10, 2026', 'customer' => 'Laura Palmer', 'total' => 60.00, 'payment' => 'Pending', 'fulfillment' => 'Unfulfilled', 'items' => '2 items', 'delivery_status' => 'Processing', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1064', 'date' => 'Feb 09, 2026', 'customer' => 'Michael Scott', 'total' => 210.00, 'payment' => 'Voided', 'fulfillment' => 'Unfulfilled', 'items' => '5 items', 'delivery_status' => 'Cancelled', 'delivery_method' => 'Express'],
-                    ['order' => '#ORD-1065', 'date' => 'Feb 09, 2026', 'customer' => 'Nancy Wheeler', 'total' => 95.50, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '3 items', 'delivery_status' => 'Delivered', 'delivery_method' => 'Standard'],
-                    ['order' => '#ORD-1066', 'date' => 'Feb 08, 2026', 'customer' => 'Oscar Martinez', 'total' => 12.99, 'payment' => 'Paid', 'fulfillment' => 'Fulfilled', 'items' => '1 item', 'delivery_status' => 'Delivered', 'delivery_method' => 'Express'],
-                ];
-                
-                foreach ($sampleOrders as $order): ?>
+                <?php if (empty($orders)): ?>
                 <tr>
-                    <td class="td-default">
-                        <a href="<?= BASE_URL ?>/admin/orders/detail/<?php echo str_replace('#', '', $order['order']); ?>" class="order-id-txt">
-                            <?php echo $order['order']; ?>
-                        </a>
-                    </td>
-                    <td class="td-default text-muted"><?php echo $order['date']; ?></td>
-                    <td class="td-product">
-                        <span class="product-name-txt"><?php echo $order['customer']; ?></span>
-                    </td>
-                    <td class="td-default text-price">$<?php echo number_format($order['total'], 2); ?></td>
-                    <td class="td-default">
-                        <?php 
-                        $payClass = 'badge-active';
-                        if ($order['payment'] == 'Pending') { $payClass = 'badge-draft'; }
-                        if ($order['payment'] == 'Refunded') { $payClass = 'badge-neutral'; }
-                        if ($order['payment'] == 'Voided') { $payClass = 'badge-inactive'; }
-                        ?>
-                        <span class="status-badge <?php echo $payClass; ?>">
-                            <?php echo $order['payment']; ?>
-                        </span>
-                    </td>
-                    <td class="td-default">
-                        <?php 
-                        $fulfillClass = 'badge-active';
-                        if ($order['fulfillment'] == 'Unfulfilled') { $fulfillClass = 'badge-draft'; }
-                        ?>
-                        <span class="status-badge <?php echo $fulfillClass; ?>">
-                            <?php echo $order['fulfillment']; ?>
-                        </span>
-                    </td>
-                    <td class="td-default text-muted"><?php echo $order['items']; ?></td>
-                    <td class="td-default text-muted"><?php echo $order['delivery_status']; ?></td>
-                    <td class="td-default text-muted"><?php echo $order['delivery_method']; ?></td>
+                    <td colspan="8" class="text-center py-20">No orders found.</td>
                 </tr>
-                <?php endforeach; ?>
+                <?php else: ?>
+                    <?php foreach ($orders as $order): ?>
+                    <tr>
+                        <td class="td-default">
+                            <a href="<?= BASE_URL ?>/admin/orders/detail/<?= $order['order_number'] ?>" class="order-id-txt">
+                                #<?= $order['order_number'] ?>
+                            </a>
+                        </td>
+                        <td class="td-default text-muted"><?= date('M d, Y', strtotime($order['created_at'])) ?></td>
+                        <td class="td-product">
+                            <span class="product-name-txt"><?= htmlspecialchars($order['customer_first_name'] . ' ' . $order['customer_last_name']) ?></span>
+                            <div class="text-muted-sm"><?= htmlspecialchars($order['customer_email']) ?></div>
+                        </td>
+                        <td class="td-default text-price">£<?= number_format($order['total_amount'], 2) ?></td>
+                        <td class="td-default">
+                            <?php 
+                            $payClass = 'badge-active'; // paid
+                            if ($order['payment_status'] == 'pending') { $payClass = 'badge-draft'; }
+                            if ($order['payment_status'] == 'refunded') { $payClass = 'badge-neutral'; }
+                            if ($order['payment_status'] == 'failed') { $payClass = 'badge-inactive'; }
+                            ?>
+                            <span class="status-badge <?= $payClass; ?>">
+                                <?= ucfirst($order['payment_status']) ?>
+                            </span>
+                        </td>
+                        <td class="td-default">
+                            <?php 
+                            $fulfillClass = 'badge-active'; // delivered/shipped
+                            if ($order['shipping_status'] == 'pending') { $fulfillClass = 'badge-draft'; }
+                            if ($order['shipping_status'] == 'cancelled') { $fulfillClass = 'badge-inactive'; }
+                            ?>
+                            <span class="status-badge <?= $fulfillClass; ?>">
+                                <?= ucfirst($order['shipping_status']) ?>
+                            </span>
+                        </td>
+                        <td class="td-default text-muted"><?= $order['items_count'] ?> items</td>
+                        <td class="td-default text-muted">Standard</td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
     
     <div class="pagination-container">
         <div class="pagination-info">
-            Showing <span id="page-start">1</span> to <span id="page-end">10</span> of <span id="page-total">15</span> entries
+            Showing <span id="page-start"><?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?></span> to <span id="page-end"><?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?></span> of <span id="page-total"><?= $pagination['total'] ?></span> entries
         </div>
         <ul class="pagination">
-            <!-- Populated by JS -->
+            <?php for ($i = 1; $i <= $pagination['last_page']; $i++): ?>
+                <li class="page-item <?= $i == $pagination['current_page'] ? 'active' : '' ?>">
+                    <a href="?page=<?= $i ?>&search=<?= urlencode($filters['search']) ?>&payment_status=<?= $filters['payment_status'] ?>&shipping_status=<?= $filters['shipping_status'] ?>" class="page-link"><?= $i ?></a>
+                </li>
+            <?php endfor; ?>
         </ul>
     </div>
 </div>

@@ -68,6 +68,11 @@ class ErrorHandler {
             return (strpos($val, 'http') === 0) ? $val : BASE_URL . '/' . $val;
         };
 
+        // Clear any existing output buffers to prevent nested/broken layouts
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
         require dirname(__DIR__, 2) . "/views/front/error.php";
         exit;
     }

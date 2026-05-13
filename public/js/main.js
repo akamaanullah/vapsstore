@@ -246,13 +246,16 @@ document.addEventListener('DOMContentLoaded', () => {
             wishlist.push(product);
             localStorage.setItem('wishlist', JSON.stringify(wishlist));
             updateWishlistBadge();
-            // Optional: Simple alert or toast
-            // alert(`${product.name} added to wishlist!`);
+            if (typeof Toast !== 'undefined') {
+                Toast.success(`${product.name} added to wishlist!`);
+            }
         } else {
-            // Optional: Remove if already exists (toggle behavior)
             wishlist = wishlist.filter(item => item.id !== product.id);
             localStorage.setItem('wishlist', JSON.stringify(wishlist));
             updateWishlistBadge();
+            if (typeof Toast !== 'undefined') {
+                Toast.info(`${product.name} removed from wishlist`);
+            }
         }
     };
 
@@ -303,3 +306,65 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Badge Update
     updateWishlistBadge();
 });
+
+/**
+ * Global UI Helpers (Phase 2.3)
+ */
+const Toast = {
+    container: null,
+
+    init() {
+        if (this.container) return;
+        this.container = document.createElement('div');
+        this.container.className = 'toast-container';
+        document.body.appendChild(this.container);
+    },
+
+    show(message, type = 'success', duration = 4000) {
+        this.init();
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        let icon = 'check-circle';
+        if (type === 'error') icon = 'alert-circle';
+        if (type === 'info') icon = 'info';
+
+        toast.innerHTML = `
+            <div class="toast-icon"><i data-lucide="${icon}"></i></div>
+            <div class="toast-message">${message}</div>
+        `;
+
+        this.container.appendChild(toast);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Animate in
+        setTimeout(() => toast.classList.add('active'), 10);
+
+        // Remove
+        setTimeout(() => {
+            toast.classList.remove('active');
+            setTimeout(() => toast.remove(), 400);
+        }, duration);
+    },
+
+    success(msg) { this.show(msg, 'success'); },
+    error(msg) { this.show(msg, 'error'); },
+    info(msg) { this.show(msg, 'info'); }
+};
+
+const UI = {
+    setLoading(btn, isLoading = true) {
+        if (!btn) return;
+        if (isLoading) {
+            btn.classList.add('btn-loading');
+            btn.setAttribute('disabled', 'true');
+        } else {
+            btn.classList.remove('btn-loading');
+            btn.removeAttribute('disabled');
+        }
+    }
+};
+
+// Export to window for access from other scripts
+window.Toast = Toast;
+window.UI = UI;

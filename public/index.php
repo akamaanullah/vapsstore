@@ -1,7 +1,12 @@
 <?php
 // public/index.php
 
-// 1. Simple Autoloader for PSR-4 like namespacing
+// 1. Load Composer Autoloader
+if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require_once dirname(__DIR__) . '/vendor/autoload.php';
+}
+
+// 2. Simple Autoloader for PSR-4 like namespacing
 spl_autoload_register(function ($class) {
     // Project-specific namespace prefix
     $prefix = 'App\\';
@@ -61,6 +66,9 @@ $router->get('/collections/filters/{params}', 'Front\CollectionController@index'
 $router->get('/collection/{slug}', 'Front\CollectionController@show');
 $router->get('/collections/{slug}', 'Front\CollectionController@show');
 
+$router->get('/track-order', 'Front\OrderTrackingController@index');
+$router->get('/track-order/status', 'Front\OrderTrackingController@track');
+$router->get('/order-status', 'Front\OrderTrackingController@track');
 $router->get('/api/collection/search', 'Front\CollectionController@apiSearch');
 $router->get('/product/{slug}', 'Front\ProductController@show');
 // Pages and SEO Routes
@@ -70,8 +78,36 @@ $router->get('/blog/{slug}', 'Front\BlogController@show');
 
 $router->get('/contact-us', 'Front\HomeController@contact');
 $router->get('/wishlist', 'Front\HomeController@wishlist');
+$router->get('/cart', 'Front\HomeController@cart');
 $router->post('/api/review/submit', 'Front\ProductController@submitReview');
-$router->get('/checkout', 'Front\HomeController@checkout');
+$router->get('/checkout', 'Front\CheckoutController@index');
+$router->post('/api/checkout/place', 'Front\CheckoutController@placeOrder');
+$router->get('/checkout/success', 'Front\CheckoutController@success');
+
+// Authentication Routes
+$router->get('/login', 'Front\HomeController@login');
+$router->get('/signup', 'Front\HomeController@signup');
+$router->get('/register', 'Front\HomeController@signup');
+$router->post('/api/auth/login', 'Front\AuthController@login');
+$router->post('/api/auth/signup', 'Front\AuthController@signup');
+$router->get('/logout', 'Front\AuthController@logout');
+
+// Customer Account Routes
+$router->get('/account', 'Front\AccountController@index');
+$router->get('/account/orders', 'Front\AccountController@orders');
+$router->get('/account/profile', 'Front\AccountController@profile');
+$router->get('/account/addresses', 'Front\AccountController@addresses');
+$router->post('/api/account/update', 'Front\AccountController@updateProfile');
+$router->post('/api/account/address/add', 'Front\AccountController@addAddress');
+$router->post('/api/account/address/delete', 'Front\AccountController@deleteAddress');
+$router->post('/api/account/address/default', 'Front\AccountController@setDefaultAddress');
+
+// Cart API Routes
+$router->get('/api/cart', 'Front\CartController@index');
+$router->post('/api/cart/add', 'Front\CartController@add');
+$router->post('/api/cart/update', 'Front\CartController@update');
+$router->post('/api/cart/remove', 'Front\CartController@remove');
+$router->post('/api/cart/clear', 'Front\CartController@clear');
 
 // Policy Routes
 $router->get('/shipping-policy', 'Front\HomeController@shippingPolicy');
@@ -137,6 +173,7 @@ $router->get('/admin/customers', 'Admin\CustomerController@index');
 $router->get('/admin/customers/detail/{id}', 'Admin\CustomerController@detail');
 $router->get('/admin/orders', 'Admin\OrderController@index');
 $router->get('/admin/orders/detail/{id}', 'Admin\OrderController@detail');
+$router->post('/admin/orders/update-status/{id}', 'Admin\OrderController@updateStatus');
 
 // Refunds
 $router->get('/admin/refunds', 'Admin\RefundController@index');

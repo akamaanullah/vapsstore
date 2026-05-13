@@ -38,9 +38,38 @@ class HomeController extends Controller {
         ]);
     }
 
+    public function cart() {
+        $cart = \App\Core\Session::get('cart') ?: [];
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+
+        $this->view('front/cart', [
+            'pageTitle' => 'Shopping Cart | The Perfect Vape',
+            'cart' => [
+                'items' => array_values($cart),
+                'subtotal' => $subtotal,
+                'formatted_subtotal' => '£' . number_format($subtotal, 2)
+            ]
+        ]);
+    }
+
     public function checkout() {
+        $cart = \App\Core\Session::get('cart') ?: [];
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+
+        if (empty($cart)) {
+            $this->redirect('/collection');
+        }
+
         $this->view('front/checkout', [
-            'pageTitle' => 'Checkout | The Perfect Vape'
+            'pageTitle' => 'Checkout | The Perfect Vape',
+            'cart' => $cart,
+            'subtotal' => $subtotal
         ]);
     }
 
@@ -67,5 +96,25 @@ class HomeController extends Controller {
 
     public function fdaDisclaimer() {
         $this->view('front/fda-disclaimer', ['pageTitle' => 'FDA Disclaimer']);
+    }
+
+    public function login() {
+        if (\App\Core\Session::get('user_id')) {
+            $this->redirect('/');
+            return;
+        }
+        $this->view('front/login', [
+            'pageTitle' => 'Login | The Perfect Vape'
+        ]);
+    }
+
+    public function signup() {
+        if (\App\Core\Session::get('user_id')) {
+            $this->redirect('/');
+            return;
+        }
+        $this->view('front/login', [
+            'pageTitle' => 'Sign Up | The Perfect Vape'
+        ]);
     }
 }
