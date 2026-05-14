@@ -12,6 +12,14 @@ class AccountController extends Controller {
             $this->redirect('/login');
             exit;
         }
+
+        // Auto-link any past guest data to this account
+        $userId = Session::get('user_id');
+        $userEmail = Session::get('user_email');
+        if ($userId && $userEmail) {
+            $this->model('Order')->linkGuestOrders($userId, $userEmail);
+            $this->model('UserAddress')->linkGuestAddresses($userId, $userEmail);
+        }
     }
 
     public function index() {
@@ -19,7 +27,7 @@ class AccountController extends Controller {
         $user = $userModel->findByEmail(Session::get('user_email'));
 
         $orderModel = $this->model('Order');
-        $recentOrders = array_slice($orderModel->getByUser(Session::get('user_id')), 0, 3);
+        $recentOrders = array_slice($orderModel->getByUser(Session::get('user_id'), Session::get('user_email')), 0, 3);
 
         $this->view('front/account/dashboard', [
             'pageTitle' => 'Account Dashboard | The Perfect Vape',
@@ -99,7 +107,7 @@ class AccountController extends Controller {
 
     public function orders() {
         $orderModel = $this->model('Order');
-        $orders = $orderModel->getByUser(Session::get('user_id'));
+        $orders = $orderModel->getByUser(Session::get('user_id'), Session::get('user_email'));
 
         $this->view('front/account/orders', [
             'pageTitle' => 'My Orders | The Perfect Vape',

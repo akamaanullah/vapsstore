@@ -658,4 +658,21 @@ class Product extends Model {
 
         return $result;
     }
+
+    public function getWithDefaultVariant($productId) {
+        $sql = "SELECT p.*, v.price, 
+                (SELECT SUM(stock_quantity) FROM product_variants WHERE product_id = p.id) as total_stock,
+                (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) as featured_image
+                FROM products p
+                LEFT JOIN product_variants v ON v.id = (
+                    SELECT id FROM product_variants 
+                    WHERE product_id = p.id 
+                    ORDER BY is_default DESC, id ASC 
+                    LIMIT 1
+                )
+                WHERE p.id = ? AND p.status = 'published'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$productId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }

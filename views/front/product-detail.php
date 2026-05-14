@@ -79,7 +79,7 @@ function getImageUrl($url) {
                 </div>
                 <?php endif; ?>
 
-                <div class="price-area">
+                <div class="price-area" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                     <span class="detail-current-price" id="displayPrice">£<?= number_format($basePrice, 2) ?></span>
                     <span id="comparePriceContainer" style="<?= $comparePrice > 0 ? 'display: inline-flex; align-items: center; gap: 10px;' : 'display: none;' ?>">
                         <span class="detail-old-price" id="displayComparePrice">£<?= number_format($comparePrice, 2) ?></span>
@@ -87,6 +87,9 @@ function getImageUrl($url) {
                             Save <?= $comparePrice > 0 ? round((($comparePrice - $basePrice) / $comparePrice) * 100) : 0 ?>%
                         </span>
                     </span>
+                    <div id="stockStatusContainer" style="font-weight: 700; font-size: 14px;">
+                        <span id="stockStatusText"></span>
+                    </div>
                 </div>
 
                 <a href="#" class="shipping-policy-link">

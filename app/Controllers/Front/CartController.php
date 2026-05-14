@@ -33,17 +33,27 @@ class CartController extends Controller {
 
         $productModel = $this->model('Product');
         
-        // If variantId is not provided, try to find the default variant for this product
+        // If variantId is not provided, find the best available variant
         if ($variantId <= 0) {
             $db = \App\Core\Database::getInstance()->getConnection();
-            $stmt = $db->prepare("SELECT id FROM product_variants WHERE product_id = ? AND is_default = 1 LIMIT 1");
-            $stmt->execute([$productId]);
+            
+            // 1. Try default variant that is in stock
+            $stmt = $db->prepare("SELECT id FROM product_variants WHERE product_id = ? AND is_default = 1 AND stock_quantity >= ? LIMIT 1");
+            $stmt->execute([$productId, $quantity]);
             $v = $stmt->fetch();
+            
+            if (!$v) {
+                // 2. Try ANY variant that is in stock
+                $stmt = $db->prepare("SELECT id FROM product_variants WHERE product_id = ? AND stock_quantity >= ? ORDER BY is_default DESC, id ASC LIMIT 1");
+                $stmt->execute([$productId, $quantity]);
+                $v = $stmt->fetch();
+            }
+
             if ($v) {
                 $variantId = $v['id'];
             } else {
-                // Fallback to first variant
-                $stmt = $db->prepare("SELECT id FROM product_variants WHERE product_id = ? LIMIT 1");
+                // 3. Absolute fallback to default or first (will fail stock check below if totally out)
+                $stmt = $db->prepare("SELECT id FROM product_variants WHERE product_id = ? ORDER BY is_default DESC, id ASC LIMIT 1");
                 $stmt->execute([$productId]);
                 $v = $stmt->fetch();
                 if ($v) $variantId = $v['id'];

@@ -355,13 +355,30 @@ class Order {
     /**
      * Get all orders for a specific user
      */
-    public function getByUser($userId) {
-        $stmt = $this->db->prepare("
-            SELECT * FROM orders 
-            WHERE user_id = ? 
-            ORDER BY created_at DESC
-        ");
-        $stmt->execute([$userId]);
+    public function getByUser($userId, $userEmail = null) {
+        if ($userEmail) {
+            $stmt = $this->db->prepare("
+                SELECT * FROM orders 
+                WHERE user_id = ? OR customer_email = ?
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute([$userId, $userEmail]);
+        } else {
+            $stmt = $this->db->prepare("
+                SELECT * FROM orders 
+                WHERE user_id = ? 
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute([$userId]);
+        }
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Link guest orders to a registered user
+     */
+    public function linkGuestOrders($userId, $email) {
+        $stmt = $this->db->prepare("UPDATE orders SET user_id = ? WHERE customer_email = ? AND user_id IS NULL");
+        return $stmt->execute([$userId, $email]);
     }
 }

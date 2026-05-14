@@ -32,10 +32,10 @@
                     <tbody>
                         <?php foreach ($orders as $order): ?>
                             <tr>
-                                <td>
+                                <td style="white-space: nowrap;">
                                     <span class="order-id">#<?= htmlspecialchars($order['order_number']) ?></span>
                                 </td>
-                                <td><?= date('M d, Y', strtotime($order['created_at'])) ?></td>
+                                <td style="white-space: nowrap;"><?= date('M d, Y', strtotime($order['created_at'])) ?></td>
                                 <td>
                                     <span class="status-badge status-<?= strtolower($order['payment_status']) ?>">
                                         <?= ucfirst($order['payment_status']) ?>

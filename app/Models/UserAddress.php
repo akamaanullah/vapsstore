@@ -40,7 +40,18 @@ class UserAddress {
     public function getByUser($userId) {
         $stmt = $this->db->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC");
         $stmt->execute([$userId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $unique = [];
+        $seen = [];
+        foreach ($rows as $row) {
+            $key = strtolower(trim($row['street']) . '|' . trim($row['city']) . '|' . trim($row['zip']));
+            if (!isset($seen[$key])) {
+                $unique[] = $row;
+                $seen[$key] = true;
+            }
+        }
+        return $unique;
     }
 
     /**
@@ -69,8 +80,22 @@ class UserAddress {
      * Delete an address
      */
     public function delete($id, $userId) {
-        $stmt = $this->db->prepare("DELETE FROM user_addresses WHERE id = ? AND user_id = ?");
-        return $stmt->execute([$id, $userId]);
+        $stmt = $this->db->prepare("SELECT order_id FROM user_addresses WHERE id = ? AND user_id = ?");
+        $stmt->execute([$id, $userId]);
+        $address = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($address) {
+            if (!empty($address['order_id'])) {
+                // If linked to an order, detach it from the address book but preserve the order snapshot
+                $stmt = $this->db->prepare("UPDATE user_addresses SET user_id = NULL WHERE id = ? AND user_id = ?");
+                return $stmt->execute([$id, $userId]);
+            } else {
+                // Not linked to any order, safe to hard delete
+                $stmt = $this->db->prepare("DELETE FROM user_addresses WHERE id = ? AND user_id = ?");
+                return $stmt->execute([$id, $userId]);
+            }
+        }
+        return false;
     }
 
     /**
@@ -97,5 +122,19 @@ class UserAddress {
         $sql = "UPDATE user_addresses SET " . implode(', ', $fields) . ", updated_at = NOW() WHERE id = ? AND user_id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($params);
+    }
+
+    /**
+     * Link guest addresses to a registered user
+     */
+    public function linkGuestAddresses($userId, $email) {
+        $stmt = $this->db->prepare("
+            UPDATE user_addresses 
+            SET user_id = ? 
+            WHERE user_id IS NULL AND order_id IN (
+                SELECT id FROM orders WHERE customer_email = ?
+            )
+        ");
+        return $stmt->execute([$userId, $email]);
     }
 }

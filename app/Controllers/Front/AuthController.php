@@ -26,6 +26,9 @@ class AuthController extends Controller {
             Session::set('user_email', $user['email']);
             Session::set('user_name', $user['first_name'] . ' ' . $user['last_name']);
             Session::set('user_role', $user['role']);
+            
+            // Merge session wishlist to DB
+            $this->mergeWishlist($user['id']);
 
             $this->jsonResponse([
                 'success' => true,
@@ -83,6 +86,9 @@ class AuthController extends Controller {
             Session::set('user_name', $fname . ' ' . $lname);
             Session::set('user_role', 'customer');
 
+            // Merge session wishlist to DB
+            $this->mergeWishlist($userId);
+
             $this->jsonResponse([
                 'success' => true,
                 'message' => 'Account created successfully! Welcome aboard.',
@@ -90,6 +96,17 @@ class AuthController extends Controller {
             ]);
         } else {
             $this->jsonResponse(['success' => false, 'message' => 'Failed to create account. Please try again later.'], 500);
+        }
+    }
+
+    private function mergeWishlist($userId) {
+        $sessionWishlist = Session::get('wishlist') ?: [];
+        if (!empty($sessionWishlist)) {
+            $wishlistModel = $this->model('Wishlist');
+            foreach ($sessionWishlist as $productId) {
+                $wishlistModel->add($userId, (int)$productId);
+            }
+            Session::set('wishlist', []);
         }
     }
 

@@ -219,14 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (optionSelects.length > 0) {
-        optionSelects.forEach(select => {
-            select.addEventListener('change', updateVariantFromOptions);
-        });
-        // Initial sync
-        updateVariantFromOptions();
-    }
-
     if (variantSelect && displayPrice) {
         variantSelect.addEventListener('change', (e) => {
             const selectedOption = e.target.options[e.target.selectedIndex];
@@ -234,11 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const price = parseFloat(selectedOption.getAttribute('data-price'));
             const comparePrice = parseFloat(selectedOption.getAttribute('data-compare-price'));
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
 
+            // Update Price Display
             if (!isNaN(price)) {
                 displayPrice.textContent = `£${price.toFixed(2)}`;
             }
 
+            // Update Compare Price Display
             if (comparePriceContainer && displayComparePrice) {
                 if (!isNaN(comparePrice) && comparePrice > price) {
                     displayComparePrice.textContent = `£${comparePrice.toFixed(2)}`;
@@ -252,8 +247,46 @@ document.addEventListener('DOMContentLoaded', () => {
                     comparePriceContainer.style.display = 'none';
                 }
             }
+
+            // Handle Stock Visibility & Buttons
+            const addToCartBtn = document.getElementById('addToCartDetail');
+            const buyNowBtn = document.getElementById('buyNowDetail');
+            const stockStatusText = document.getElementById('stockStatusText');
+
+            if (stock <= 0) {
+                if (addToCartBtn) {
+                    addToCartBtn.textContent = 'Out of Stock';
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.classList.add('disabled');
+                }
+                if (buyNowBtn) buyNowBtn.style.display = 'none';
+
+                if (stockStatusText) {
+                    stockStatusText.innerHTML = '<i data-lucide="x-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;"></i> Out of Stock';
+                    stockStatusText.style.color = '#ef4444';
+                }
+            } else {
+                if (addToCartBtn) {
+                    addToCartBtn.textContent = 'Add to Cart';
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.classList.remove('disabled');
+                }
+                if (buyNowBtn) buyNowBtn.style.display = 'block';
+
+                if (stockStatusText) {
+                    stockStatusText.innerHTML = '<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;"></i> In Stock';
+                    stockStatusText.style.color = '#22c55e';
+                }
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         });
     }
 
-
+    if (optionSelects.length > 0) {
+        optionSelects.forEach(select => {
+            select.addEventListener('change', updateVariantFromOptions);
+        });
+        // Initial sync - Now it will trigger the listener above correctly
+        updateVariantFromOptions();
+    }
 });

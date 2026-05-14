@@ -2823,6 +2823,16 @@ body.no-scroll {
     box-shadow: 0 10px 20px rgba(189, 0, 40, 0.2);
 }
 
+.btn-add-to-cart.disabled,
+.btn-buy-now.disabled {
+    background: #ccc !important;
+    border-color: #ccc !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 .short-description {
     padding: 25px;
     background: #f9f9f9;
@@ -4946,6 +4956,15 @@ input[type="checkbox"]:checked+.cat-check-label::after {
     transition: 0.3s;
 }
 
+.modern-form input[type="checkbox"],
+.modern-form input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
 .modern-form input:focus {
     border-color: #000;
     outline: none;
@@ -4961,7 +4980,18 @@ input[type="checkbox"]:checked+.cat-check-label::after {
 }
 
 .checkbox-group input {
-    width: auto;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    transform: translateY(1px);
+}
+
+.checkbox-group label {
+    margin: 0;
+    line-height: 1.2;
+    cursor: pointer;
 }
 
 /* Payment & Billing Redesign */
@@ -6616,14 +6646,69 @@ input[type="checkbox"]:checked+.cat-check-label::after {
 }
 
 /* Auth Page Enhancements */
-.toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
-.toast { background: rgba(26, 26, 26, 0.95); color: #fff; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; min-width: 300px; transform: translateX(120%); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: auto; border-left: 4px solid #fff; backdrop-filter: blur(10px); }
-.toast.active { transform: translateX(0); }
-.toast-success { border-left-color: #10b981; }
-.toast-error { border-left-color: #ef4444; }
-.toast-info { border-left-color: #3b82f6; }
-.toast-icon { font-size: 20px; display: flex; align-items: center; }
-.toast-message { font-size: 14px; font-weight: 500; }
+/* Premium Toast System */
+.toast-container { 
+    position: fixed; 
+    bottom: 30px; 
+    right: 30px; 
+    z-index: 10000; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    pointer-events: none; 
+}
+
+.toast { 
+    background: #111111; 
+    color: #ffffff; 
+    padding: 16px 28px; 
+    border-radius: 4px; 
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4); 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    min-width: 320px; 
+    transform: translateX(130%); 
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    pointer-events: auto; 
+    border-left: 5px solid #bd0028; 
+    backdrop-filter: blur(10px); 
+    position: relative;
+    overflow: hidden;
+}
+
+.toast.active { 
+    transform: translateX(0); 
+}
+
+.toast::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(189, 0, 40, 0.08), transparent);
+    pointer-events: none;
+}
+
+.toast-success { border-left-color: #bd0028; }
+.toast-error { border-left-color: #ff3e3e; }
+.toast-info { border-left-color: #000000; }
+
+.toast-icon { 
+    font-size: 22px; 
+    display: flex; 
+    align-items: center; 
+    color: #bd0028;
+}
+
+.toast-message { 
+    font-size: 14px; 
+    font-weight: 700; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
 /* Button Loading States */
 .btn-loading { pointer-events: none; position: relative; color: transparent !important; }
@@ -7161,7 +7246,7 @@ input[type="checkbox"]:checked+.cat-check-label::after {
 
 .account-table th {
     text-align: left;
-    padding: 16px 20px;
+    padding: 16px 10px;
     background: #f9fafb;
     border-bottom: 1px solid #f3f4f6;
     font-size: 12px;
@@ -7172,7 +7257,7 @@ input[type="checkbox"]:checked+.cat-check-label::after {
 }
 
 .account-table td {
-    padding: 16px 20px;
+    padding: 16px 10px;
     border-bottom: 1px solid #f3f4f6;
     font-size: 14px;
     color: #111827;
@@ -7191,6 +7276,33 @@ input[type="checkbox"]:checked+.cat-check-label::after {
 .status-paid, .status-shipped, .status-delivered { background: #f0fdf4; color: #166534; }
 .status-processing { background: #eff6ff; color: #1e40af; }
 .status-cancelled { background: #fef2f2; color: #991b1b; }
+
+.btn-action-view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    background: transparent;
+    color: #bd0028;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+    border: 1px solid #bd0028;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-action-view:hover {
+    background: #bd0028;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(189, 0, 40, 0.15);
+}
+
 
 /* Profile Form - Better Inputs */
 .modern-form .form-group {

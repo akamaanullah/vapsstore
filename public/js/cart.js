@@ -103,13 +103,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullGrid = document.getElementById('cartContentGrid');
             if (fullGrid) {
                 fullGrid.innerHTML = `
-                    <div class="empty-cart-full py-100 text-center w-100" style="grid-column: 1 / -1;">
-                        <i data-lucide="shopping-cart" size="64" class="mb-20"></i>
-                        <h2 class="text-24 fw-bold mb-10">Your cart is empty</h2>
-                        <p class="text-muted mb-30">Looks like you haven't added anything yet.</p>
-                        <a href="${BASE_URL}/collection" class="btn btn-primary">Continue Shopping</a>
+                    <div class="empty-cart-full py-80 text-center w-100" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.02);padding: 30px;">
+                        <div class="empty-cart-icon-wrapper" style="width: 110px; height: 110px; background: #fff5f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
+                            <i data-lucide="shopping-bag" style="width: 48px; height: 48px; color: #bd0028;"></i>
+                        </div>
+                        <h2 class="text-28 fw-bold mb-10" style="color: #111;">Your cart is empty</h2>
+                        <p class="text-muted mb-35" style="max-width: 420px; text-align: center; line-height: 1.5; font-size: 16px; margin-bottom: 20px;">Looks like you haven't added anything to your cart yet. Explore our premium collection and find something you love.</p>
+                        <a href="${BASE_URL}/collection" class="btn-checkout-premium" style="width: auto; padding: 16px 45px; text-decoration: none; border-radius: 4px; font-size: 14px;">START SHOPPING</a>
                     </div>
                 `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
         } else {
             cartFooter.style.display = 'block';
@@ -278,13 +281,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fullCartItemsContainer) fullCartItemsContainer.addEventListener('click', handleCartClick);
 
     document.addEventListener('click', (e) => {
-        const addBtn = e.target.closest('.btn-buy, .btn-add-to-cart, .btn-buy-now');
+        const addBtn = e.target.closest('.btn-buy, .btn-add-to-cart, .btn-buy-now, .btn-wishlist-cart');
         if (addBtn) {
             e.preventDefault();
 
             const card = addBtn.closest('.product-card');
             const slimCard = addBtn.closest('.product-embed-slim');
             const detailPage = document.querySelector('.product-detail-page');
+            const wishlistRow = addBtn.closest('.wishlist-row');
             
             let productId, variantId, quantity;
 
@@ -300,6 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 productId = detailPage.dataset.productId;
                 variantId = document.getElementById('variantSelect')?.value || 0;
                 quantity = document.getElementById('qtyInput')?.value || 1;
+            } else if (wishlistRow || addBtn.classList.contains('btn-wishlist-cart')) {
+                productId = addBtn.dataset.id;
+                variantId = 0; // Use default variant
+                quantity = 1;
             } else {
                 return;
             }

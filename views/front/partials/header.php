@@ -18,6 +18,17 @@ $cartCount = 0;
 foreach ($cart as $item) {
     $cartCount += $item['quantity'] ?? 0;
 }
+
+// Wishlist Logic
+$wishlistIds = [];
+$userId = \App\Core\Session::get('user_id');
+if ($userId) {
+    $wishlistModel = new \App\Models\Wishlist();
+    $wishlistIds = $wishlistModel->getUserProductIds($userId);
+} else {
+    $wishlistIds = \App\Core\Session::get('wishlist') ?: [];
+}
+$wishlistCount = count($wishlistIds);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,6 +63,7 @@ foreach ($cart as $item) {
     <script>
         const BASE_URL = "<?= BASE_URL ?>";
         const CSRF_TOKEN = "<?= \App\Core\Session::getCsrfToken() ?>";
+        let WISHLIST_IDS = <?= json_encode(array_map('intval', $wishlistIds)) ?>;
     </script>
 </head>
 
@@ -72,7 +84,7 @@ foreach ($cart as $item) {
                 <div class="header-actions">
                     <a href="<?= BASE_URL ?>/wishlist" class="header-icon-btn">
                         <i data-lucide="heart"></i>
-                        <span class="icon-badge wishlist-count" style="display:none;">0</span>
+                        <span class="icon-badge wishlist-count" <?= $wishlistCount > 0 ? '' : 'style="display:none;"' ?>><?= $wishlistCount ?></span>
                     </a>
                     <button class="header-icon-btn" id="cartToggle">
                         <i data-lucide="shopping-bag"></i>

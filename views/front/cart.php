@@ -11,11 +11,13 @@ include 'partials/header.php';
 
         <div class="cart-content-grid" id="cartContentGrid">
             <?php if (empty($cart['items'])): ?>
-                <div class="empty-cart-full py-100 text-center w-100" style="grid-column: 1 / -1;">
-                    <i data-lucide="shopping-cart" size="80" class="mb-30 text-muted"></i>
-                    <h2 class="text-28 fw-bold mb-10">Your cart is empty</h2>
-                    <p class="text-muted mb-30">Explore our premium collection and find something you love.</p>
-                    <a href="<?= BASE_URL ?>/collection" class="btn btn-primary">Start Shopping</a>
+                <div class="empty-cart-full py-80 text-center w-100" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.02);">
+                    <div class="empty-cart-icon-wrapper" style="width: 110px; height: 110px; background: #fff5f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
+                        <i data-lucide="shopping-bag" style="width: 48px; height: 48px; color: #bd0028;"></i>
+                    </div>
+                    <h2 class="text-28 fw-bold mb-10" style="color: #111;">Your cart is empty</h2>
+                    <p class="text-muted mb-35" style="max-width: 420px; line-height: 1.5; font-size: 16px;">Looks like you haven't added anything to your cart yet. Explore our premium collection and find something you love.</p>
+                    <a href="<?= BASE_URL ?>/collection" class="btn-checkout-premium" style="width: auto; padding: 16px 45px; text-decoration: none; border-radius: 4px; font-size: 14px;">START SHOPPING</a>
                 </div>
             <?php else: ?>
                 <div class="cart-main-area">

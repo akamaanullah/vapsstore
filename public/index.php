@@ -77,7 +77,10 @@ $router->get('/blog', 'Front\BlogController@index');
 $router->get('/blog/{slug}', 'Front\BlogController@show');
 
 $router->get('/contact-us', 'Front\HomeController@contact');
-$router->get('/wishlist', 'Front\HomeController@wishlist');
+$router->get('/wishlist', 'Front\WishlistController@index');
+$router->post('/api/wishlist/add', 'Front\WishlistController@add');
+$router->post('/api/wishlist/remove', 'Front\WishlistController@remove');
+$router->post('/api/wishlist/clear', 'Front\WishlistController@clear');
 $router->get('/cart', 'Front\HomeController@cart');
 $router->post('/api/review/submit', 'Front\ProductController@submitReview');
 $router->get('/checkout', 'Front\CheckoutController@index');

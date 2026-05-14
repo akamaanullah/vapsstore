@@ -26,10 +26,24 @@ class CheckoutController extends Controller {
             $this->redirect('/collection');
         }
 
+        // Fetch user info and addresses if logged in
+        $userAddresses = [];
+        $userId = Session::get('user_id');
+        $userEmail = Session::get('user_email');
+        
+        if ($userId) {
+            // Link any pending guest addresses just in case
+            $this->model('UserAddress')->linkGuestAddresses($userId, $userEmail);
+            $userAddresses = $this->model('UserAddress')->getByUser($userId);
+        }
+
         $this->view('front/checkout', [
             'pageTitle' => 'Checkout | The Perfect Vape',
             'cart' => $cart,
-            'subtotal' => $subtotal
+            'subtotal' => $subtotal,
+            'userAddresses' => $userAddresses,
+            'userEmail' => $userEmail,
+            'userId' => $userId
         ]);
     }
 
